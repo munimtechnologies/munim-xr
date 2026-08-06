@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Munim XR Example",
+    "slug": "munim-xr-example",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sheehanmunim.munimxrexample"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.sheehanmunim.munimxrexample"
+    },
+    "plugins": [
+      [
+        "munim-xr",
+        {
+          "cameraPermission": "Allow Munim XR Example to use the camera for augmented reality.",
+          "arRequired": false
+        }
+      ]
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

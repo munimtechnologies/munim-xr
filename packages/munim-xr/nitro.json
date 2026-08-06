@@ -1,0 +1,40 @@
+{
+  "$schema": "https://nitro.margelo.com/nitro.schema.json",
+  "cxxNamespace": [
+    "munimxr"
+  ],
+  "ios": {
+    "iosModuleName": "NitroMunimXr"
+  },
+  "android": {
+    "androidNamespace": [
+      "munimxr"
+    ],
+    "androidCxxLibName": "NitroMunimXr"
+  },
+  "autolinking": {
+    "MunimXr": {
+      "ios": {
+        "language": "swift",
+        "implementationClassName": "HybridMunimXr"
+      },
+      "android": {
+        "language": "kotlin",
+        "implementationClassName": "HybridMunimXr"
+      }
+    },
+    "XRView": {
+      "ios": {
+        "language": "swift",
+        "implementationClassName": "HybridXRView"
+      },
+      "android": {
+        "language": "kotlin",
+        "implementationClassName": "HybridXRView"
+      }
+    }
+  },
+  "ignorePaths": [
+    "**/node_modules"
+  ]
+}

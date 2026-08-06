@@ -95,7 +95,7 @@ class HybridXRView(
     context.runOnUiQueueThread {
       try {
         startOnUiThread()
-        promise.resolve()
+        promise.resolve(Unit)
       } catch (error: Throwable) {
         promise.reject(error)
         onError?.invoke(error.message ?: error.javaClass.simpleName)
@@ -126,7 +126,7 @@ class HybridXRView(
         removedPlaneIds.clear()
         anchors.clear()
         startOnUiThread()
-        promise.resolve()
+        promise.resolve(Unit)
       } catch (error: Throwable) {
         promise.reject(error)
         onError?.invoke(error.message ?: error.javaClass.simpleName)

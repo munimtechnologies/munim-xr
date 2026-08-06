@@ -1,5 +1,8 @@
+<!-- Munim Technologies banner -->
+
 <p align="center">
   <a href="https://github.com/munimtechnologies/munim-xr">
+    <img alt="Munim Technologies" height="128" src="./.github/resources/banner.png">
     <h1 align="center">munim-xr</h1>
   </a>
 </p>
@@ -11,7 +14,8 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/munim-xr"><img alt="npm version" src="https://img.shields.io/npm/v/munim-xr.svg?style=flat-square&label=Version&labelColor=000000&color=0066CC" /></a>
   <a href="https://github.com/munimtechnologies/munim-xr/blob/main/LICENSE"><img alt="Apache-2.0 license" src="https://img.shields.io/badge/License-Apache%202.0-success.svg?style=flat-square&color=33CC12" /></a>
-  <a href="https://github.com/munimtechnologies/munim-xr/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/munimtechnologies/munim-xr/actions/workflows/ci.yml/badge.svg" /></a>
+  <a href="https://www.npmtrends.com/munim-xr"><img alt="Monthly downloads" src="https://img.shields.io/npm/dm/munim-xr.svg?style=flat-square&labelColor=gray&color=33CC12&label=Downloads" /></a>
+  <a href="https://www.npmjs.com/package/munim-xr"><img alt="Total downloads" src="https://img.shields.io/npm/dt/munim-xr.svg?style=flat-square&labelColor=gray&color=0066CC&label=Total%20Downloads" /></a>
 </p>
 
 <p align="center">
@@ -20,6 +24,14 @@
   <a href="https://www.munimtech.com/opensource/munim-xr">Documentation</a>
   &ensp;•&ensp;
   <a href="https://github.com/munimtechnologies/munim-xr/issues">Issues</a>
+</p>
+
+<p align="center">
+  <img alt="React Native" src="https://img.shields.io/badge/React%20Native-20232A?style=flat-square&logo=react&logoColor=61DAFB" />
+  <img alt="Expo" src="https://img.shields.io/badge/Expo-000020?style=flat-square&logo=expo&logoColor=white" />
+  <img alt="ARKit" src="https://img.shields.io/badge/ARKit-iOS-111111?style=flat-square&logo=apple&logoColor=white" />
+  <img alt="ARCore" src="https://img.shields.io/badge/ARCore-Android-3DDC84?style=flat-square&logo=android&logoColor=white" />
+  <img alt="Nitro Modules" src="https://img.shields.io/badge/Nitro%20Modules-New%20Architecture-7B61FF?style=flat-square" />
 </p>
 
 ## Why munim-xr

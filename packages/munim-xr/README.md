@@ -1,4 +1,22 @@
-# munim-xr
+<!-- Munim Technologies banner -->
+
+<p align="center">
+  <a href="https://github.com/munimtechnologies/munim-xr">
+    <img alt="Munim Technologies" height="128" src="https://raw.githubusercontent.com/munimtechnologies/munim-xr/main/.github/resources/banner.png">
+    <h1 align="center">munim-xr</h1>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/munim-xr"><img alt="npm version" src="https://img.shields.io/npm/v/munim-xr.svg?style=flat-square&label=Version&labelColor=000000&color=0066CC" /></a>
+  <a href="https://github.com/munimtechnologies/munim-xr/blob/main/LICENSE"><img alt="Apache-2.0 license" src="https://img.shields.io/badge/License-Apache%202.0-success.svg?style=flat-square&color=33CC12" /></a>
+  <a href="https://www.npmtrends.com/munim-xr"><img alt="Monthly downloads" src="https://img.shields.io/npm/dm/munim-xr.svg?style=flat-square&labelColor=gray&color=33CC12&label=Downloads" /></a>
+  <a href="https://www.npmjs.com/package/munim-xr"><img alt="Total downloads" src="https://img.shields.io/npm/dt/munim-xr.svg?style=flat-square&labelColor=gray&color=0066CC&label=Total%20Downloads" /></a>
+</p>
+
+<p align="center">
+  <b>React Native</b> &ensp;•&ensp; <b>Expo</b> &ensp;•&ensp; <b>ARKit</b> &ensp;•&ensp; <b>ARCore</b> &ensp;•&ensp; <b>Nitro Modules</b>
+</p>
 
 Native ARKit and ARCore sessions for Expo and React Native, powered by Nitro Modules.
 

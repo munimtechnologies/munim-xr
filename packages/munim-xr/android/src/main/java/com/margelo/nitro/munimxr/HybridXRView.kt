@@ -253,7 +253,7 @@ class HybridXRView(
     surfaceWidth = width
     surfaceHeight = height
     GLES20.glViewport(0, 0, width, height)
-    val rotation = context.currentActivity?.windowManager?.defaultDisplay?.rotation ?: 0
+    val rotation = view.display?.rotation ?: 0
     session?.setDisplayGeometry(rotation, width, height)
   }
 
@@ -296,7 +296,7 @@ class HybridXRView(
     configure(activeSession)
     if (cameraTextureId != 0) activeSession.setCameraTextureNames(intArrayOf(cameraTextureId))
     if (surfaceWidth > 0 && surfaceHeight > 0) {
-      val rotation = activity.windowManager.defaultDisplay.rotation
+      val rotation = view.display?.rotation ?: 0
       activeSession.setDisplayGeometry(rotation, surfaceWidth, surfaceHeight)
     }
     activeSession.resume()

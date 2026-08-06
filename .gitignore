@@ -16,6 +16,7 @@ yarn-error.log*
 .env
 .env.*
 !.env.example
+.npmrc
 
 # Expo and Metro
 .expo/

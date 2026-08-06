@@ -73,6 +73,9 @@ class HybridXRView(
   private var deliveredReady = false
   private var lastFrameCallbackTimestamp = 0.0
   private var lastTrackingState = XRTrackingState.UNAVAILABLE
+  private var configuredPlaneDetection: XRPlaneDetection? = null
+  private var configuredDepthEnabled: Boolean? = null
+  private var configuredLightEstimationEnabled: Boolean? = null
   private val planeIds = IdentityHashMap<Plane, String>()
   private val removedPlaneIds = Collections.newSetFromMap(IdentityHashMap<Plane, Boolean>())
   private val nextPlaneId = AtomicLong(1)
@@ -87,7 +90,7 @@ class HybridXRView(
   private val textureCoordinates = floatBufferOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f)
 
   override fun afterUpdate() {
-    if (running) reconfigureSession()
+    if (running && configurationChanged()) reconfigureSession()
   }
 
   override fun start(): Promise<Unit> {
@@ -325,15 +328,28 @@ class HybridXRView(
       Config.DepthMode.DISABLED
     }
     activeSession.configure(config)
+    configuredPlaneDetection = planeDetection
+    configuredDepthEnabled = depthEnabled
+    configuredLightEstimationEnabled = lightEstimationEnabled
+  }
+
+  private fun configurationChanged(): Boolean {
+    return configuredPlaneDetection != planeDetection ||
+      configuredDepthEnabled != depthEnabled ||
+      configuredLightEstimationEnabled != lightEstimationEnabled
   }
 
   private fun reconfigureSession() {
     context.runOnUiQueueThread {
       val activeSession = session ?: return@runOnUiQueueThread
       try {
+        running = false
+        view.onPause()
         activeSession.pause()
         configure(activeSession)
         activeSession.resume()
+        view.onResume()
+        running = true
       } catch (error: Throwable) {
         onError?.invoke(error.message ?: error.javaClass.simpleName)
       }
@@ -350,6 +366,9 @@ class HybridXRView(
     }
     session?.close()
     session = null
+    configuredPlaneDetection = null
+    configuredDepthEnabled = null
+    configuredLightEstimationEnabled = null
     latestFrame = null
     latestCameraPose = null
   }

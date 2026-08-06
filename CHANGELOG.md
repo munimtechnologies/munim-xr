@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-08-06
+
+### Fixed
+
+- Prevent Android session reconfiguration from racing the ARCore render thread after React updates, which could surface `SessionPausedException` on start or resume.
+
 ## [0.1.0] - 2026-08-06
 
 ### Added
@@ -17,5 +23,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Runtime support checks and ARCore install/update flow.
 - Expo config plugin, typed example app, native build workflows, and npm provenance publishing.
 
-[Unreleased]: https://github.com/munimtechnologies/munim-xr/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/munimtechnologies/munim-xr/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/munimtechnologies/munim-xr/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/munimtechnologies/munim-xr/releases/tag/v0.1.0

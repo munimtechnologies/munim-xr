@@ -10,7 +10,7 @@ import com.margelo.nitro.core.Promise
 @DoNotStrip
 class HybridMunimXr : HybridMunimXrSpec() {
   override val platform: String = "arcore"
-  override val sdkVersion: String = "ARCore 1.54.0"
+  override val sdkVersion: String = "ARCore 1.56.0"
 
   override fun isSupported(): Boolean {
     return when (ArCoreApk.getInstance().checkAvailability(applicationContext)) {

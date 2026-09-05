@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-05
+
+### Changed
+
+- ARCore updated to 1.56.0.
+- `react-native-nitro-modules` peer range is now `>=0.36.5 <1`. Nitro 0.37.x is held back because it breaks static-library iOS builds on React Native 0.83 and older (margelo/nitro#1573).
+- Example app moved to Expo 57.0.20.
+
+### Fixed
+
+- `pause()` on Android stops the render loop before pausing the ARCore session, so a pause no longer surfaces a spurious `onError` from `Session.update()`.
+
 ## [0.1.1] - 2026-08-06
 
 ### Fixed

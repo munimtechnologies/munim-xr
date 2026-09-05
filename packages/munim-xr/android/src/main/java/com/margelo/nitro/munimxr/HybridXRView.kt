@@ -110,9 +110,12 @@ class HybridXRView(
   override fun pause() {
     context.runOnUiQueueThread {
       try {
+        // Stop the render loop before pausing ARCore: onDrawFrame calling
+        // Session.update() on a paused session throws and would surface a
+        // spurious onError for a pause the app asked for.
+        running = false
         view.onPause()
         session?.pause()
-        running = false
       } catch (error: Throwable) {
         onError?.invoke(error.message ?: error.javaClass.simpleName)
       }

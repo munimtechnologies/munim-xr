@@ -36,18 +36,22 @@
 
 ## Why munim-xr
 
-`munim-xr` gives one typed React Native API to world-tracked augmented reality on iOS and Android. Its Nitro Hybrid View renders the native camera feed and exposes session lifecycle, camera pose, plane detection, hit testing, anchors, light estimates, optional depth, and snapshots.
+`munim-xr` gives one typed React Native API to world-tracked augmented reality on iOS and Android. Its Nitro Hybrid View renders the native camera feed and exposes session lifecycle, camera pose, plane detection, hit testing, anchors, light estimates, image tracking, depth frames, face tracking, LiDAR meshes, and snapshots, plus minimal 3D model placement on iOS.
 
 The package uses ARKit on iOS and ARCore on Android. It contains native code, requires React Native's New Architecture, and does not run in Expo Go.
 
 ## Features
 
 - Native `XRView` backed by `ARSCNView` on iOS and an ARCore `GLSurfaceView` on Android
-- Horizontal and vertical plane detection with add, update, and remove callbacks
-- Throttled frame callbacks with camera pose, tracking state, and ambient light
-- Normalized screen-space hit testing and persistent native anchors
-- Optional scene depth when supported by the device
-- PNG snapshots written to a temporary or cache path
+- Horizontal and vertical plane detection with add, rate-limited update, and remove callbacks
+- Throttled frame callbacks with camera pose, tracking state, and light estimation (ambient intensity, color temperature, main light direction, spherical harmonics)
+- Normalized screen-space hit testing and native anchors whose poses follow tracking refinements
+- Image tracking from PNG/JPEG reference images with add, update, and remove events
+- Depth frames as `ArrayBuffer`s (LiDAR scene depth on iOS, ARCore Depth API on Android)
+- Face tracking with a front-camera session (`mode="face"`)
+- LiDAR scene reconstruction with mesh anchor events and OBJ export (iOS)
+- USDZ/SCN/OBJ model placement with SceneKit (iOS)
+- PNG snapshots written to a temporary or cache path (the newest 10 are kept)
 - ARKit/ARCore availability and install helpers
 - Expo config plugin for camera permission and optional/required AR capabilities
 - Fully typed TypeScript API generated through Nitro Modules
@@ -61,8 +65,14 @@ The package uses ARKit on iOS and ARCore on Android. It contains native code, re
 | Horizontal/vertical planes | Yes | Yes |
 | Hit testing | Plane raycasts | Plane, depth, point, and estimated hits |
 | Native anchors | Yes | Yes |
-| Ambient light estimate | Yes | Yes |
-| Optional depth | Scene Depth when supported | Automatic Depth when supported |
+| Plane classification | ARKit semantic classes | `unknown` (ARCore has no plane semantics) |
+| Light estimation | Ambient intensity + color temperature; directional light and spherical harmonics in face mode | Ambient intensity + color correction, or Environmental HDR main light + spherical harmonics |
+| Environment texturing | `environmentTexturing` | No |
+| Image tracking | `ARReferenceImage` | `AugmentedImageDatabase` |
+| Depth frames | Scene Depth (LiDAR) float32 meters, optional smoothing; TrueDepth in face mode | Depth API uint16 millimeters when supported |
+| Face tracking | `ARFaceTrackingConfiguration` with blend shapes | Augmented Faces (pose + 468-vertex mesh count) |
+| Scene mesh | LiDAR `sceneReconstruction`, mesh events, OBJ export | No |
+| 3D models | SceneKit (`addModel`) | Not yet supported (rejects) |
 | Snapshot | PNG temporary file | PNG cache file |
 | Expo Go | No | No |
 
@@ -180,12 +190,71 @@ if (hits?.[0]) {
 }
 ```
 
+### Image tracking
+
+```tsx
+const images = useMemo(
+  () => [{ name: 'poster', uri: 'https://example.com/poster.jpg', physicalWidthMeters: 0.3 }],
+  []
+)
+
+<XRView
+  detectionImages={images}
+  onImageAnchorAdded={useMemo(() => callback((a: XRImageAnchor) => console.log(a.name, a.pose)), [])}
+  {...otherProps}
+/>
+```
+
+Reference images need plenty of high-contrast detail. Low-quality images are skipped and reported through `onError`. `uri` accepts `file://` paths, absolute paths, and `http(s)://` URLs (Android also accepts `content://`). Up to four images are tracked simultaneously on iOS.
+
+### Depth
+
+```typescript
+if ((await checkAvailability('depth')) === 'supported') {
+  // with depthEnabled on the XRView
+  const frame = await xrRef.current?.getDepthFrame()
+  const depth =
+    frame?.format === 'float32-meters'
+      ? new Float32Array(frame.depth)
+      : new Uint16Array(frame!.depth) // millimeters
+}
+```
+
+Samples are row-major and tightly packed (`width * height`). `confidence` (when present) holds one byte per pixel from 0 (low) to 255 (high). On iOS, `depthSmoothing` switches to `smoothedSceneDepth`. In face mode on devices with a TrueDepth camera, `getDepthFrame()` returns the latest TrueDepth frame, which arrives at a lower rate than the camera.
+
+### Face tracking
+
+Set `mode="face"` to run a front-camera session. `onFaceAdded`, `onFaceUpdated`, and `onFaceRemoved` report the face pose and mesh vertex count. iOS additionally reports these blend shapes: `eyeBlinkLeft`, `eyeBlinkRight`, `jawOpen`, `mouthSmileLeft`, `mouthSmileRight`, `browInnerUp`, `cheekPuff`, `mouthFunnel`, `mouthPucker`, `tongueOut`. Switching modes restarts the session and clears anchors.
+
+### LiDAR mesh (iOS)
+
+```tsx
+<XRView sceneReconstruction="mesh-with-classification" onMeshAnchorUpdated={onMesh} {...otherProps} />
+const objPath = await xrRef.current?.exportMesh()
+```
+
+Mesh anchors report vertex and face counts, and faces per classification when `mesh-with-classification` is used. `exportMesh()` writes all current mesh anchors, in world coordinates, to one OBJ file (the newest 3 exports are kept). On devices without LiDAR the option is ignored and `onError` explains why.
+
+### 3D models (iOS)
+
+```typescript
+const modelId = await xrRef.current?.addModel({
+  uri: 'https://example.com/chair.usdz',
+  anchorId: anchor.id, // optional: follow an anchor or image anchor
+  scale: 1,
+})
+xrRef.current?.setModelTransform(modelId!, pose, 2) // pose relative to the anchor
+xrRef.current?.removeModel(modelId!)
+```
+
+Models are loaded with `SCNScene(url:)` into the existing `ARSCNView` (USDZ, SCN, and OBJ). With `environmentTexturing="automatic"` they pick up reflections from the environment. On Android these methods reject or throw `not yet supported on Android`.
+
 ## API
 
 ### Module functions
 
 - `isSupported(): boolean` — returns the native runtime's immediate support result
-- `checkAvailability(): Promise<XRAvailability>` — reports `supported`, `unsupported`, `not-installed`, `update-required`, or `unknown`
+- `checkAvailability(feature?): Promise<XRAvailability>` — reports `supported`, `unsupported`, `not-installed`, `update-required`, or `unknown`. Pass an `XRFeature` (`world-tracking`, `depth`, `smoothed-depth`, `scene-reconstruction`, `mesh-classification`, `face-tracking`, `image-tracking`, `environmental-hdr`, `models`) to check an optional capability. On Android, feature checks create a short-lived ARCore session, so run them before starting an `XRView`.
 - `requestInstall(): Promise<boolean>` — requests ARCore installation/update on Android; returns the current ARKit support result on iOS
 - `requestCameraPermission(): Promise<boolean>` — requests Android camera permission; iOS prompts when the session starts
 - `getXRPlatform(): string` — returns `arkit` or `arcore`
@@ -195,26 +264,43 @@ if (hits?.[0]) {
 
 - `planeDetection`: `none`, `horizontal`, `vertical`, or `both`
 - `depthEnabled`: enables supported native depth semantics
-- `lightEstimationEnabled`: enables ambient light estimates
+- `lightEstimationEnabled`: enables light estimates
 - `frameCallbackFps`: limits JavaScript frame callback frequency; use `0` to disable
-- `onReady`, `onFrame`, `onTrackingStateChange`, `onPlaneDetected`, `onPlaneUpdated`, `onPlaneRemoved`, `onError`
+- `mode`: `world` (default, rear camera) or `face` (front camera)
+- `trackableUpdateMaxHz`: maximum rate of update events per plane, image, mesh, or face (default `10`, `0` disables updates). Updates are also skipped unless the trackable moved or resized by more than about 1 cm; tracking-state changes are delivered immediately
+- `lightEstimationMode`: `ambient-intensity` (default) or `environmental-hdr` (Android main light + spherical harmonics; on iOS the directional estimate is only available in face mode)
+- `environmentTexturing` (iOS): `none`, `manual`, or `automatic`
+- `depthSmoothing` (iOS): use smoothed scene depth
+- `detectionImages`: `{ name, uri, physicalWidthMeters }[]`
+- `sceneReconstruction` (iOS LiDAR): `none`, `mesh`, or `mesh-with-classification`
+- `onReady`, `onFrame`, `onTrackingStateChange`, `onPlaneDetected`, `onPlaneUpdated`, `onPlaneRemoved`, `onImageAnchorAdded`, `onImageAnchorUpdated`, `onImageAnchorRemoved`, `onMeshAnchorAdded`, `onMeshAnchorUpdated`, `onMeshAnchorRemoved`, `onFaceAdded`, `onFaceUpdated`, `onFaceRemoved`, `onError`
 
 ### `XRView` methods
 
 - `start()` and `pause()` control the native session
 - `reset()` restarts tracking and removes existing native tracking state
 - `hitTest(normalizedX, normalizedY)` returns ordered `XRHitResult` values
-- `createAnchor(pose)`, `removeAnchor(id)`, and `getAnchors()` manage native anchors
+- `createAnchor(pose)`, `removeAnchor(id)`, and `getAnchors()` manage native anchors. `getAnchors()` returns the latest refined poses; `tracking` is `false` while the session cannot track the anchor
 - `getCameraPose()` returns the latest camera pose when available
 - `captureSnapshot()` returns a local PNG path
+- `getDepthFrame()` returns the latest `XRDepthFrame`
+- `exportMesh()` (iOS) writes the LiDAR mesh to an OBJ file and returns its path
+- `addModel(options)`, `removeModel(id)`, `setModelTransform(id, pose, scale?)` (iOS) manage SceneKit models
+
+### Coordinates
+
+- A pose matrix contains 16 column-major values in native AR coordinates, measured in meters.
+- `XRPlane.center` is in world space on both platforms. `localCenter` is the same point relative to `pose` (on Android `pose` is the plane's center pose, so `localCenter` is zero). On iOS 16+, `extentRotationY` gives the extent rectangle's rotation around the plane's Y axis.
+- Light: iOS ambient intensity is in lumens (about 1000 is neutral) with a color temperature in Kelvin; Android ambient intensity is an average pixel intensity from 0 to 1. Spherical harmonics are 27 values ordered as nine `[r, g, b]` triplets on both platforms.
 
 ## Runtime notes
 
 - AR support varies by device. Check availability before exposing an AR-only flow.
 - ARCore installation can take the user out of the app. If `requestInstall()` returns `false`, ask them to finish installation and try again.
-- A pose matrix contains 16 column-major values in native AR coordinates, measured in meters.
 - Frame callbacks cross the native/JavaScript boundary. Keep `frameCallbackFps` as low as your UI permits.
-- A snapshot path points into temporary app storage; move the file if it must persist.
+- Snapshot and mesh-export paths point into temporary app storage (`munim-xr/` under the temporary or cache directory). Only the newest 10 snapshots and 3 mesh exports are kept, so move a file if it must persist.
+- On Android the session pauses when the app goes to the background (releasing the camera) and resumes when it returns, if it was running.
+- iOS renders through SceneKit (`ARSCNView`). Apple has soft-deprecated SceneKit in favor of RealityKit; a RealityKit migration is a known follow-up and is not part of this release.
 - The iOS Simulator can compile the module but does not provide a normal world-tracking ARKit session.
 
 ## Development

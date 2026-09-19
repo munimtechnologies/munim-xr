@@ -24,6 +24,8 @@
 #include "JXRQuaternion.hpp"
 #include <vector>
 #include <optional>
+#include "XRLightEstimate.hpp"
+#include "JXRLightEstimate.hpp"
 
 namespace margelo::nitro::munimxr {
 

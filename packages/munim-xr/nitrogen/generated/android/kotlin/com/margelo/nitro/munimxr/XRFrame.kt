@@ -29,7 +29,10 @@ data class XRFrame(
   val cameraPose: XRPose,
   @DoNotStrip
   @Keep
-  val lightIntensity: Double?
+  val lightIntensity: Double?,
+  @DoNotStrip
+  @Keep
+  val lightEstimate: XRLightEstimate?
 ) {
   /* primary constructor */
 
@@ -40,6 +43,7 @@ data class XRFrame(
       && Objects.deepEquals(this.trackingState, other.trackingState)
       && Objects.deepEquals(this.cameraPose, other.cameraPose)
       && Objects.deepEquals(this.lightIntensity, other.lightIntensity)
+      && Objects.deepEquals(this.lightEstimate, other.lightEstimate)
   }
 
   override fun hashCode(): Int {
@@ -47,7 +51,8 @@ data class XRFrame(
       timestamp,
       trackingState,
       cameraPose,
-      lightIntensity
+      lightIntensity,
+      lightEstimate
     ).contentDeepHashCode()
   }
 
@@ -59,8 +64,8 @@ data class XRFrame(
     @Keep
     @Suppress("unused")
     @JvmStatic
-    private fun fromCpp(timestamp: Double, trackingState: XRTrackingState, cameraPose: XRPose, lightIntensity: Double?): XRFrame {
-      return XRFrame(timestamp, trackingState, cameraPose, lightIntensity)
+    private fun fromCpp(timestamp: Double, trackingState: XRTrackingState, cameraPose: XRPose, lightIntensity: Double?, lightEstimate: XRLightEstimate?): XRFrame {
+      return XRFrame(timestamp, trackingState, cameraPose, lightIntensity, lightEstimate)
     }
   }
 }

@@ -29,8 +29,8 @@ namespace margelo::nitro::munimxr {
    * An enum which can be represented as a JavaScript union (XRHitType).
    */
   enum class XRHitType {
-    PLANE      SWIFT_NAME(plane) = 0,
-    DEPTH      SWIFT_NAME(depth) = 1,
+    DEPTH      SWIFT_NAME(depth) = 0,
+    PLANE      SWIFT_NAME(plane) = 1,
     FEATURE_POINT      SWIFT_NAME(featurePoint) = 2,
     ESTIMATED      SWIFT_NAME(estimated) = 3,
   } CLOSED_ENUM;
@@ -45,8 +45,8 @@ namespace margelo::nitro {
     static inline margelo::nitro::munimxr::XRHitType fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       std::string unionValue = JSIConverter<std::string>::fromJSI(runtime, arg);
       switch (hashString(unionValue.c_str(), unionValue.size())) {
-        case hashString("plane"): return margelo::nitro::munimxr::XRHitType::PLANE;
         case hashString("depth"): return margelo::nitro::munimxr::XRHitType::DEPTH;
+        case hashString("plane"): return margelo::nitro::munimxr::XRHitType::PLANE;
         case hashString("feature-point"): return margelo::nitro::munimxr::XRHitType::FEATURE_POINT;
         case hashString("estimated"): return margelo::nitro::munimxr::XRHitType::ESTIMATED;
         default: [[unlikely]]
@@ -55,8 +55,8 @@ namespace margelo::nitro {
     }
     static inline jsi::Value toJSI(jsi::Runtime& runtime, margelo::nitro::munimxr::XRHitType arg) {
       switch (arg) {
-        case margelo::nitro::munimxr::XRHitType::PLANE: return JSIConverter<std::string>::toJSI(runtime, "plane");
         case margelo::nitro::munimxr::XRHitType::DEPTH: return JSIConverter<std::string>::toJSI(runtime, "depth");
+        case margelo::nitro::munimxr::XRHitType::PLANE: return JSIConverter<std::string>::toJSI(runtime, "plane");
         case margelo::nitro::munimxr::XRHitType::FEATURE_POINT: return JSIConverter<std::string>::toJSI(runtime, "feature-point");
         case margelo::nitro::munimxr::XRHitType::ESTIMATED: return JSIConverter<std::string>::toJSI(runtime, "estimated");
         default: [[unlikely]]
@@ -70,8 +70,8 @@ namespace margelo::nitro {
       }
       std::string unionValue = JSIConverter<std::string>::fromJSI(runtime, value);
       switch (hashString(unionValue.c_str(), unionValue.size())) {
-        case hashString("plane"):
         case hashString("depth"):
+        case hashString("plane"):
         case hashString("feature-point"):
         case hashString("estimated"):
           return true;

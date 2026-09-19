@@ -17,12 +17,21 @@
 #include <react/renderer/components/view/ViewProps.h>
 
 #include "XRPlaneDetection.hpp"
-#include <functional>
+#include "XRSessionMode.hpp"
 #include <optional>
+#include "XRLightEstimationMode.hpp"
+#include "XREnvironmentTexturing.hpp"
+#include "XRDetectionImage.hpp"
+#include <vector>
+#include "XRSceneReconstruction.hpp"
+#include <functional>
 #include "XRFrame.hpp"
 #include "XRTrackingState.hpp"
 #include "XRPlane.hpp"
 #include <string>
+#include "XRImageAnchor.hpp"
+#include "XRMeshAnchor.hpp"
+#include "XRFace.hpp"
 #include <memory>
 #include "HybridXRViewSpec.hpp"
 
@@ -50,12 +59,28 @@ namespace margelo::nitro::munimxr::views {
     CachedProp<bool> depthEnabled;
     CachedProp<bool> lightEstimationEnabled;
     CachedProp<double> frameCallbackFps;
+    CachedProp<std::optional<XRSessionMode>> mode;
+    CachedProp<std::optional<double>> trackableUpdateMaxHz;
+    CachedProp<std::optional<XRLightEstimationMode>> lightEstimationMode;
+    CachedProp<std::optional<XREnvironmentTexturing>> environmentTexturing;
+    CachedProp<std::optional<bool>> depthSmoothing;
+    CachedProp<std::optional<std::vector<XRDetectionImage>>> detectionImages;
+    CachedProp<std::optional<XRSceneReconstruction>> sceneReconstruction;
     CachedProp<std::optional<std::function<void()>>> onReady;
     CachedProp<std::optional<std::function<void(const XRFrame& /* frame */)>>> onFrame;
     CachedProp<std::optional<std::function<void(XRTrackingState /* state */)>>> onTrackingStateChange;
     CachedProp<std::optional<std::function<void(const XRPlane& /* plane */)>>> onPlaneDetected;
     CachedProp<std::optional<std::function<void(const XRPlane& /* plane */)>>> onPlaneUpdated;
     CachedProp<std::optional<std::function<void(const std::string& /* planeId */)>>> onPlaneRemoved;
+    CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> onImageAnchorAdded;
+    CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> onImageAnchorUpdated;
+    CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> onImageAnchorRemoved;
+    CachedProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>> onMeshAnchorAdded;
+    CachedProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>> onMeshAnchorUpdated;
+    CachedProp<std::optional<std::function<void(const std::string& /* meshId */)>>> onMeshAnchorRemoved;
+    CachedProp<std::optional<std::function<void(const XRFace& /* face */)>>> onFaceAdded;
+    CachedProp<std::optional<std::function<void(const XRFace& /* face */)>>> onFaceUpdated;
+    CachedProp<std::optional<std::function<void(const std::string& /* faceId */)>>> onFaceRemoved;
     CachedProp<std::optional<std::function<void(const std::string& /* message */)>>> onError;
     CachedProp<std::optional<std::function<void(const std::shared_ptr<HybridXRViewSpec>& /* ref */)>>> hybridRef;
 

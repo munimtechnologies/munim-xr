@@ -8,18 +8,34 @@ import XRViewConfig from '../nitrogen/generated/shared/json/XRViewConfig.json'
 import type {
   MunimXr as MunimXrSpec,
   XRAvailability,
+  XRFeature,
 } from './specs/MunimXr.nitro'
 import type {
   XRAnchor,
+  XRBlendShape,
+  XRDepthFormat,
+  XRDepthFrame,
+  XRDetectionImage,
+  XREnvironmentTexturing,
+  XRFace,
   XRFrame,
   XRHitResult,
   XRHitType,
+  XRImageAnchor,
+  XRLightEstimate,
+  XRLightEstimationMode,
+  XRMeshAnchor,
+  XRMeshClassification,
+  XRMeshClassificationCount,
+  XRModelOptions,
   XRPlane,
   XRPlaneAlignment,
   XRPlaneClassification,
   XRPlaneDetection,
   XRPose,
   XRQuaternion,
+  XRSceneReconstruction,
+  XRSessionMode,
   XRTrackingState,
   XRVector3,
   XRViewMethods,
@@ -48,8 +64,17 @@ export function isSupported(): boolean {
   return MunimXr.isSupported()
 }
 
-export function checkAvailability(): Promise<XRAvailability> {
-  return MunimXr.checkAvailability()
+/**
+ * Without an argument, reports whether world-tracked XR can run. Pass a
+ * feature to check an optional capability such as `depth` or `face-tracking`.
+ *
+ * On Android, feature checks briefly create an ARCore session; call them
+ * before starting an `XRView`, not while one is running.
+ */
+export function checkAvailability(
+  feature?: XRFeature
+): Promise<XRAvailability> {
+  return MunimXr.checkAvailability(feature)
 }
 
 export function requestInstall(): Promise<boolean> {
@@ -68,15 +93,31 @@ export type {
   MunimXrSpec,
   XRAnchor,
   XRAvailability,
+  XRBlendShape,
+  XRDepthFormat,
+  XRDepthFrame,
+  XRDetectionImage,
+  XREnvironmentTexturing,
+  XRFace,
+  XRFeature,
   XRFrame,
   XRHitResult,
   XRHitType,
+  XRImageAnchor,
+  XRLightEstimate,
+  XRLightEstimationMode,
+  XRMeshAnchor,
+  XRMeshClassification,
+  XRMeshClassificationCount,
+  XRModelOptions,
   XRPlane,
   XRPlaneAlignment,
   XRPlaneClassification,
   XRPlaneDetection,
   XRPose,
   XRQuaternion,
+  XRSceneReconstruction,
+  XRSessionMode,
   XRTrackingState,
   XRVector3,
   XRViewMethods,

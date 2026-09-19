@@ -52,6 +52,48 @@ abstract class HybridXRViewSpec: HybridView() {
   @set:Keep
   abstract var frameCallbackFps: Double
   
+  @get:DoNotStrip
+  @get:Keep
+  @set:DoNotStrip
+  @set:Keep
+  abstract var mode: XRSessionMode?
+  
+  @get:DoNotStrip
+  @get:Keep
+  @set:DoNotStrip
+  @set:Keep
+  abstract var trackableUpdateMaxHz: Double?
+  
+  @get:DoNotStrip
+  @get:Keep
+  @set:DoNotStrip
+  @set:Keep
+  abstract var lightEstimationMode: XRLightEstimationMode?
+  
+  @get:DoNotStrip
+  @get:Keep
+  @set:DoNotStrip
+  @set:Keep
+  abstract var environmentTexturing: XREnvironmentTexturing?
+  
+  @get:DoNotStrip
+  @get:Keep
+  @set:DoNotStrip
+  @set:Keep
+  abstract var depthSmoothing: Boolean?
+  
+  @get:DoNotStrip
+  @get:Keep
+  @set:DoNotStrip
+  @set:Keep
+  abstract var detectionImages: Array<XRDetectionImage>?
+  
+  @get:DoNotStrip
+  @get:Keep
+  @set:DoNotStrip
+  @set:Keep
+  abstract var sceneReconstruction: XRSceneReconstruction?
+  
   abstract var onReady: (() -> Unit)?
   
   private var onReady_cxx: Func_void?
@@ -136,6 +178,132 @@ abstract class HybridXRViewSpec: HybridView() {
       onPlaneRemoved = value?.let { it }
     }
   
+  abstract var onImageAnchorAdded: ((anchor: XRImageAnchor) -> Unit)?
+  
+  private var onImageAnchorAdded_cxx: Func_void_XRImageAnchor?
+    @Keep
+    @DoNotStrip
+    get() {
+      return onImageAnchorAdded?.let { Func_void_XRImageAnchor_java(it) }
+    }
+    @Keep
+    @DoNotStrip
+    set(value) {
+      onImageAnchorAdded = value?.let { it }
+    }
+  
+  abstract var onImageAnchorUpdated: ((anchor: XRImageAnchor) -> Unit)?
+  
+  private var onImageAnchorUpdated_cxx: Func_void_XRImageAnchor?
+    @Keep
+    @DoNotStrip
+    get() {
+      return onImageAnchorUpdated?.let { Func_void_XRImageAnchor_java(it) }
+    }
+    @Keep
+    @DoNotStrip
+    set(value) {
+      onImageAnchorUpdated = value?.let { it }
+    }
+  
+  abstract var onImageAnchorRemoved: ((anchor: XRImageAnchor) -> Unit)?
+  
+  private var onImageAnchorRemoved_cxx: Func_void_XRImageAnchor?
+    @Keep
+    @DoNotStrip
+    get() {
+      return onImageAnchorRemoved?.let { Func_void_XRImageAnchor_java(it) }
+    }
+    @Keep
+    @DoNotStrip
+    set(value) {
+      onImageAnchorRemoved = value?.let { it }
+    }
+  
+  abstract var onMeshAnchorAdded: ((mesh: XRMeshAnchor) -> Unit)?
+  
+  private var onMeshAnchorAdded_cxx: Func_void_XRMeshAnchor?
+    @Keep
+    @DoNotStrip
+    get() {
+      return onMeshAnchorAdded?.let { Func_void_XRMeshAnchor_java(it) }
+    }
+    @Keep
+    @DoNotStrip
+    set(value) {
+      onMeshAnchorAdded = value?.let { it }
+    }
+  
+  abstract var onMeshAnchorUpdated: ((mesh: XRMeshAnchor) -> Unit)?
+  
+  private var onMeshAnchorUpdated_cxx: Func_void_XRMeshAnchor?
+    @Keep
+    @DoNotStrip
+    get() {
+      return onMeshAnchorUpdated?.let { Func_void_XRMeshAnchor_java(it) }
+    }
+    @Keep
+    @DoNotStrip
+    set(value) {
+      onMeshAnchorUpdated = value?.let { it }
+    }
+  
+  abstract var onMeshAnchorRemoved: ((meshId: String) -> Unit)?
+  
+  private var onMeshAnchorRemoved_cxx: Func_void_std__string?
+    @Keep
+    @DoNotStrip
+    get() {
+      return onMeshAnchorRemoved?.let { Func_void_std__string_java(it) }
+    }
+    @Keep
+    @DoNotStrip
+    set(value) {
+      onMeshAnchorRemoved = value?.let { it }
+    }
+  
+  abstract var onFaceAdded: ((face: XRFace) -> Unit)?
+  
+  private var onFaceAdded_cxx: Func_void_XRFace?
+    @Keep
+    @DoNotStrip
+    get() {
+      return onFaceAdded?.let { Func_void_XRFace_java(it) }
+    }
+    @Keep
+    @DoNotStrip
+    set(value) {
+      onFaceAdded = value?.let { it }
+    }
+  
+  abstract var onFaceUpdated: ((face: XRFace) -> Unit)?
+  
+  private var onFaceUpdated_cxx: Func_void_XRFace?
+    @Keep
+    @DoNotStrip
+    get() {
+      return onFaceUpdated?.let { Func_void_XRFace_java(it) }
+    }
+    @Keep
+    @DoNotStrip
+    set(value) {
+      onFaceUpdated = value?.let { it }
+    }
+  
+  abstract var onFaceRemoved: ((faceId: String) -> Unit)?
+  
+  private var onFaceRemoved_cxx: Func_void_std__string?
+    @Keep
+    @DoNotStrip
+    get() {
+      return onFaceRemoved?.let { Func_void_std__string_java(it) }
+    }
+    @Keep
+    @DoNotStrip
+    set(value) {
+      onFaceRemoved = value?.let { it }
+    }
+  
   abstract var onError: ((message: String) -> Unit)?
   
   private var onError_cxx: Func_void_std__string?
@@ -186,6 +354,26 @@ abstract class HybridXRViewSpec: HybridView() {
   @DoNotStrip
   @Keep
   abstract fun captureSnapshot(): Promise<String>
+  
+  @DoNotStrip
+  @Keep
+  abstract fun getDepthFrame(): Promise<XRDepthFrame>
+  
+  @DoNotStrip
+  @Keep
+  abstract fun exportMesh(): Promise<String>
+  
+  @DoNotStrip
+  @Keep
+  abstract fun addModel(options: XRModelOptions): Promise<String>
+  
+  @DoNotStrip
+  @Keep
+  abstract fun removeModel(modelId: String): Unit
+  
+  @DoNotStrip
+  @Keep
+  abstract fun setModelTransform(modelId: String, pose: XRPose, scale: Double?): Unit
 
   // Default implementation of `HybridObject.toString()`
   override fun toString(): String {

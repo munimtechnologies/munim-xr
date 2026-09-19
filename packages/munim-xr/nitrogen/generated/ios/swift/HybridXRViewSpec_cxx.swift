@@ -165,6 +165,152 @@ open class HybridXRViewSpec_cxx {
     }
   }
   
+  public final var mode: bridge.std__optional_XRSessionMode_ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_XRSessionMode_ in
+        if let __unwrappedValue = self.__implementation.mode {
+          return bridge.create_std__optional_XRSessionMode_(__unwrappedValue)
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.mode = newValue.value
+    }
+  }
+  
+  public final var trackableUpdateMaxHz: bridge.std__optional_double_ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_double_ in
+        if let __unwrappedValue = self.__implementation.trackableUpdateMaxHz {
+          return bridge.create_std__optional_double_(__unwrappedValue)
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.trackableUpdateMaxHz = { () -> Double? in
+        if bridge.has_value_std__optional_double_(newValue) {
+          let __unwrapped = bridge.get_std__optional_double_(newValue)
+          return __unwrapped
+        } else {
+          return nil
+        }
+      }()
+    }
+  }
+  
+  public final var lightEstimationMode: bridge.std__optional_XRLightEstimationMode_ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_XRLightEstimationMode_ in
+        if let __unwrappedValue = self.__implementation.lightEstimationMode {
+          return bridge.create_std__optional_XRLightEstimationMode_(__unwrappedValue)
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.lightEstimationMode = newValue.value
+    }
+  }
+  
+  public final var environmentTexturing: bridge.std__optional_XREnvironmentTexturing_ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_XREnvironmentTexturing_ in
+        if let __unwrappedValue = self.__implementation.environmentTexturing {
+          return bridge.create_std__optional_XREnvironmentTexturing_(__unwrappedValue)
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.environmentTexturing = newValue.value
+    }
+  }
+  
+  public final var depthSmoothing: bridge.std__optional_bool_ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_bool_ in
+        if let __unwrappedValue = self.__implementation.depthSmoothing {
+          return bridge.create_std__optional_bool_(__unwrappedValue)
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.depthSmoothing = { () -> Bool? in
+        if bridge.has_value_std__optional_bool_(newValue) {
+          let __unwrapped = bridge.get_std__optional_bool_(newValue)
+          return __unwrapped
+        } else {
+          return nil
+        }
+      }()
+    }
+  }
+  
+  public final var detectionImages: bridge.std__optional_std__vector_XRDetectionImage__ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_std__vector_XRDetectionImage__ in
+        if let __unwrappedValue = self.__implementation.detectionImages {
+          return bridge.create_std__optional_std__vector_XRDetectionImage__({ () -> bridge.std__vector_XRDetectionImage_ in
+            var __vector = bridge.create_std__vector_XRDetectionImage_(__unwrappedValue.count)
+            for __item in __unwrappedValue {
+              __vector.push_back(__item)
+            }
+            return __vector
+          }())
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.detectionImages = { () -> [XRDetectionImage]? in
+        if bridge.has_value_std__optional_std__vector_XRDetectionImage__(newValue) {
+          let __unwrapped = bridge.get_std__optional_std__vector_XRDetectionImage__(newValue)
+          return __unwrapped.map({ __item in __item })
+        } else {
+          return nil
+        }
+      }()
+    }
+  }
+  
+  public final var sceneReconstruction: bridge.std__optional_XRSceneReconstruction_ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_XRSceneReconstruction_ in
+        if let __unwrappedValue = self.__implementation.sceneReconstruction {
+          return bridge.create_std__optional_XRSceneReconstruction_(__unwrappedValue)
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.sceneReconstruction = newValue.value
+    }
+  }
+  
   public final var onReady: bridge.std__optional_std__function_void____ {
     @inline(__always)
     get {
@@ -348,6 +494,294 @@ open class HybridXRViewSpec_cxx {
             let __wrappedFunction = bridge.wrap_Func_void_std__string(__unwrapped)
             return { (__planeId: String) -> Void in
               __wrappedFunction.call(std.string(__planeId))
+            }
+          }()
+        } else {
+          return nil
+        }
+      }()
+    }
+  }
+  
+  public final var onImageAnchorAdded: bridge.std__optional_std__function_void_const_XRImageAnchor_____anchor______ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_std__function_void_const_XRImageAnchor_____anchor______ in
+        if let __unwrappedValue = self.__implementation.onImageAnchorAdded {
+          return bridge.create_std__optional_std__function_void_const_XRImageAnchor_____anchor______({ () -> bridge.Func_void_XRImageAnchor in
+            let __closureWrapper = Func_void_XRImageAnchor(__unwrappedValue)
+            return bridge.create_Func_void_XRImageAnchor(__closureWrapper.toUnsafe())
+          }())
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.onImageAnchorAdded = { () -> ((_ anchor: XRImageAnchor) -> Void)? in
+        if bridge.has_value_std__optional_std__function_void_const_XRImageAnchor_____anchor______(newValue) {
+          let __unwrapped = bridge.get_std__optional_std__function_void_const_XRImageAnchor_____anchor______(newValue)
+          return { () -> (XRImageAnchor) -> Void in
+            let __wrappedFunction = bridge.wrap_Func_void_XRImageAnchor(__unwrapped)
+            return { (__anchor: XRImageAnchor) -> Void in
+              __wrappedFunction.call(__anchor)
+            }
+          }()
+        } else {
+          return nil
+        }
+      }()
+    }
+  }
+  
+  public final var onImageAnchorUpdated: bridge.std__optional_std__function_void_const_XRImageAnchor_____anchor______ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_std__function_void_const_XRImageAnchor_____anchor______ in
+        if let __unwrappedValue = self.__implementation.onImageAnchorUpdated {
+          return bridge.create_std__optional_std__function_void_const_XRImageAnchor_____anchor______({ () -> bridge.Func_void_XRImageAnchor in
+            let __closureWrapper = Func_void_XRImageAnchor(__unwrappedValue)
+            return bridge.create_Func_void_XRImageAnchor(__closureWrapper.toUnsafe())
+          }())
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.onImageAnchorUpdated = { () -> ((_ anchor: XRImageAnchor) -> Void)? in
+        if bridge.has_value_std__optional_std__function_void_const_XRImageAnchor_____anchor______(newValue) {
+          let __unwrapped = bridge.get_std__optional_std__function_void_const_XRImageAnchor_____anchor______(newValue)
+          return { () -> (XRImageAnchor) -> Void in
+            let __wrappedFunction = bridge.wrap_Func_void_XRImageAnchor(__unwrapped)
+            return { (__anchor: XRImageAnchor) -> Void in
+              __wrappedFunction.call(__anchor)
+            }
+          }()
+        } else {
+          return nil
+        }
+      }()
+    }
+  }
+  
+  public final var onImageAnchorRemoved: bridge.std__optional_std__function_void_const_XRImageAnchor_____anchor______ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_std__function_void_const_XRImageAnchor_____anchor______ in
+        if let __unwrappedValue = self.__implementation.onImageAnchorRemoved {
+          return bridge.create_std__optional_std__function_void_const_XRImageAnchor_____anchor______({ () -> bridge.Func_void_XRImageAnchor in
+            let __closureWrapper = Func_void_XRImageAnchor(__unwrappedValue)
+            return bridge.create_Func_void_XRImageAnchor(__closureWrapper.toUnsafe())
+          }())
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.onImageAnchorRemoved = { () -> ((_ anchor: XRImageAnchor) -> Void)? in
+        if bridge.has_value_std__optional_std__function_void_const_XRImageAnchor_____anchor______(newValue) {
+          let __unwrapped = bridge.get_std__optional_std__function_void_const_XRImageAnchor_____anchor______(newValue)
+          return { () -> (XRImageAnchor) -> Void in
+            let __wrappedFunction = bridge.wrap_Func_void_XRImageAnchor(__unwrapped)
+            return { (__anchor: XRImageAnchor) -> Void in
+              __wrappedFunction.call(__anchor)
+            }
+          }()
+        } else {
+          return nil
+        }
+      }()
+    }
+  }
+  
+  public final var onMeshAnchorAdded: bridge.std__optional_std__function_void_const_XRMeshAnchor_____mesh______ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_std__function_void_const_XRMeshAnchor_____mesh______ in
+        if let __unwrappedValue = self.__implementation.onMeshAnchorAdded {
+          return bridge.create_std__optional_std__function_void_const_XRMeshAnchor_____mesh______({ () -> bridge.Func_void_XRMeshAnchor in
+            let __closureWrapper = Func_void_XRMeshAnchor(__unwrappedValue)
+            return bridge.create_Func_void_XRMeshAnchor(__closureWrapper.toUnsafe())
+          }())
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.onMeshAnchorAdded = { () -> ((_ mesh: XRMeshAnchor) -> Void)? in
+        if bridge.has_value_std__optional_std__function_void_const_XRMeshAnchor_____mesh______(newValue) {
+          let __unwrapped = bridge.get_std__optional_std__function_void_const_XRMeshAnchor_____mesh______(newValue)
+          return { () -> (XRMeshAnchor) -> Void in
+            let __wrappedFunction = bridge.wrap_Func_void_XRMeshAnchor(__unwrapped)
+            return { (__mesh: XRMeshAnchor) -> Void in
+              __wrappedFunction.call(__mesh)
+            }
+          }()
+        } else {
+          return nil
+        }
+      }()
+    }
+  }
+  
+  public final var onMeshAnchorUpdated: bridge.std__optional_std__function_void_const_XRMeshAnchor_____mesh______ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_std__function_void_const_XRMeshAnchor_____mesh______ in
+        if let __unwrappedValue = self.__implementation.onMeshAnchorUpdated {
+          return bridge.create_std__optional_std__function_void_const_XRMeshAnchor_____mesh______({ () -> bridge.Func_void_XRMeshAnchor in
+            let __closureWrapper = Func_void_XRMeshAnchor(__unwrappedValue)
+            return bridge.create_Func_void_XRMeshAnchor(__closureWrapper.toUnsafe())
+          }())
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.onMeshAnchorUpdated = { () -> ((_ mesh: XRMeshAnchor) -> Void)? in
+        if bridge.has_value_std__optional_std__function_void_const_XRMeshAnchor_____mesh______(newValue) {
+          let __unwrapped = bridge.get_std__optional_std__function_void_const_XRMeshAnchor_____mesh______(newValue)
+          return { () -> (XRMeshAnchor) -> Void in
+            let __wrappedFunction = bridge.wrap_Func_void_XRMeshAnchor(__unwrapped)
+            return { (__mesh: XRMeshAnchor) -> Void in
+              __wrappedFunction.call(__mesh)
+            }
+          }()
+        } else {
+          return nil
+        }
+      }()
+    }
+  }
+  
+  public final var onMeshAnchorRemoved: bridge.std__optional_std__function_void_const_std__string_____meshId______ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_std__function_void_const_std__string_____meshId______ in
+        if let __unwrappedValue = self.__implementation.onMeshAnchorRemoved {
+          return bridge.create_std__optional_std__function_void_const_std__string_____meshId______({ () -> bridge.Func_void_std__string in
+            let __closureWrapper = Func_void_std__string(__unwrappedValue)
+            return bridge.create_Func_void_std__string(__closureWrapper.toUnsafe())
+          }())
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.onMeshAnchorRemoved = { () -> ((_ meshId: String) -> Void)? in
+        if bridge.has_value_std__optional_std__function_void_const_std__string_____meshId______(newValue) {
+          let __unwrapped = bridge.get_std__optional_std__function_void_const_std__string_____meshId______(newValue)
+          return { () -> (String) -> Void in
+            let __wrappedFunction = bridge.wrap_Func_void_std__string(__unwrapped)
+            return { (__meshId: String) -> Void in
+              __wrappedFunction.call(std.string(__meshId))
+            }
+          }()
+        } else {
+          return nil
+        }
+      }()
+    }
+  }
+  
+  public final var onFaceAdded: bridge.std__optional_std__function_void_const_XRFace_____face______ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_std__function_void_const_XRFace_____face______ in
+        if let __unwrappedValue = self.__implementation.onFaceAdded {
+          return bridge.create_std__optional_std__function_void_const_XRFace_____face______({ () -> bridge.Func_void_XRFace in
+            let __closureWrapper = Func_void_XRFace(__unwrappedValue)
+            return bridge.create_Func_void_XRFace(__closureWrapper.toUnsafe())
+          }())
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.onFaceAdded = { () -> ((_ face: XRFace) -> Void)? in
+        if bridge.has_value_std__optional_std__function_void_const_XRFace_____face______(newValue) {
+          let __unwrapped = bridge.get_std__optional_std__function_void_const_XRFace_____face______(newValue)
+          return { () -> (XRFace) -> Void in
+            let __wrappedFunction = bridge.wrap_Func_void_XRFace(__unwrapped)
+            return { (__face: XRFace) -> Void in
+              __wrappedFunction.call(__face)
+            }
+          }()
+        } else {
+          return nil
+        }
+      }()
+    }
+  }
+  
+  public final var onFaceUpdated: bridge.std__optional_std__function_void_const_XRFace_____face______ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_std__function_void_const_XRFace_____face______ in
+        if let __unwrappedValue = self.__implementation.onFaceUpdated {
+          return bridge.create_std__optional_std__function_void_const_XRFace_____face______({ () -> bridge.Func_void_XRFace in
+            let __closureWrapper = Func_void_XRFace(__unwrappedValue)
+            return bridge.create_Func_void_XRFace(__closureWrapper.toUnsafe())
+          }())
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.onFaceUpdated = { () -> ((_ face: XRFace) -> Void)? in
+        if bridge.has_value_std__optional_std__function_void_const_XRFace_____face______(newValue) {
+          let __unwrapped = bridge.get_std__optional_std__function_void_const_XRFace_____face______(newValue)
+          return { () -> (XRFace) -> Void in
+            let __wrappedFunction = bridge.wrap_Func_void_XRFace(__unwrapped)
+            return { (__face: XRFace) -> Void in
+              __wrappedFunction.call(__face)
+            }
+          }()
+        } else {
+          return nil
+        }
+      }()
+    }
+  }
+  
+  public final var onFaceRemoved: bridge.std__optional_std__function_void_const_std__string_____faceId______ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_std__function_void_const_std__string_____faceId______ in
+        if let __unwrappedValue = self.__implementation.onFaceRemoved {
+          return bridge.create_std__optional_std__function_void_const_std__string_____faceId______({ () -> bridge.Func_void_std__string in
+            let __closureWrapper = Func_void_std__string(__unwrappedValue)
+            return bridge.create_Func_void_std__string(__closureWrapper.toUnsafe())
+          }())
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.onFaceRemoved = { () -> ((_ faceId: String) -> Void)? in
+        if bridge.has_value_std__optional_std__function_void_const_std__string_____faceId______(newValue) {
+          let __unwrapped = bridge.get_std__optional_std__function_void_const_std__string_____faceId______(newValue)
+          return { () -> (String) -> Void in
+            let __wrappedFunction = bridge.wrap_Func_void_std__string(__unwrapped)
+            return { (__faceId: String) -> Void in
+              __wrappedFunction.call(std.string(__faceId))
             }
           }()
         } else {
@@ -546,6 +980,92 @@ open class HybridXRViewSpec_cxx {
     } catch (let __error) {
       let __exceptionPtr = __error.toCpp()
       return bridge.create_Result_std__shared_ptr_Promise_std__string___(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func getDepthFrame() -> bridge.Result_std__shared_ptr_Promise_XRDepthFrame___ {
+    do {
+      let __result = try self.__implementation.getDepthFrame()
+      let __resultCpp = { () -> bridge.std__shared_ptr_Promise_XRDepthFrame__ in
+        let __promise = bridge.create_std__shared_ptr_Promise_XRDepthFrame__()
+        let __promiseHolder = bridge.wrap_std__shared_ptr_Promise_XRDepthFrame__(__promise)
+        __result
+          .then({ __result in __promiseHolder.resolve(__result) })
+          .catch({ __error in __promiseHolder.reject(__error.toCpp()) })
+        return __promise
+      }()
+      return bridge.create_Result_std__shared_ptr_Promise_XRDepthFrame___(__resultCpp)
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_std__shared_ptr_Promise_XRDepthFrame___(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func exportMesh() -> bridge.Result_std__shared_ptr_Promise_std__string___ {
+    do {
+      let __result = try self.__implementation.exportMesh()
+      let __resultCpp = { () -> bridge.std__shared_ptr_Promise_std__string__ in
+        let __promise = bridge.create_std__shared_ptr_Promise_std__string__()
+        let __promiseHolder = bridge.wrap_std__shared_ptr_Promise_std__string__(__promise)
+        __result
+          .then({ __result in __promiseHolder.resolve(std.string(__result)) })
+          .catch({ __error in __promiseHolder.reject(__error.toCpp()) })
+        return __promise
+      }()
+      return bridge.create_Result_std__shared_ptr_Promise_std__string___(__resultCpp)
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_std__shared_ptr_Promise_std__string___(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func addModel(options: XRModelOptions) -> bridge.Result_std__shared_ptr_Promise_std__string___ {
+    do {
+      let __result = try self.__implementation.addModel(options: options)
+      let __resultCpp = { () -> bridge.std__shared_ptr_Promise_std__string__ in
+        let __promise = bridge.create_std__shared_ptr_Promise_std__string__()
+        let __promiseHolder = bridge.wrap_std__shared_ptr_Promise_std__string__(__promise)
+        __result
+          .then({ __result in __promiseHolder.resolve(std.string(__result)) })
+          .catch({ __error in __promiseHolder.reject(__error.toCpp()) })
+        return __promise
+      }()
+      return bridge.create_Result_std__shared_ptr_Promise_std__string___(__resultCpp)
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_std__shared_ptr_Promise_std__string___(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func removeModel(modelId: std.string) -> bridge.Result_void_ {
+    do {
+      try self.__implementation.removeModel(modelId: String(modelId))
+      return bridge.create_Result_void_()
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_void_(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func setModelTransform(modelId: std.string, pose: XRPose, scale: bridge.std__optional_double_) -> bridge.Result_void_ {
+    do {
+      try self.__implementation.setModelTransform(modelId: String(modelId), pose: pose, scale: { () -> Double? in
+        if bridge.has_value_std__optional_double_(scale) {
+          let __unwrapped = bridge.get_std__optional_double_(scale)
+          return __unwrapped
+        } else {
+          return nil
+        }
+      }())
+      return bridge.create_Result_void_()
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_void_(__exceptionPtr)
     }
   }
   

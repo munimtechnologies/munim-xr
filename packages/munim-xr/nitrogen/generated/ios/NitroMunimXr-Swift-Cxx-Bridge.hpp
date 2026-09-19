@@ -8,6 +8,8 @@
 #pragma once
 
 // Forward declarations of C++ defined types
+// Forward declaration of `ArrayBufferHolder` to properly resolve imports.
+namespace NitroModules { class ArrayBufferHolder; }
 // Forward declaration of `HybridMunimXrSpec` to properly resolve imports.
 namespace margelo::nitro::munimxr { class HybridMunimXrSpec; }
 // Forward declaration of `HybridXRViewSpec` to properly resolve imports.
@@ -16,12 +18,38 @@ namespace margelo::nitro::munimxr { class HybridXRViewSpec; }
 namespace margelo::nitro::munimxr { struct XRAnchor; }
 // Forward declaration of `XRAvailability` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRAvailability; }
+// Forward declaration of `XRBlendShape` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRBlendShape; }
+// Forward declaration of `XRDepthFormat` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRDepthFormat; }
+// Forward declaration of `XRDepthFrame` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRDepthFrame; }
+// Forward declaration of `XRDetectionImage` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRDetectionImage; }
+// Forward declaration of `XREnvironmentTexturing` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XREnvironmentTexturing; }
+// Forward declaration of `XRFace` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRFace; }
+// Forward declaration of `XRFeature` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRFeature; }
 // Forward declaration of `XRFrame` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRFrame; }
 // Forward declaration of `XRHitResult` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRHitResult; }
 // Forward declaration of `XRHitType` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRHitType; }
+// Forward declaration of `XRImageAnchor` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRImageAnchor; }
+// Forward declaration of `XRLightEstimate` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRLightEstimate; }
+// Forward declaration of `XRLightEstimationMode` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRLightEstimationMode; }
+// Forward declaration of `XRMeshAnchor` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRMeshAnchor; }
+// Forward declaration of `XRMeshClassificationCount` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRMeshClassificationCount; }
+// Forward declaration of `XRMeshClassification` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRMeshClassification; }
 // Forward declaration of `XRPlaneAlignment` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRPlaneAlignment; }
 // Forward declaration of `XRPlaneClassification` to properly resolve imports.
@@ -32,6 +60,10 @@ namespace margelo::nitro::munimxr { struct XRPlane; }
 namespace margelo::nitro::munimxr { struct XRPose; }
 // Forward declaration of `XRQuaternion` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRQuaternion; }
+// Forward declaration of `XRSceneReconstruction` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRSceneReconstruction; }
+// Forward declaration of `XRSessionMode` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRSessionMode; }
 // Forward declaration of `XRTrackingState` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRTrackingState; }
 // Forward declaration of `XRVector3` to properly resolve imports.
@@ -48,16 +80,33 @@ namespace NitroMunimXr { class HybridXRViewSpec_cxx; }
 #include "HybridXRViewSpec.hpp"
 #include "XRAnchor.hpp"
 #include "XRAvailability.hpp"
+#include "XRBlendShape.hpp"
+#include "XRDepthFormat.hpp"
+#include "XRDepthFrame.hpp"
+#include "XRDetectionImage.hpp"
+#include "XREnvironmentTexturing.hpp"
+#include "XRFace.hpp"
+#include "XRFeature.hpp"
 #include "XRFrame.hpp"
 #include "XRHitResult.hpp"
 #include "XRHitType.hpp"
+#include "XRImageAnchor.hpp"
+#include "XRLightEstimate.hpp"
+#include "XRLightEstimationMode.hpp"
+#include "XRMeshAnchor.hpp"
+#include "XRMeshClassification.hpp"
+#include "XRMeshClassificationCount.hpp"
 #include "XRPlane.hpp"
 #include "XRPlaneAlignment.hpp"
 #include "XRPlaneClassification.hpp"
 #include "XRPose.hpp"
 #include "XRQuaternion.hpp"
+#include "XRSceneReconstruction.hpp"
+#include "XRSessionMode.hpp"
 #include "XRTrackingState.hpp"
 #include "XRVector3.hpp"
+#include <NitroModules/ArrayBuffer.hpp>
+#include <NitroModules/ArrayBufferHolder.hpp>
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/PromiseHolder.hpp>
 #include <NitroModules/Result.hpp>
@@ -128,6 +177,21 @@ namespace margelo::nitro::munimxr::bridge::swift {
   Func_void_std__exception_ptr create_Func_void_std__exception_ptr(void* NON_NULL swiftClosureWrapper) noexcept;
   inline Func_void_std__exception_ptr_Wrapper wrap_Func_void_std__exception_ptr(Func_void_std__exception_ptr value) noexcept {
     return Func_void_std__exception_ptr_Wrapper(std::move(value));
+  }
+  
+  // pragma MARK: std::optional<XRFeature>
+  /**
+   * Specialized version of `std::optional<XRFeature>`.
+   */
+  using std__optional_XRFeature_ = std::optional<XRFeature>;
+  inline std::optional<XRFeature> create_std__optional_XRFeature_(const XRFeature& value) noexcept {
+    return std::optional<XRFeature>(value);
+  }
+  inline bool has_value_std__optional_XRFeature_(const std::optional<XRFeature>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline XRFeature get_std__optional_XRFeature_(const std::optional<XRFeature>& optional) noexcept {
+    return optional.value();
   }
   
   // pragma MARK: std::shared_ptr<Promise<bool>>
@@ -203,6 +267,122 @@ namespace margelo::nitro::munimxr::bridge::swift {
     return Result<std::shared_ptr<Promise<bool>>>::withError(error);
   }
   
+  // pragma MARK: std::optional<XRSessionMode>
+  /**
+   * Specialized version of `std::optional<XRSessionMode>`.
+   */
+  using std__optional_XRSessionMode_ = std::optional<XRSessionMode>;
+  inline std::optional<XRSessionMode> create_std__optional_XRSessionMode_(const XRSessionMode& value) noexcept {
+    return std::optional<XRSessionMode>(value);
+  }
+  inline bool has_value_std__optional_XRSessionMode_(const std::optional<XRSessionMode>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline XRSessionMode get_std__optional_XRSessionMode_(const std::optional<XRSessionMode>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::optional<double>
+  /**
+   * Specialized version of `std::optional<double>`.
+   */
+  using std__optional_double_ = std::optional<double>;
+  inline std::optional<double> create_std__optional_double_(const double& value) noexcept {
+    return std::optional<double>(value);
+  }
+  inline bool has_value_std__optional_double_(const std::optional<double>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline double get_std__optional_double_(const std::optional<double>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::optional<XRLightEstimationMode>
+  /**
+   * Specialized version of `std::optional<XRLightEstimationMode>`.
+   */
+  using std__optional_XRLightEstimationMode_ = std::optional<XRLightEstimationMode>;
+  inline std::optional<XRLightEstimationMode> create_std__optional_XRLightEstimationMode_(const XRLightEstimationMode& value) noexcept {
+    return std::optional<XRLightEstimationMode>(value);
+  }
+  inline bool has_value_std__optional_XRLightEstimationMode_(const std::optional<XRLightEstimationMode>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline XRLightEstimationMode get_std__optional_XRLightEstimationMode_(const std::optional<XRLightEstimationMode>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::optional<XREnvironmentTexturing>
+  /**
+   * Specialized version of `std::optional<XREnvironmentTexturing>`.
+   */
+  using std__optional_XREnvironmentTexturing_ = std::optional<XREnvironmentTexturing>;
+  inline std::optional<XREnvironmentTexturing> create_std__optional_XREnvironmentTexturing_(const XREnvironmentTexturing& value) noexcept {
+    return std::optional<XREnvironmentTexturing>(value);
+  }
+  inline bool has_value_std__optional_XREnvironmentTexturing_(const std::optional<XREnvironmentTexturing>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline XREnvironmentTexturing get_std__optional_XREnvironmentTexturing_(const std::optional<XREnvironmentTexturing>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::optional<bool>
+  /**
+   * Specialized version of `std::optional<bool>`.
+   */
+  using std__optional_bool_ = std::optional<bool>;
+  inline std::optional<bool> create_std__optional_bool_(const bool& value) noexcept {
+    return std::optional<bool>(value);
+  }
+  inline bool has_value_std__optional_bool_(const std::optional<bool>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline bool get_std__optional_bool_(const std::optional<bool>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::vector<XRDetectionImage>
+  /**
+   * Specialized version of `std::vector<XRDetectionImage>`.
+   */
+  using std__vector_XRDetectionImage_ = std::vector<XRDetectionImage>;
+  inline std::vector<XRDetectionImage> create_std__vector_XRDetectionImage_(size_t size) noexcept {
+    std::vector<XRDetectionImage> vector;
+    vector.reserve(size);
+    return vector;
+  }
+  
+  // pragma MARK: std::optional<std::vector<XRDetectionImage>>
+  /**
+   * Specialized version of `std::optional<std::vector<XRDetectionImage>>`.
+   */
+  using std__optional_std__vector_XRDetectionImage__ = std::optional<std::vector<XRDetectionImage>>;
+  inline std::optional<std::vector<XRDetectionImage>> create_std__optional_std__vector_XRDetectionImage__(const std::vector<XRDetectionImage>& value) noexcept {
+    return std::optional<std::vector<XRDetectionImage>>(value);
+  }
+  inline bool has_value_std__optional_std__vector_XRDetectionImage__(const std::optional<std::vector<XRDetectionImage>>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::vector<XRDetectionImage> get_std__optional_std__vector_XRDetectionImage__(const std::optional<std::vector<XRDetectionImage>>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::optional<XRSceneReconstruction>
+  /**
+   * Specialized version of `std::optional<XRSceneReconstruction>`.
+   */
+  using std__optional_XRSceneReconstruction_ = std::optional<XRSceneReconstruction>;
+  inline std::optional<XRSceneReconstruction> create_std__optional_XRSceneReconstruction_(const XRSceneReconstruction& value) noexcept {
+    return std::optional<XRSceneReconstruction>(value);
+  }
+  inline bool has_value_std__optional_XRSceneReconstruction_(const std::optional<XRSceneReconstruction>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline XRSceneReconstruction get_std__optional_XRSceneReconstruction_(const std::optional<XRSceneReconstruction>& optional) noexcept {
+    return optional.value();
+  }
+  
   // pragma MARK: std::function<void()>
   /**
    * Specialized version of `std::function<void()>`.
@@ -251,18 +431,48 @@ namespace margelo::nitro::munimxr::bridge::swift {
     return vector;
   }
   
-  // pragma MARK: std::optional<double>
+  // pragma MARK: std::optional<std::vector<double>>
   /**
-   * Specialized version of `std::optional<double>`.
+   * Specialized version of `std::optional<std::vector<double>>`.
    */
-  using std__optional_double_ = std::optional<double>;
-  inline std::optional<double> create_std__optional_double_(const double& value) noexcept {
-    return std::optional<double>(value);
+  using std__optional_std__vector_double__ = std::optional<std::vector<double>>;
+  inline std::optional<std::vector<double>> create_std__optional_std__vector_double__(const std::vector<double>& value) noexcept {
+    return std::optional<std::vector<double>>(value);
   }
-  inline bool has_value_std__optional_double_(const std::optional<double>& optional) noexcept {
+  inline bool has_value_std__optional_std__vector_double__(const std::optional<std::vector<double>>& optional) noexcept {
     return optional.has_value();
   }
-  inline double get_std__optional_double_(const std::optional<double>& optional) noexcept {
+  inline std::vector<double> get_std__optional_std__vector_double__(const std::optional<std::vector<double>>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::optional<XRVector3>
+  /**
+   * Specialized version of `std::optional<XRVector3>`.
+   */
+  using std__optional_XRVector3_ = std::optional<XRVector3>;
+  inline std::optional<XRVector3> create_std__optional_XRVector3_(const XRVector3& value) noexcept {
+    return std::optional<XRVector3>(value);
+  }
+  inline bool has_value_std__optional_XRVector3_(const std::optional<XRVector3>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline XRVector3 get_std__optional_XRVector3_(const std::optional<XRVector3>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::optional<XRLightEstimate>
+  /**
+   * Specialized version of `std::optional<XRLightEstimate>`.
+   */
+  using std__optional_XRLightEstimate_ = std::optional<XRLightEstimate>;
+  inline std::optional<XRLightEstimate> create_std__optional_XRLightEstimate_(const XRLightEstimate& value) noexcept {
+    return std::optional<XRLightEstimate>(value);
+  }
+  inline bool has_value_std__optional_XRLightEstimate_(const std::optional<XRLightEstimate>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline XRLightEstimate get_std__optional_XRLightEstimate_(const std::optional<XRLightEstimate>& optional) noexcept {
     return optional.value();
   }
   
@@ -411,6 +621,169 @@ namespace margelo::nitro::munimxr::bridge::swift {
     return optional.has_value();
   }
   inline std::function<void(const std::string& /* planeId */)> get_std__optional_std__function_void_const_std__string_____planeId______(const std::optional<std::function<void(const std::string& /* planeId */)>>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::function<void(const XRImageAnchor& /* anchor */)>
+  /**
+   * Specialized version of `std::function<void(const XRImageAnchor&)>`.
+   */
+  using Func_void_XRImageAnchor = std::function<void(const XRImageAnchor& /* anchor */)>;
+  /**
+   * Wrapper class for a `std::function<void(const XRImageAnchor& / * anchor * /)>`, this can be used from Swift.
+   */
+  class Func_void_XRImageAnchor_Wrapper final {
+  public:
+    explicit Func_void_XRImageAnchor_Wrapper(std::function<void(const XRImageAnchor& /* anchor */)>&& func): _function(std::make_unique<std::function<void(const XRImageAnchor& /* anchor */)>>(std::move(func))) {}
+    inline void call(XRImageAnchor anchor) const noexcept {
+      _function->operator()(anchor);
+    }
+  private:
+    std::unique_ptr<std::function<void(const XRImageAnchor& /* anchor */)>> _function;
+  } SWIFT_NONCOPYABLE;
+  Func_void_XRImageAnchor create_Func_void_XRImageAnchor(void* NON_NULL swiftClosureWrapper) noexcept;
+  inline Func_void_XRImageAnchor_Wrapper wrap_Func_void_XRImageAnchor(Func_void_XRImageAnchor value) noexcept {
+    return Func_void_XRImageAnchor_Wrapper(std::move(value));
+  }
+  
+  // pragma MARK: std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>
+  /**
+   * Specialized version of `std::optional<std::function<void(const XRImageAnchor& / * anchor * /)>>`.
+   */
+  using std__optional_std__function_void_const_XRImageAnchor_____anchor______ = std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>;
+  inline std::optional<std::function<void(const XRImageAnchor& /* anchor */)>> create_std__optional_std__function_void_const_XRImageAnchor_____anchor______(const std::function<void(const XRImageAnchor& /* anchor */)>& value) noexcept {
+    return std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>(value);
+  }
+  inline bool has_value_std__optional_std__function_void_const_XRImageAnchor_____anchor______(const std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::function<void(const XRImageAnchor& /* anchor */)> get_std__optional_std__function_void_const_XRImageAnchor_____anchor______(const std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::vector<XRMeshClassificationCount>
+  /**
+   * Specialized version of `std::vector<XRMeshClassificationCount>`.
+   */
+  using std__vector_XRMeshClassificationCount_ = std::vector<XRMeshClassificationCount>;
+  inline std::vector<XRMeshClassificationCount> create_std__vector_XRMeshClassificationCount_(size_t size) noexcept {
+    std::vector<XRMeshClassificationCount> vector;
+    vector.reserve(size);
+    return vector;
+  }
+  
+  // pragma MARK: std::function<void(const XRMeshAnchor& /* mesh */)>
+  /**
+   * Specialized version of `std::function<void(const XRMeshAnchor&)>`.
+   */
+  using Func_void_XRMeshAnchor = std::function<void(const XRMeshAnchor& /* mesh */)>;
+  /**
+   * Wrapper class for a `std::function<void(const XRMeshAnchor& / * mesh * /)>`, this can be used from Swift.
+   */
+  class Func_void_XRMeshAnchor_Wrapper final {
+  public:
+    explicit Func_void_XRMeshAnchor_Wrapper(std::function<void(const XRMeshAnchor& /* mesh */)>&& func): _function(std::make_unique<std::function<void(const XRMeshAnchor& /* mesh */)>>(std::move(func))) {}
+    inline void call(XRMeshAnchor mesh) const noexcept {
+      _function->operator()(mesh);
+    }
+  private:
+    std::unique_ptr<std::function<void(const XRMeshAnchor& /* mesh */)>> _function;
+  } SWIFT_NONCOPYABLE;
+  Func_void_XRMeshAnchor create_Func_void_XRMeshAnchor(void* NON_NULL swiftClosureWrapper) noexcept;
+  inline Func_void_XRMeshAnchor_Wrapper wrap_Func_void_XRMeshAnchor(Func_void_XRMeshAnchor value) noexcept {
+    return Func_void_XRMeshAnchor_Wrapper(std::move(value));
+  }
+  
+  // pragma MARK: std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>
+  /**
+   * Specialized version of `std::optional<std::function<void(const XRMeshAnchor& / * mesh * /)>>`.
+   */
+  using std__optional_std__function_void_const_XRMeshAnchor_____mesh______ = std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>;
+  inline std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>> create_std__optional_std__function_void_const_XRMeshAnchor_____mesh______(const std::function<void(const XRMeshAnchor& /* mesh */)>& value) noexcept {
+    return std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>(value);
+  }
+  inline bool has_value_std__optional_std__function_void_const_XRMeshAnchor_____mesh______(const std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::function<void(const XRMeshAnchor& /* mesh */)> get_std__optional_std__function_void_const_XRMeshAnchor_____mesh______(const std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::optional<std::function<void(const std::string& /* meshId */)>>
+  /**
+   * Specialized version of `std::optional<std::function<void(const std::string& / * meshId * /)>>`.
+   */
+  using std__optional_std__function_void_const_std__string_____meshId______ = std::optional<std::function<void(const std::string& /* meshId */)>>;
+  inline std::optional<std::function<void(const std::string& /* meshId */)>> create_std__optional_std__function_void_const_std__string_____meshId______(const std::function<void(const std::string& /* meshId */)>& value) noexcept {
+    return std::optional<std::function<void(const std::string& /* meshId */)>>(value);
+  }
+  inline bool has_value_std__optional_std__function_void_const_std__string_____meshId______(const std::optional<std::function<void(const std::string& /* meshId */)>>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::function<void(const std::string& /* meshId */)> get_std__optional_std__function_void_const_std__string_____meshId______(const std::optional<std::function<void(const std::string& /* meshId */)>>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::vector<XRBlendShape>
+  /**
+   * Specialized version of `std::vector<XRBlendShape>`.
+   */
+  using std__vector_XRBlendShape_ = std::vector<XRBlendShape>;
+  inline std::vector<XRBlendShape> create_std__vector_XRBlendShape_(size_t size) noexcept {
+    std::vector<XRBlendShape> vector;
+    vector.reserve(size);
+    return vector;
+  }
+  
+  // pragma MARK: std::function<void(const XRFace& /* face */)>
+  /**
+   * Specialized version of `std::function<void(const XRFace&)>`.
+   */
+  using Func_void_XRFace = std::function<void(const XRFace& /* face */)>;
+  /**
+   * Wrapper class for a `std::function<void(const XRFace& / * face * /)>`, this can be used from Swift.
+   */
+  class Func_void_XRFace_Wrapper final {
+  public:
+    explicit Func_void_XRFace_Wrapper(std::function<void(const XRFace& /* face */)>&& func): _function(std::make_unique<std::function<void(const XRFace& /* face */)>>(std::move(func))) {}
+    inline void call(XRFace face) const noexcept {
+      _function->operator()(face);
+    }
+  private:
+    std::unique_ptr<std::function<void(const XRFace& /* face */)>> _function;
+  } SWIFT_NONCOPYABLE;
+  Func_void_XRFace create_Func_void_XRFace(void* NON_NULL swiftClosureWrapper) noexcept;
+  inline Func_void_XRFace_Wrapper wrap_Func_void_XRFace(Func_void_XRFace value) noexcept {
+    return Func_void_XRFace_Wrapper(std::move(value));
+  }
+  
+  // pragma MARK: std::optional<std::function<void(const XRFace& /* face */)>>
+  /**
+   * Specialized version of `std::optional<std::function<void(const XRFace& / * face * /)>>`.
+   */
+  using std__optional_std__function_void_const_XRFace_____face______ = std::optional<std::function<void(const XRFace& /* face */)>>;
+  inline std::optional<std::function<void(const XRFace& /* face */)>> create_std__optional_std__function_void_const_XRFace_____face______(const std::function<void(const XRFace& /* face */)>& value) noexcept {
+    return std::optional<std::function<void(const XRFace& /* face */)>>(value);
+  }
+  inline bool has_value_std__optional_std__function_void_const_XRFace_____face______(const std::optional<std::function<void(const XRFace& /* face */)>>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::function<void(const XRFace& /* face */)> get_std__optional_std__function_void_const_XRFace_____face______(const std::optional<std::function<void(const XRFace& /* face */)>>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::optional<std::function<void(const std::string& /* faceId */)>>
+  /**
+   * Specialized version of `std::optional<std::function<void(const std::string& / * faceId * /)>>`.
+   */
+  using std__optional_std__function_void_const_std__string_____faceId______ = std::optional<std::function<void(const std::string& /* faceId */)>>;
+  inline std::optional<std::function<void(const std::string& /* faceId */)>> create_std__optional_std__function_void_const_std__string_____faceId______(const std::function<void(const std::string& /* faceId */)>& value) noexcept {
+    return std::optional<std::function<void(const std::string& /* faceId */)>>(value);
+  }
+  inline bool has_value_std__optional_std__function_void_const_std__string_____faceId______(const std::optional<std::function<void(const std::string& /* faceId */)>>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::function<void(const std::string& /* faceId */)> get_std__optional_std__function_void_const_std__string_____faceId______(const std::optional<std::function<void(const std::string& /* faceId */)>>& optional) noexcept {
     return optional.value();
   }
   
@@ -573,6 +946,55 @@ namespace margelo::nitro::munimxr::bridge::swift {
     return PromiseHolder<std::string>(std::move(promise));
   }
   
+  // pragma MARK: std::optional<std::shared_ptr<ArrayBuffer>>
+  /**
+   * Specialized version of `std::optional<std::shared_ptr<ArrayBuffer>>`.
+   */
+  using std__optional_std__shared_ptr_ArrayBuffer__ = std::optional<std::shared_ptr<ArrayBuffer>>;
+  inline std::optional<std::shared_ptr<ArrayBuffer>> create_std__optional_std__shared_ptr_ArrayBuffer__(const std::shared_ptr<ArrayBuffer>& value) noexcept {
+    return std::optional<std::shared_ptr<ArrayBuffer>>(value);
+  }
+  inline bool has_value_std__optional_std__shared_ptr_ArrayBuffer__(const std::optional<std::shared_ptr<ArrayBuffer>>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::shared_ptr<ArrayBuffer> get_std__optional_std__shared_ptr_ArrayBuffer__(const std::optional<std::shared_ptr<ArrayBuffer>>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::shared_ptr<Promise<XRDepthFrame>>
+  /**
+   * Specialized version of `std::shared_ptr<Promise<XRDepthFrame>>`.
+   */
+  using std__shared_ptr_Promise_XRDepthFrame__ = std::shared_ptr<Promise<XRDepthFrame>>;
+  inline std::shared_ptr<Promise<XRDepthFrame>> create_std__shared_ptr_Promise_XRDepthFrame__() noexcept {
+    return Promise<XRDepthFrame>::create();
+  }
+  inline PromiseHolder<XRDepthFrame> wrap_std__shared_ptr_Promise_XRDepthFrame__(std::shared_ptr<Promise<XRDepthFrame>> promise) noexcept {
+    return PromiseHolder<XRDepthFrame>(std::move(promise));
+  }
+  
+  // pragma MARK: std::function<void(const XRDepthFrame& /* result */)>
+  /**
+   * Specialized version of `std::function<void(const XRDepthFrame&)>`.
+   */
+  using Func_void_XRDepthFrame = std::function<void(const XRDepthFrame& /* result */)>;
+  /**
+   * Wrapper class for a `std::function<void(const XRDepthFrame& / * result * /)>`, this can be used from Swift.
+   */
+  class Func_void_XRDepthFrame_Wrapper final {
+  public:
+    explicit Func_void_XRDepthFrame_Wrapper(std::function<void(const XRDepthFrame& /* result */)>&& func): _function(std::make_unique<std::function<void(const XRDepthFrame& /* result */)>>(std::move(func))) {}
+    inline void call(XRDepthFrame result) const noexcept {
+      _function->operator()(result);
+    }
+  private:
+    std::unique_ptr<std::function<void(const XRDepthFrame& /* result */)>> _function;
+  } SWIFT_NONCOPYABLE;
+  Func_void_XRDepthFrame create_Func_void_XRDepthFrame(void* NON_NULL swiftClosureWrapper) noexcept;
+  inline Func_void_XRDepthFrame_Wrapper wrap_Func_void_XRDepthFrame(Func_void_XRDepthFrame value) noexcept {
+    return Func_void_XRDepthFrame_Wrapper(std::move(value));
+  }
+  
   // pragma MARK: std::shared_ptr<HybridXRViewSpec>
   /**
    * Specialized version of `std::shared_ptr<HybridXRViewSpec>`.
@@ -646,6 +1068,15 @@ namespace margelo::nitro::munimxr::bridge::swift {
   }
   inline Result_std__shared_ptr_Promise_std__string___ create_Result_std__shared_ptr_Promise_std__string___(const std::exception_ptr& error) noexcept {
     return Result<std::shared_ptr<Promise<std::string>>>::withError(error);
+  }
+  
+  // pragma MARK: Result<std::shared_ptr<Promise<XRDepthFrame>>>
+  using Result_std__shared_ptr_Promise_XRDepthFrame___ = Result<std::shared_ptr<Promise<XRDepthFrame>>>;
+  inline Result_std__shared_ptr_Promise_XRDepthFrame___ create_Result_std__shared_ptr_Promise_XRDepthFrame___(const std::shared_ptr<Promise<XRDepthFrame>>& value) noexcept {
+    return Result<std::shared_ptr<Promise<XRDepthFrame>>>::withValue(value);
+  }
+  inline Result_std__shared_ptr_Promise_XRDepthFrame___ create_Result_std__shared_ptr_Promise_XRDepthFrame___(const std::exception_ptr& error) noexcept {
+    return Result<std::shared_ptr<Promise<XRDepthFrame>>>::withError(error);
   }
 
 } // namespace margelo::nitro::munimxr::bridge::swift

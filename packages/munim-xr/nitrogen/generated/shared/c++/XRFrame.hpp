@@ -32,10 +32,13 @@
 namespace margelo::nitro::munimxr { enum class XRTrackingState; }
 // Forward declaration of `XRPose` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRPose; }
+// Forward declaration of `XRLightEstimate` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRLightEstimate; }
 
 #include "XRTrackingState.hpp"
 #include "XRPose.hpp"
 #include <optional>
+#include "XRLightEstimate.hpp"
 
 namespace margelo::nitro::munimxr {
 
@@ -48,10 +51,11 @@ namespace margelo::nitro::munimxr {
     XRTrackingState trackingState     SWIFT_PRIVATE;
     XRPose cameraPose     SWIFT_PRIVATE;
     std::optional<double> lightIntensity     SWIFT_PRIVATE;
+    std::optional<XRLightEstimate> lightEstimate     SWIFT_PRIVATE;
 
   public:
     XRFrame() = default;
-    explicit XRFrame(double timestamp, XRTrackingState trackingState, XRPose cameraPose, std::optional<double> lightIntensity): timestamp(timestamp), trackingState(trackingState), cameraPose(cameraPose), lightIntensity(lightIntensity) {}
+    explicit XRFrame(double timestamp, XRTrackingState trackingState, XRPose cameraPose, std::optional<double> lightIntensity, std::optional<XRLightEstimate> lightEstimate): timestamp(timestamp), trackingState(trackingState), cameraPose(cameraPose), lightIntensity(lightIntensity), lightEstimate(lightEstimate) {}
 
   public:
     friend bool operator==(const XRFrame& lhs, const XRFrame& rhs) = default;
@@ -70,7 +74,8 @@ namespace margelo::nitro {
         JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "timestamp"))),
         JSIConverter<margelo::nitro::munimxr::XRTrackingState>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "trackingState"))),
         JSIConverter<margelo::nitro::munimxr::XRPose>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "cameraPose"))),
-        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "lightIntensity")))
+        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "lightIntensity"))),
+        JSIConverter<std::optional<margelo::nitro::munimxr::XRLightEstimate>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "lightEstimate")))
       );
     }
     static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::munimxr::XRFrame& arg) {
@@ -79,6 +84,7 @@ namespace margelo::nitro {
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "trackingState"), JSIConverter<margelo::nitro::munimxr::XRTrackingState>::toJSI(runtime, arg.trackingState));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "cameraPose"), JSIConverter<margelo::nitro::munimxr::XRPose>::toJSI(runtime, arg.cameraPose));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "lightIntensity"), JSIConverter<std::optional<double>>::toJSI(runtime, arg.lightIntensity));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "lightEstimate"), JSIConverter<std::optional<margelo::nitro::munimxr::XRLightEstimate>>::toJSI(runtime, arg.lightEstimate));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -93,6 +99,7 @@ namespace margelo::nitro {
       if (!JSIConverter<margelo::nitro::munimxr::XRTrackingState>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "trackingState")))) return false;
       if (!JSIConverter<margelo::nitro::munimxr::XRPose>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "cameraPose")))) return false;
       if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "lightIntensity")))) return false;
+      if (!JSIConverter<std::optional<margelo::nitro::munimxr::XRLightEstimate>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "lightEstimate")))) return false;
       return true;
     }
   };

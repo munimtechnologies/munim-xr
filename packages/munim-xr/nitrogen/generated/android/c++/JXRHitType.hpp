@@ -42,12 +42,12 @@ namespace margelo::nitro::munimxr {
     static jni::alias_ref<JXRHitType> fromCpp(XRHitType value) {
       static const auto clazz = javaClassStatic();
       switch (value) {
-        case XRHitType::PLANE:
-          static const auto fieldPLANE = clazz->getStaticField<JXRHitType>("PLANE");
-          return clazz->getStaticFieldValue(fieldPLANE);
         case XRHitType::DEPTH:
           static const auto fieldDEPTH = clazz->getStaticField<JXRHitType>("DEPTH");
           return clazz->getStaticFieldValue(fieldDEPTH);
+        case XRHitType::PLANE:
+          static const auto fieldPLANE = clazz->getStaticField<JXRHitType>("PLANE");
+          return clazz->getStaticFieldValue(fieldPLANE);
         case XRHitType::FEATURE_POINT:
           static const auto fieldFEATURE_POINT = clazz->getStaticField<JXRHitType>("FEATURE_POINT");
           return clazz->getStaticFieldValue(fieldFEATURE_POINT);

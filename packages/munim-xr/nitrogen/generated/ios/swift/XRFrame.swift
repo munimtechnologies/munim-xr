@@ -18,10 +18,16 @@ public extension XRFrame {
   /**
    * Create a new instance of `XRFrame`.
    */
-  init(timestamp: Double, trackingState: XRTrackingState, cameraPose: XRPose, lightIntensity: Double?) {
+  init(timestamp: Double, trackingState: XRTrackingState, cameraPose: XRPose, lightIntensity: Double?, lightEstimate: XRLightEstimate?) {
     self.init(timestamp, trackingState, cameraPose, { () -> bridge.std__optional_double_ in
       if let __unwrappedValue = lightIntensity {
         return bridge.create_std__optional_double_(__unwrappedValue)
+      } else {
+        return .init()
+      }
+    }(), { () -> bridge.std__optional_XRLightEstimate_ in
+      if let __unwrappedValue = lightEstimate {
+        return bridge.create_std__optional_XRLightEstimate_(__unwrappedValue)
       } else {
         return .init()
       }
@@ -53,5 +59,10 @@ public extension XRFrame {
         return nil
       }
     }()
+  }
+  
+  @inline(__always)
+  var lightEstimate: XRLightEstimate? {
+    return self.__lightEstimate.value
   }
 }

@@ -14,10 +14,14 @@ namespace NitroMunimXr { class HybridMunimXrSpec_cxx; }
 
 // Forward declaration of `XRAvailability` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRAvailability; }
+// Forward declaration of `XRFeature` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRFeature; }
 
 #include <string>
 #include "XRAvailability.hpp"
 #include <NitroModules/Promise.hpp>
+#include "XRFeature.hpp"
+#include <optional>
 
 #include "NitroMunimXr-Swift-Cxx-Umbrella.hpp"
 
@@ -84,8 +88,8 @@ namespace margelo::nitro::munimxr {
       auto __value = std::move(__result.value());
       return __value;
     }
-    inline std::shared_ptr<Promise<XRAvailability>> checkAvailability() override {
-      auto __result = _swiftPart.checkAvailability();
+    inline std::shared_ptr<Promise<XRAvailability>> checkAvailability(std::optional<XRFeature> feature) override {
+      auto __result = _swiftPart.checkAvailability(feature);
       if (__result.hasError()) [[unlikely]] {
         std::rethrow_exception(__result.error());
       }

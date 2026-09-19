@@ -22,6 +22,9 @@
 #include "JFunc_void_XRTrackingState.hpp"
 #include "JFunc_void_XRPlane.hpp"
 #include "JFunc_void_std__string.hpp"
+#include "JFunc_void_XRImageAnchor.hpp"
+#include "JFunc_void_XRMeshAnchor.hpp"
+#include "JFunc_void_XRFace.hpp"
 #include "views/JHybridXRViewStateUpdater.hpp"
 #include <NitroModules/DefaultConstructableObject.hpp>
 
@@ -62,6 +65,9 @@ void registerAllNatives() {
   margelo::nitro::munimxr::JFunc_void_XRTrackingState_cxx::registerNatives();
   margelo::nitro::munimxr::JFunc_void_XRPlane_cxx::registerNatives();
   margelo::nitro::munimxr::JFunc_void_std__string_cxx::registerNatives();
+  margelo::nitro::munimxr::JFunc_void_XRImageAnchor_cxx::registerNatives();
+  margelo::nitro::munimxr::JFunc_void_XRMeshAnchor_cxx::registerNatives();
+  margelo::nitro::munimxr::JFunc_void_XRFace_cxx::registerNatives();
   margelo::nitro::munimxr::views::JHybridXRViewStateUpdater::registerNatives();
 
   // Register Nitro Hybrid Objects

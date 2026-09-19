@@ -99,6 +99,41 @@ using namespace margelo::nitro::munimxr::views;
     swiftPart.setFrameCallbackFps(newViewProps.frameCallbackFps.value);
     newViewProps.frameCallbackFps.isDirty = false;
   }
+  // mode: optional
+  if (newViewProps.mode.isDirty) {
+    swiftPart.setMode(newViewProps.mode.value);
+    newViewProps.mode.isDirty = false;
+  }
+  // trackableUpdateMaxHz: optional
+  if (newViewProps.trackableUpdateMaxHz.isDirty) {
+    swiftPart.setTrackableUpdateMaxHz(newViewProps.trackableUpdateMaxHz.value);
+    newViewProps.trackableUpdateMaxHz.isDirty = false;
+  }
+  // lightEstimationMode: optional
+  if (newViewProps.lightEstimationMode.isDirty) {
+    swiftPart.setLightEstimationMode(newViewProps.lightEstimationMode.value);
+    newViewProps.lightEstimationMode.isDirty = false;
+  }
+  // environmentTexturing: optional
+  if (newViewProps.environmentTexturing.isDirty) {
+    swiftPart.setEnvironmentTexturing(newViewProps.environmentTexturing.value);
+    newViewProps.environmentTexturing.isDirty = false;
+  }
+  // depthSmoothing: optional
+  if (newViewProps.depthSmoothing.isDirty) {
+    swiftPart.setDepthSmoothing(newViewProps.depthSmoothing.value);
+    newViewProps.depthSmoothing.isDirty = false;
+  }
+  // detectionImages: optional
+  if (newViewProps.detectionImages.isDirty) {
+    swiftPart.setDetectionImages(newViewProps.detectionImages.value);
+    newViewProps.detectionImages.isDirty = false;
+  }
+  // sceneReconstruction: optional
+  if (newViewProps.sceneReconstruction.isDirty) {
+    swiftPart.setSceneReconstruction(newViewProps.sceneReconstruction.value);
+    newViewProps.sceneReconstruction.isDirty = false;
+  }
   // onReady: optional
   if (newViewProps.onReady.isDirty) {
     swiftPart.setOnReady(newViewProps.onReady.value);
@@ -128,6 +163,51 @@ using namespace margelo::nitro::munimxr::views;
   if (newViewProps.onPlaneRemoved.isDirty) {
     swiftPart.setOnPlaneRemoved(newViewProps.onPlaneRemoved.value);
     newViewProps.onPlaneRemoved.isDirty = false;
+  }
+  // onImageAnchorAdded: optional
+  if (newViewProps.onImageAnchorAdded.isDirty) {
+    swiftPart.setOnImageAnchorAdded(newViewProps.onImageAnchorAdded.value);
+    newViewProps.onImageAnchorAdded.isDirty = false;
+  }
+  // onImageAnchorUpdated: optional
+  if (newViewProps.onImageAnchorUpdated.isDirty) {
+    swiftPart.setOnImageAnchorUpdated(newViewProps.onImageAnchorUpdated.value);
+    newViewProps.onImageAnchorUpdated.isDirty = false;
+  }
+  // onImageAnchorRemoved: optional
+  if (newViewProps.onImageAnchorRemoved.isDirty) {
+    swiftPart.setOnImageAnchorRemoved(newViewProps.onImageAnchorRemoved.value);
+    newViewProps.onImageAnchorRemoved.isDirty = false;
+  }
+  // onMeshAnchorAdded: optional
+  if (newViewProps.onMeshAnchorAdded.isDirty) {
+    swiftPart.setOnMeshAnchorAdded(newViewProps.onMeshAnchorAdded.value);
+    newViewProps.onMeshAnchorAdded.isDirty = false;
+  }
+  // onMeshAnchorUpdated: optional
+  if (newViewProps.onMeshAnchorUpdated.isDirty) {
+    swiftPart.setOnMeshAnchorUpdated(newViewProps.onMeshAnchorUpdated.value);
+    newViewProps.onMeshAnchorUpdated.isDirty = false;
+  }
+  // onMeshAnchorRemoved: optional
+  if (newViewProps.onMeshAnchorRemoved.isDirty) {
+    swiftPart.setOnMeshAnchorRemoved(newViewProps.onMeshAnchorRemoved.value);
+    newViewProps.onMeshAnchorRemoved.isDirty = false;
+  }
+  // onFaceAdded: optional
+  if (newViewProps.onFaceAdded.isDirty) {
+    swiftPart.setOnFaceAdded(newViewProps.onFaceAdded.value);
+    newViewProps.onFaceAdded.isDirty = false;
+  }
+  // onFaceUpdated: optional
+  if (newViewProps.onFaceUpdated.isDirty) {
+    swiftPart.setOnFaceUpdated(newViewProps.onFaceUpdated.value);
+    newViewProps.onFaceUpdated.isDirty = false;
+  }
+  // onFaceRemoved: optional
+  if (newViewProps.onFaceRemoved.isDirty) {
+    swiftPart.setOnFaceRemoved(newViewProps.onFaceRemoved.value);
+    newViewProps.onFaceRemoved.isDirty = false;
   }
   // onError: optional
   if (newViewProps.onError.isDirty) {

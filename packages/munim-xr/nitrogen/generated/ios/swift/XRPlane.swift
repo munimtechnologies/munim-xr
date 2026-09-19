@@ -18,8 +18,14 @@ public extension XRPlane {
   /**
    * Create a new instance of `XRPlane`.
    */
-  init(id: String, alignment: XRPlaneAlignment, classification: XRPlaneClassification, center: XRVector3, extent: XRVector3, pose: XRPose) {
-    self.init(std.string(id), alignment, classification, center, extent, pose)
+  init(id: String, alignment: XRPlaneAlignment, classification: XRPlaneClassification, center: XRVector3, localCenter: XRVector3, extent: XRVector3, extentRotationY: Double?, pose: XRPose) {
+    self.init(std.string(id), alignment, classification, center, localCenter, extent, { () -> bridge.std__optional_double_ in
+      if let __unwrappedValue = extentRotationY {
+        return bridge.create_std__optional_double_(__unwrappedValue)
+      } else {
+        return .init()
+      }
+    }(), pose)
   }
 
   @inline(__always)
@@ -43,8 +49,25 @@ public extension XRPlane {
   }
   
   @inline(__always)
+  var localCenter: XRVector3 {
+    return self.__localCenter
+  }
+  
+  @inline(__always)
   var extent: XRVector3 {
     return self.__extent
+  }
+  
+  @inline(__always)
+  var extentRotationY: Double? {
+    return { () -> Double? in
+      if bridge.has_value_std__optional_double_(self.__extentRotationY) {
+        let __unwrapped = bridge.get_std__optional_double_(self.__extentRotationY)
+        return __unwrapped
+      } else {
+        return nil
+      }
+    }()
   }
   
   @inline(__always)

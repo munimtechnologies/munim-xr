@@ -22,6 +22,20 @@ namespace margelo::nitro::munimxr {
       prototype.registerHybridSetter("lightEstimationEnabled", &HybridXRViewSpec::setLightEstimationEnabled);
       prototype.registerHybridGetter("frameCallbackFps", &HybridXRViewSpec::getFrameCallbackFps);
       prototype.registerHybridSetter("frameCallbackFps", &HybridXRViewSpec::setFrameCallbackFps);
+      prototype.registerHybridGetter("mode", &HybridXRViewSpec::getMode);
+      prototype.registerHybridSetter("mode", &HybridXRViewSpec::setMode);
+      prototype.registerHybridGetter("trackableUpdateMaxHz", &HybridXRViewSpec::getTrackableUpdateMaxHz);
+      prototype.registerHybridSetter("trackableUpdateMaxHz", &HybridXRViewSpec::setTrackableUpdateMaxHz);
+      prototype.registerHybridGetter("lightEstimationMode", &HybridXRViewSpec::getLightEstimationMode);
+      prototype.registerHybridSetter("lightEstimationMode", &HybridXRViewSpec::setLightEstimationMode);
+      prototype.registerHybridGetter("environmentTexturing", &HybridXRViewSpec::getEnvironmentTexturing);
+      prototype.registerHybridSetter("environmentTexturing", &HybridXRViewSpec::setEnvironmentTexturing);
+      prototype.registerHybridGetter("depthSmoothing", &HybridXRViewSpec::getDepthSmoothing);
+      prototype.registerHybridSetter("depthSmoothing", &HybridXRViewSpec::setDepthSmoothing);
+      prototype.registerHybridGetter("detectionImages", &HybridXRViewSpec::getDetectionImages);
+      prototype.registerHybridSetter("detectionImages", &HybridXRViewSpec::setDetectionImages);
+      prototype.registerHybridGetter("sceneReconstruction", &HybridXRViewSpec::getSceneReconstruction);
+      prototype.registerHybridSetter("sceneReconstruction", &HybridXRViewSpec::setSceneReconstruction);
       prototype.registerHybridGetter("onReady", &HybridXRViewSpec::getOnReady);
       prototype.registerHybridSetter("onReady", &HybridXRViewSpec::setOnReady);
       prototype.registerHybridGetter("onFrame", &HybridXRViewSpec::getOnFrame);
@@ -34,6 +48,24 @@ namespace margelo::nitro::munimxr {
       prototype.registerHybridSetter("onPlaneUpdated", &HybridXRViewSpec::setOnPlaneUpdated);
       prototype.registerHybridGetter("onPlaneRemoved", &HybridXRViewSpec::getOnPlaneRemoved);
       prototype.registerHybridSetter("onPlaneRemoved", &HybridXRViewSpec::setOnPlaneRemoved);
+      prototype.registerHybridGetter("onImageAnchorAdded", &HybridXRViewSpec::getOnImageAnchorAdded);
+      prototype.registerHybridSetter("onImageAnchorAdded", &HybridXRViewSpec::setOnImageAnchorAdded);
+      prototype.registerHybridGetter("onImageAnchorUpdated", &HybridXRViewSpec::getOnImageAnchorUpdated);
+      prototype.registerHybridSetter("onImageAnchorUpdated", &HybridXRViewSpec::setOnImageAnchorUpdated);
+      prototype.registerHybridGetter("onImageAnchorRemoved", &HybridXRViewSpec::getOnImageAnchorRemoved);
+      prototype.registerHybridSetter("onImageAnchorRemoved", &HybridXRViewSpec::setOnImageAnchorRemoved);
+      prototype.registerHybridGetter("onMeshAnchorAdded", &HybridXRViewSpec::getOnMeshAnchorAdded);
+      prototype.registerHybridSetter("onMeshAnchorAdded", &HybridXRViewSpec::setOnMeshAnchorAdded);
+      prototype.registerHybridGetter("onMeshAnchorUpdated", &HybridXRViewSpec::getOnMeshAnchorUpdated);
+      prototype.registerHybridSetter("onMeshAnchorUpdated", &HybridXRViewSpec::setOnMeshAnchorUpdated);
+      prototype.registerHybridGetter("onMeshAnchorRemoved", &HybridXRViewSpec::getOnMeshAnchorRemoved);
+      prototype.registerHybridSetter("onMeshAnchorRemoved", &HybridXRViewSpec::setOnMeshAnchorRemoved);
+      prototype.registerHybridGetter("onFaceAdded", &HybridXRViewSpec::getOnFaceAdded);
+      prototype.registerHybridSetter("onFaceAdded", &HybridXRViewSpec::setOnFaceAdded);
+      prototype.registerHybridGetter("onFaceUpdated", &HybridXRViewSpec::getOnFaceUpdated);
+      prototype.registerHybridSetter("onFaceUpdated", &HybridXRViewSpec::setOnFaceUpdated);
+      prototype.registerHybridGetter("onFaceRemoved", &HybridXRViewSpec::getOnFaceRemoved);
+      prototype.registerHybridSetter("onFaceRemoved", &HybridXRViewSpec::setOnFaceRemoved);
       prototype.registerHybridGetter("onError", &HybridXRViewSpec::getOnError);
       prototype.registerHybridSetter("onError", &HybridXRViewSpec::setOnError);
       prototype.registerHybridMethod("start", &HybridXRViewSpec::start);
@@ -45,6 +77,11 @@ namespace margelo::nitro::munimxr {
       prototype.registerHybridMethod("getAnchors", &HybridXRViewSpec::getAnchors);
       prototype.registerHybridMethod("getCameraPose", &HybridXRViewSpec::getCameraPose);
       prototype.registerHybridMethod("captureSnapshot", &HybridXRViewSpec::captureSnapshot);
+      prototype.registerHybridMethod("getDepthFrame", &HybridXRViewSpec::getDepthFrame);
+      prototype.registerHybridMethod("exportMesh", &HybridXRViewSpec::exportMesh);
+      prototype.registerHybridMethod("addModel", &HybridXRViewSpec::addModel);
+      prototype.registerHybridMethod("removeModel", &HybridXRViewSpec::removeModel);
+      prototype.registerHybridMethod("setModelTransform", &HybridXRViewSpec::setModelTransform);
     });
   }
 

@@ -16,12 +16,40 @@ namespace margelo::nitro::munimxr { class HybridXRViewSpec; }
 namespace margelo::nitro::munimxr { struct XRAnchor; }
 // Forward declaration of `XRAvailability` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRAvailability; }
+// Forward declaration of `XRBlendShape` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRBlendShape; }
+// Forward declaration of `XRDepthFormat` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRDepthFormat; }
+// Forward declaration of `XRDepthFrame` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRDepthFrame; }
+// Forward declaration of `XRDetectionImage` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRDetectionImage; }
+// Forward declaration of `XREnvironmentTexturing` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XREnvironmentTexturing; }
+// Forward declaration of `XRFace` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRFace; }
+// Forward declaration of `XRFeature` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRFeature; }
 // Forward declaration of `XRFrame` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRFrame; }
 // Forward declaration of `XRHitResult` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRHitResult; }
 // Forward declaration of `XRHitType` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRHitType; }
+// Forward declaration of `XRImageAnchor` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRImageAnchor; }
+// Forward declaration of `XRLightEstimate` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRLightEstimate; }
+// Forward declaration of `XRLightEstimationMode` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRLightEstimationMode; }
+// Forward declaration of `XRMeshAnchor` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRMeshAnchor; }
+// Forward declaration of `XRMeshClassificationCount` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRMeshClassificationCount; }
+// Forward declaration of `XRMeshClassification` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRMeshClassification; }
+// Forward declaration of `XRModelOptions` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRModelOptions; }
 // Forward declaration of `XRPlaneAlignment` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRPlaneAlignment; }
 // Forward declaration of `XRPlaneClassification` to properly resolve imports.
@@ -34,6 +62,10 @@ namespace margelo::nitro::munimxr { struct XRPlane; }
 namespace margelo::nitro::munimxr { struct XRPose; }
 // Forward declaration of `XRQuaternion` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRQuaternion; }
+// Forward declaration of `XRSceneReconstruction` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRSceneReconstruction; }
+// Forward declaration of `XRSessionMode` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRSessionMode; }
 // Forward declaration of `XRTrackingState` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRTrackingState; }
 // Forward declaration of `XRVector3` to properly resolve imports.
@@ -44,17 +76,34 @@ namespace margelo::nitro::munimxr { struct XRVector3; }
 #include "HybridXRViewSpec.hpp"
 #include "XRAnchor.hpp"
 #include "XRAvailability.hpp"
+#include "XRBlendShape.hpp"
+#include "XRDepthFormat.hpp"
+#include "XRDepthFrame.hpp"
+#include "XRDetectionImage.hpp"
+#include "XREnvironmentTexturing.hpp"
+#include "XRFace.hpp"
+#include "XRFeature.hpp"
 #include "XRFrame.hpp"
 #include "XRHitResult.hpp"
 #include "XRHitType.hpp"
+#include "XRImageAnchor.hpp"
+#include "XRLightEstimate.hpp"
+#include "XRLightEstimationMode.hpp"
+#include "XRMeshAnchor.hpp"
+#include "XRMeshClassification.hpp"
+#include "XRMeshClassificationCount.hpp"
+#include "XRModelOptions.hpp"
 #include "XRPlane.hpp"
 #include "XRPlaneAlignment.hpp"
 #include "XRPlaneClassification.hpp"
 #include "XRPlaneDetection.hpp"
 #include "XRPose.hpp"
 #include "XRQuaternion.hpp"
+#include "XRSceneReconstruction.hpp"
+#include "XRSessionMode.hpp"
 #include "XRTrackingState.hpp"
 #include "XRVector3.hpp"
+#include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/Result.hpp>
 #include <exception>

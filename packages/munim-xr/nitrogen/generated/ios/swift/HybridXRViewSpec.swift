@@ -14,12 +14,28 @@ public protocol HybridXRViewSpec_protocol: HybridObject, HybridView {
   var depthEnabled: Bool { get set }
   var lightEstimationEnabled: Bool { get set }
   var frameCallbackFps: Double { get set }
+  var mode: XRSessionMode? { get set }
+  var trackableUpdateMaxHz: Double? { get set }
+  var lightEstimationMode: XRLightEstimationMode? { get set }
+  var environmentTexturing: XREnvironmentTexturing? { get set }
+  var depthSmoothing: Bool? { get set }
+  var detectionImages: [XRDetectionImage]? { get set }
+  var sceneReconstruction: XRSceneReconstruction? { get set }
   var onReady: (() -> Void)? { get set }
   var onFrame: ((_ frame: XRFrame) -> Void)? { get set }
   var onTrackingStateChange: ((_ state: XRTrackingState) -> Void)? { get set }
   var onPlaneDetected: ((_ plane: XRPlane) -> Void)? { get set }
   var onPlaneUpdated: ((_ plane: XRPlane) -> Void)? { get set }
   var onPlaneRemoved: ((_ planeId: String) -> Void)? { get set }
+  var onImageAnchorAdded: ((_ anchor: XRImageAnchor) -> Void)? { get set }
+  var onImageAnchorUpdated: ((_ anchor: XRImageAnchor) -> Void)? { get set }
+  var onImageAnchorRemoved: ((_ anchor: XRImageAnchor) -> Void)? { get set }
+  var onMeshAnchorAdded: ((_ mesh: XRMeshAnchor) -> Void)? { get set }
+  var onMeshAnchorUpdated: ((_ mesh: XRMeshAnchor) -> Void)? { get set }
+  var onMeshAnchorRemoved: ((_ meshId: String) -> Void)? { get set }
+  var onFaceAdded: ((_ face: XRFace) -> Void)? { get set }
+  var onFaceUpdated: ((_ face: XRFace) -> Void)? { get set }
+  var onFaceRemoved: ((_ faceId: String) -> Void)? { get set }
   var onError: ((_ message: String) -> Void)? { get set }
 
   // Methods
@@ -32,6 +48,11 @@ public protocol HybridXRViewSpec_protocol: HybridObject, HybridView {
   func getAnchors() throws -> [XRAnchor]
   func getCameraPose() throws -> XRPose?
   func captureSnapshot() throws -> Promise<String>
+  func getDepthFrame() throws -> Promise<XRDepthFrame>
+  func exportMesh() throws -> Promise<String>
+  func addModel(options: XRModelOptions) throws -> Promise<String>
+  func removeModel(modelId: String) throws -> Void
+  func setModelTransform(modelId: String, pose: XRPose, scale: Double?) throws -> Void
 }
 
 public extension HybridXRViewSpec_protocol {

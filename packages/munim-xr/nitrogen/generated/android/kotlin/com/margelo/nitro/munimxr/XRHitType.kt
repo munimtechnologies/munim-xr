@@ -16,8 +16,8 @@ import com.facebook.proguard.annotations.DoNotStrip
 @DoNotStrip
 @Keep
 enum class XRHitType(@DoNotStrip @Keep val value: Int) {
-  PLANE(0),
-  DEPTH(1),
+  DEPTH(0),
+  PLANE(1),
   FEATURE_POINT(2),
   ESTIMATED(3);
 

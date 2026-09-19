@@ -56,7 +56,7 @@ namespace margelo::nitro::munimxr {
   public:
     // Methods
     bool isSupported() override;
-    std::shared_ptr<Promise<XRAvailability>> checkAvailability() override;
+    std::shared_ptr<Promise<XRAvailability>> checkAvailability(std::optional<XRFeature> feature) override;
     std::shared_ptr<Promise<bool>> requestInstall() override;
 
   private:

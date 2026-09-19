@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
-    "expo": "~57.0.20",
+    "expo": "~57.0.24",
     "expo-status-bar": "~57.0.1",
     "munim-xr": "*",
     "react": "19.2.3",
-    "react-native": "0.86.2",
+    "react-native": "0.86.3",
     "react-native-nitro-modules": "0.36.5"
   },
   "devDependencies": {

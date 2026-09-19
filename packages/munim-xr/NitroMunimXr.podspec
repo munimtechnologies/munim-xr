@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
 
   s.platforms    = { :ios => min_ios_version_supported }
   s.source       = { :git => "https://github.com/munimtechnologies/munim-xr.git", :tag => "v#{s.version}" }
-  s.frameworks   = "ARKit", "SceneKit", "AVFoundation"
+  s.frameworks   = "ARKit", "SceneKit", "ModelIO", "AVFoundation"
 
   s.source_files = [
     # Implementation (Swift)

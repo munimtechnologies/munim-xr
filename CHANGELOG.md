@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-19
+
 ### Fixed
 
 - iOS Release builds: `checkAvailability()` without a feature could receive a garbage feature in Swift (margelo/nitro#1319, swiftlang/swift#84848) and report the wrong capability. The native method now always receives a feature, and the public function defaults it to `world-tracking`, which is what a missing feature already meant on both platforms.
@@ -72,7 +74,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Runtime support checks and ARCore install/update flow.
 - Expo config plugin, typed example app, native build workflows, and npm provenance publishing.
 
-[Unreleased]: https://github.com/munimtechnologies/munim-xr/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/munimtechnologies/munim-xr/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/munimtechnologies/munim-xr/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/munimtechnologies/munim-xr/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/munimtechnologies/munim-xr/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/munimtechnologies/munim-xr/compare/v0.1.0...v0.1.1

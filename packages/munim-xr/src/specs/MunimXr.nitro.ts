@@ -36,11 +36,14 @@ export interface MunimXr extends HybridObject<{
 
   isSupported(): boolean
   /**
-   * Without an argument, reports whether world-tracked XR can run.
-   * With a feature, reports whether that optional capability is available
-   * on this device (`unsupported` when the runtime is present but the
-   * device lacks the feature).
+   * Reports whether `feature` is available on this device (`unsupported`
+   * when the runtime is present but the device lacks the feature).
+   * `world-tracking` reports whether world-tracked XR can run.
+   *
+   * `feature` is not optional here: optional enum arguments can reach Swift
+   * as garbage in iOS Release builds (margelo/nitro#1319). The public
+   * `checkAvailability()` in `src/index.ts` defaults it to `world-tracking`.
    */
-  checkAvailability(feature?: XRFeature): Promise<XRAvailability>
+  checkAvailability(feature: XRFeature): Promise<XRAvailability>
   requestInstall(): Promise<boolean>
 }

@@ -25,7 +25,7 @@ class HybridMunimXr : HybridMunimXrSpec() {
     }
   }
 
-  override fun checkAvailability(feature: XRFeature?): Promise<XRAvailability> {
+  override fun checkAvailability(feature: XRFeature): Promise<XRAvailability> {
     return Promise.async {
       val base = when (ArCoreApk.getInstance().checkAvailability(applicationContext)) {
         ArCoreApk.Availability.SUPPORTED_INSTALLED -> XRAvailability.SUPPORTED
@@ -34,7 +34,7 @@ class HybridMunimXr : HybridMunimXrSpec() {
         ArCoreApk.Availability.UNSUPPORTED_DEVICE_NOT_CAPABLE -> XRAvailability.UNSUPPORTED
         else -> XRAvailability.UNKNOWN
       }
-      if (feature == null || base != XRAvailability.SUPPORTED) return@async base
+      if (base != XRAvailability.SUPPORTED) return@async base
       if (featureSupported(feature)) XRAvailability.SUPPORTED else XRAvailability.UNSUPPORTED
     }
   }

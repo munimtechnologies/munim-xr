@@ -178,7 +178,7 @@ open class HybridXRViewSpec_cxx {
     }
     @inline(__always)
     set {
-      self.__implementation.mode = newValue.value
+      self.__implementation.mode = (bridge.has_value_std__optional_XRSessionMode_(newValue) ? bridge.get_std__optional_XRSessionMode_(newValue) : nil)
     }
   }
   
@@ -219,7 +219,7 @@ open class HybridXRViewSpec_cxx {
     }
     @inline(__always)
     set {
-      self.__implementation.lightEstimationMode = newValue.value
+      self.__implementation.lightEstimationMode = (bridge.has_value_std__optional_XRLightEstimationMode_(newValue) ? bridge.get_std__optional_XRLightEstimationMode_(newValue) : nil)
     }
   }
   
@@ -236,7 +236,7 @@ open class HybridXRViewSpec_cxx {
     }
     @inline(__always)
     set {
-      self.__implementation.environmentTexturing = newValue.value
+      self.__implementation.environmentTexturing = (bridge.has_value_std__optional_XREnvironmentTexturing_(newValue) ? bridge.get_std__optional_XREnvironmentTexturing_(newValue) : nil)
     }
   }
   
@@ -307,7 +307,7 @@ open class HybridXRViewSpec_cxx {
     }
     @inline(__always)
     set {
-      self.__implementation.sceneReconstruction = newValue.value
+      self.__implementation.sceneReconstruction = (bridge.has_value_std__optional_XRSceneReconstruction_(newValue) ? bridge.get_std__optional_XRSceneReconstruction_(newValue) : nil)
     }
   }
   

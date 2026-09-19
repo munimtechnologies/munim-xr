@@ -42,7 +42,7 @@ abstract class HybridMunimXrSpec: HybridObject() {
   
   @DoNotStrip
   @Keep
-  abstract fun checkAvailability(feature: XRFeature?): Promise<XRAvailability>
+  abstract fun checkAvailability(feature: XRFeature): Promise<XRAvailability>
   
   @DoNotStrip
   @Keep

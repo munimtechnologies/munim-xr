@@ -149,9 +149,9 @@ open class HybridMunimXrSpec_cxx {
   }
   
   @inline(__always)
-  public final func checkAvailability(feature: bridge.std__optional_XRFeature_) -> bridge.Result_std__shared_ptr_Promise_XRAvailability___ {
+  public final func checkAvailability(feature: Int32) -> bridge.Result_std__shared_ptr_Promise_XRAvailability___ {
     do {
-      let __result = try self.__implementation.checkAvailability(feature: feature.value)
+      let __result = try self.__implementation.checkAvailability(feature: margelo.nitro.munimxr.XRFeature(rawValue: feature)!)
       let __resultCpp = { () -> bridge.std__shared_ptr_Promise_XRAvailability__ in
         let __promise = bridge.create_std__shared_ptr_Promise_XRAvailability__()
         let __promiseHolder = bridge.wrap_std__shared_ptr_Promise_XRAvailability__(__promise)

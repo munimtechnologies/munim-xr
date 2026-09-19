@@ -59,7 +59,7 @@ public extension XRModelOptions {
   
   @inline(__always)
   var pose: XRPose? {
-    return self.__pose.value
+    return (bridge.has_value_std__optional_XRPose_(self.__pose) ? bridge.get_std__optional_XRPose_(self.__pose) : nil)
   }
   
   @inline(__always)

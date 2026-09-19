@@ -22,7 +22,6 @@ namespace margelo::nitro::munimxr { enum class XRFeature; }
 #include "XRAvailability.hpp"
 #include <NitroModules/Promise.hpp>
 #include "XRFeature.hpp"
-#include <optional>
 
 namespace margelo::nitro::munimxr {
 
@@ -57,7 +56,7 @@ namespace margelo::nitro::munimxr {
     public:
       // Methods
       virtual bool isSupported() = 0;
-      virtual std::shared_ptr<Promise<XRAvailability>> checkAvailability(std::optional<XRFeature> feature) = 0;
+      virtual std::shared_ptr<Promise<XRAvailability>> checkAvailability(XRFeature feature) = 0;
       virtual std::shared_ptr<Promise<bool>> requestInstall() = 0;
 
     protected:

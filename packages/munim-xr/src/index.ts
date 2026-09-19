@@ -74,7 +74,8 @@ export function isSupported(): boolean {
 export function checkAvailability(
   feature?: XRFeature
 ): Promise<XRAvailability> {
-  return MunimXr.checkAvailability(feature)
+  // `world-tracking` is exactly what native code reported for a missing feature.
+  return MunimXr.checkAvailability(feature ?? 'world-tracking')
 }
 
 export function requestInstall(): Promise<boolean> {

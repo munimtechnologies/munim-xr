@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- iOS Release builds: `checkAvailability()` without a feature could receive a garbage feature in Swift (margelo/nitro#1319, swiftlang/swift#84848) and report the wrong capability. The native method now always receives a feature, and the public function defaults it to `world-tracking`, which is what a missing feature already meant on both platforms.
+- iOS Release builds: the optional enum props `mode`, `lightEstimationMode`, `environmentTexturing`, and `sceneReconstruction`, and the optional fields `XRFrame.lightEstimate`, `XRLightEstimate.mainLightDirection`, and `XRModelOptions.pose`, are now read in the generated Swift through Nitro's checked bridge helpers instead of the `.value` projection. `scripts/patch-nitro-optionals.js` applies this after `nitrogen` in `npm run codegen` and fails if an unchecked projection is left.
+
 ## [0.3.0] - 2026-09-19
 
 ### Added

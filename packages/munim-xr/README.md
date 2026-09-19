@@ -20,7 +20,7 @@
 
 Native ARKit and ARCore sessions for Expo and React Native, powered by Nitro Modules.
 
-`munim-xr` provides a typed Nitro Hybrid View for world tracking, native camera rendering, plane detection, hit testing, anchors, camera poses, light estimation, optional depth, and snapshots on iOS and Android.
+`munim-xr` provides a typed Nitro Hybrid View for world tracking, native camera rendering, plane detection, hit testing, anchors, camera poses, light estimation, image tracking, depth frames, face tracking, and snapshots on iOS and Android, plus LiDAR meshes and SceneKit model placement on iOS.
 
 ## Install
 

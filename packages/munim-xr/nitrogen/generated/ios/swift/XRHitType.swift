@@ -17,10 +17,10 @@ public extension XRHitType {
    */
   init?(fromString string: String) {
     switch string {
-      case "plane":
-        self = .plane
       case "depth":
         self = .depth
+      case "plane":
+        self = .plane
       case "feature-point":
         self = .featurePoint
       case "estimated":
@@ -35,10 +35,10 @@ public extension XRHitType {
    */
   var stringValue: String {
     switch self {
-      case .plane:
-        return "plane"
       case .depth:
         return "depth"
+      case .plane:
+        return "plane"
       case .featurePoint:
         return "feature-point"
       case .estimated:

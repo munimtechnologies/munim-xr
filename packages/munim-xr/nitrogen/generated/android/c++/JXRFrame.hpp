@@ -10,10 +10,12 @@
 #include <fbjni/fbjni.h>
 #include "XRFrame.hpp"
 
+#include "JXRLightEstimate.hpp"
 #include "JXRPose.hpp"
 #include "JXRQuaternion.hpp"
 #include "JXRTrackingState.hpp"
 #include "JXRVector3.hpp"
+#include "XRLightEstimate.hpp"
 #include "XRPose.hpp"
 #include "XRQuaternion.hpp"
 #include "XRTrackingState.hpp"
@@ -48,11 +50,14 @@ namespace margelo::nitro::munimxr {
       jni::local_ref<JXRPose> cameraPose = this->getFieldValue(fieldCameraPose);
       static const auto fieldLightIntensity = clazz->getField<jni::JDouble>("lightIntensity");
       jni::local_ref<jni::JDouble> lightIntensity = this->getFieldValue(fieldLightIntensity);
+      static const auto fieldLightEstimate = clazz->getField<JXRLightEstimate>("lightEstimate");
+      jni::local_ref<JXRLightEstimate> lightEstimate = this->getFieldValue(fieldLightEstimate);
       return XRFrame(
         timestamp,
         trackingState->toCpp(),
         cameraPose->toCpp(),
-        lightIntensity != nullptr ? std::make_optional(lightIntensity->value()) : std::nullopt
+        lightIntensity != nullptr ? std::make_optional(lightIntensity->value()) : std::nullopt,
+        lightEstimate != nullptr ? std::make_optional(lightEstimate->toCpp()) : std::nullopt
       );
     }
 
@@ -62,7 +67,7 @@ namespace margelo::nitro::munimxr {
      */
     [[maybe_unused]]
     static jni::local_ref<JXRFrame::javaobject> fromCpp(const XRFrame& value) {
-      using JSignature = JXRFrame(double, jni::alias_ref<JXRTrackingState>, jni::alias_ref<JXRPose>, jni::alias_ref<jni::JDouble>);
+      using JSignature = JXRFrame(double, jni::alias_ref<JXRTrackingState>, jni::alias_ref<JXRPose>, jni::alias_ref<jni::JDouble>, jni::alias_ref<JXRLightEstimate>);
       static const auto clazz = javaClassStatic();
       static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
       return create(
@@ -70,7 +75,8 @@ namespace margelo::nitro::munimxr {
         value.timestamp,
         JXRTrackingState::fromCpp(value.trackingState),
         JXRPose::fromCpp(value.cameraPose),
-        value.lightIntensity.has_value() ? jni::JDouble::valueOf(value.lightIntensity.value()) : nullptr
+        value.lightIntensity.has_value() ? jni::JDouble::valueOf(value.lightIntensity.value()) : nullptr,
+        value.lightEstimate.has_value() ? JXRLightEstimate::fromCpp(value.lightEstimate.value()) : nullptr
       );
     }
   };

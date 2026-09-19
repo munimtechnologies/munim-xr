@@ -58,6 +58,20 @@ namespace margelo::nitro::munimxr {
     void setLightEstimationEnabled(bool lightEstimationEnabled) override;
     double getFrameCallbackFps() override;
     void setFrameCallbackFps(double frameCallbackFps) override;
+    std::optional<XRSessionMode> getMode() override;
+    void setMode(std::optional<XRSessionMode> mode) override;
+    std::optional<double> getTrackableUpdateMaxHz() override;
+    void setTrackableUpdateMaxHz(std::optional<double> trackableUpdateMaxHz) override;
+    std::optional<XRLightEstimationMode> getLightEstimationMode() override;
+    void setLightEstimationMode(std::optional<XRLightEstimationMode> lightEstimationMode) override;
+    std::optional<XREnvironmentTexturing> getEnvironmentTexturing() override;
+    void setEnvironmentTexturing(std::optional<XREnvironmentTexturing> environmentTexturing) override;
+    std::optional<bool> getDepthSmoothing() override;
+    void setDepthSmoothing(std::optional<bool> depthSmoothing) override;
+    std::optional<std::vector<XRDetectionImage>> getDetectionImages() override;
+    void setDetectionImages(const std::optional<std::vector<XRDetectionImage>>& detectionImages) override;
+    std::optional<XRSceneReconstruction> getSceneReconstruction() override;
+    void setSceneReconstruction(std::optional<XRSceneReconstruction> sceneReconstruction) override;
     std::optional<std::function<void()>> getOnReady() override;
     void setOnReady(const std::optional<std::function<void()>>& onReady) override;
     std::optional<std::function<void(const XRFrame& /* frame */)>> getOnFrame() override;
@@ -70,6 +84,24 @@ namespace margelo::nitro::munimxr {
     void setOnPlaneUpdated(const std::optional<std::function<void(const XRPlane& /* plane */)>>& onPlaneUpdated) override;
     std::optional<std::function<void(const std::string& /* planeId */)>> getOnPlaneRemoved() override;
     void setOnPlaneRemoved(const std::optional<std::function<void(const std::string& /* planeId */)>>& onPlaneRemoved) override;
+    std::optional<std::function<void(const XRImageAnchor& /* anchor */)>> getOnImageAnchorAdded() override;
+    void setOnImageAnchorAdded(const std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>& onImageAnchorAdded) override;
+    std::optional<std::function<void(const XRImageAnchor& /* anchor */)>> getOnImageAnchorUpdated() override;
+    void setOnImageAnchorUpdated(const std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>& onImageAnchorUpdated) override;
+    std::optional<std::function<void(const XRImageAnchor& /* anchor */)>> getOnImageAnchorRemoved() override;
+    void setOnImageAnchorRemoved(const std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>& onImageAnchorRemoved) override;
+    std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>> getOnMeshAnchorAdded() override;
+    void setOnMeshAnchorAdded(const std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>& onMeshAnchorAdded) override;
+    std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>> getOnMeshAnchorUpdated() override;
+    void setOnMeshAnchorUpdated(const std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>& onMeshAnchorUpdated) override;
+    std::optional<std::function<void(const std::string& /* meshId */)>> getOnMeshAnchorRemoved() override;
+    void setOnMeshAnchorRemoved(const std::optional<std::function<void(const std::string& /* meshId */)>>& onMeshAnchorRemoved) override;
+    std::optional<std::function<void(const XRFace& /* face */)>> getOnFaceAdded() override;
+    void setOnFaceAdded(const std::optional<std::function<void(const XRFace& /* face */)>>& onFaceAdded) override;
+    std::optional<std::function<void(const XRFace& /* face */)>> getOnFaceUpdated() override;
+    void setOnFaceUpdated(const std::optional<std::function<void(const XRFace& /* face */)>>& onFaceUpdated) override;
+    std::optional<std::function<void(const std::string& /* faceId */)>> getOnFaceRemoved() override;
+    void setOnFaceRemoved(const std::optional<std::function<void(const std::string& /* faceId */)>>& onFaceRemoved) override;
     std::optional<std::function<void(const std::string& /* message */)>> getOnError() override;
     void setOnError(const std::optional<std::function<void(const std::string& /* message */)>>& onError) override;
 
@@ -84,6 +116,11 @@ namespace margelo::nitro::munimxr {
     std::vector<XRAnchor> getAnchors() override;
     std::optional<XRPose> getCameraPose() override;
     std::shared_ptr<Promise<std::string>> captureSnapshot() override;
+    std::shared_ptr<Promise<XRDepthFrame>> getDepthFrame() override;
+    std::shared_ptr<Promise<std::string>> exportMesh() override;
+    std::shared_ptr<Promise<std::string>> addModel(const XRModelOptions& options) override;
+    void removeModel(const std::string& modelId) override;
+    void setModelTransform(const std::string& modelId, const XRPose& pose, std::optional<double> scale) override;
 
   private:
     jni::global_ref<JHybridXRViewSpec::JavaPart> _javaPart;

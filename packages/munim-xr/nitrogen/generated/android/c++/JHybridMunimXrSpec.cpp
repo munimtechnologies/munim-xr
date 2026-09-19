@@ -9,12 +9,17 @@
 
 // Forward declaration of `XRAvailability` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRAvailability; }
+// Forward declaration of `XRFeature` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRFeature; }
 
 #include <string>
 #include "XRAvailability.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/JPromise.hpp>
 #include "JXRAvailability.hpp"
+#include "XRFeature.hpp"
+#include <optional>
+#include "JXRFeature.hpp"
 
 namespace margelo::nitro::munimxr {
 
@@ -63,9 +68,9 @@ namespace margelo::nitro::munimxr {
     auto __result = method(_javaPart);
     return static_cast<bool>(__result);
   }
-  std::shared_ptr<Promise<XRAvailability>> JHybridMunimXrSpec::checkAvailability() {
-    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>()>("checkAvailability");
-    auto __result = method(_javaPart);
+  std::shared_ptr<Promise<XRAvailability>> JHybridMunimXrSpec::checkAvailability(std::optional<XRFeature> feature) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<JXRFeature> /* feature */)>("checkAvailability");
+    auto __result = method(_javaPart, feature.has_value() ? JXRFeature::fromCpp(feature.value()) : nullptr);
     return [&]() {
       auto __promise = Promise<XRAvailability>::create();
       __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {

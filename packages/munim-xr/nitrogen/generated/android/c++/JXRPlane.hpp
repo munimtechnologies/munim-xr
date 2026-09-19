@@ -20,6 +20,7 @@
 #include "XRPose.hpp"
 #include "XRQuaternion.hpp"
 #include "XRVector3.hpp"
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -50,8 +51,12 @@ namespace margelo::nitro::munimxr {
       jni::local_ref<JXRPlaneClassification> classification = this->getFieldValue(fieldClassification);
       static const auto fieldCenter = clazz->getField<JXRVector3>("center");
       jni::local_ref<JXRVector3> center = this->getFieldValue(fieldCenter);
+      static const auto fieldLocalCenter = clazz->getField<JXRVector3>("localCenter");
+      jni::local_ref<JXRVector3> localCenter = this->getFieldValue(fieldLocalCenter);
       static const auto fieldExtent = clazz->getField<JXRVector3>("extent");
       jni::local_ref<JXRVector3> extent = this->getFieldValue(fieldExtent);
+      static const auto fieldExtentRotationY = clazz->getField<jni::JDouble>("extentRotationY");
+      jni::local_ref<jni::JDouble> extentRotationY = this->getFieldValue(fieldExtentRotationY);
       static const auto fieldPose = clazz->getField<JXRPose>("pose");
       jni::local_ref<JXRPose> pose = this->getFieldValue(fieldPose);
       return XRPlane(
@@ -59,7 +64,9 @@ namespace margelo::nitro::munimxr {
         alignment->toCpp(),
         classification->toCpp(),
         center->toCpp(),
+        localCenter->toCpp(),
         extent->toCpp(),
+        extentRotationY != nullptr ? std::make_optional(extentRotationY->value()) : std::nullopt,
         pose->toCpp()
       );
     }
@@ -70,7 +77,7 @@ namespace margelo::nitro::munimxr {
      */
     [[maybe_unused]]
     static jni::local_ref<JXRPlane::javaobject> fromCpp(const XRPlane& value) {
-      using JSignature = JXRPlane(jni::alias_ref<jni::JString>, jni::alias_ref<JXRPlaneAlignment>, jni::alias_ref<JXRPlaneClassification>, jni::alias_ref<JXRVector3>, jni::alias_ref<JXRVector3>, jni::alias_ref<JXRPose>);
+      using JSignature = JXRPlane(jni::alias_ref<jni::JString>, jni::alias_ref<JXRPlaneAlignment>, jni::alias_ref<JXRPlaneClassification>, jni::alias_ref<JXRVector3>, jni::alias_ref<JXRVector3>, jni::alias_ref<JXRVector3>, jni::alias_ref<jni::JDouble>, jni::alias_ref<JXRPose>);
       static const auto clazz = javaClassStatic();
       static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
       return create(
@@ -79,7 +86,9 @@ namespace margelo::nitro::munimxr {
         JXRPlaneAlignment::fromCpp(value.alignment),
         JXRPlaneClassification::fromCpp(value.classification),
         JXRVector3::fromCpp(value.center),
+        JXRVector3::fromCpp(value.localCenter),
         JXRVector3::fromCpp(value.extent),
+        value.extentRotationY.has_value() ? jni::JDouble::valueOf(value.extentRotationY.value()) : nullptr,
         JXRPose::fromCpp(value.pose)
       );
     }

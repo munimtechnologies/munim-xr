@@ -53,6 +53,34 @@ void JHybridXRViewStateUpdater::updateViewProps(jni::alias_ref<jni::JClass> /* c
     hybridView->setFrameCallbackFps(props->frameCallbackFps.value);
     props->frameCallbackFps.isDirty = false;
   }
+  if (props->mode.isDirty) {
+    hybridView->setMode(props->mode.value);
+    props->mode.isDirty = false;
+  }
+  if (props->trackableUpdateMaxHz.isDirty) {
+    hybridView->setTrackableUpdateMaxHz(props->trackableUpdateMaxHz.value);
+    props->trackableUpdateMaxHz.isDirty = false;
+  }
+  if (props->lightEstimationMode.isDirty) {
+    hybridView->setLightEstimationMode(props->lightEstimationMode.value);
+    props->lightEstimationMode.isDirty = false;
+  }
+  if (props->environmentTexturing.isDirty) {
+    hybridView->setEnvironmentTexturing(props->environmentTexturing.value);
+    props->environmentTexturing.isDirty = false;
+  }
+  if (props->depthSmoothing.isDirty) {
+    hybridView->setDepthSmoothing(props->depthSmoothing.value);
+    props->depthSmoothing.isDirty = false;
+  }
+  if (props->detectionImages.isDirty) {
+    hybridView->setDetectionImages(props->detectionImages.value);
+    props->detectionImages.isDirty = false;
+  }
+  if (props->sceneReconstruction.isDirty) {
+    hybridView->setSceneReconstruction(props->sceneReconstruction.value);
+    props->sceneReconstruction.isDirty = false;
+  }
   if (props->onReady.isDirty) {
     hybridView->setOnReady(props->onReady.value);
     props->onReady.isDirty = false;
@@ -76,6 +104,42 @@ void JHybridXRViewStateUpdater::updateViewProps(jni::alias_ref<jni::JClass> /* c
   if (props->onPlaneRemoved.isDirty) {
     hybridView->setOnPlaneRemoved(props->onPlaneRemoved.value);
     props->onPlaneRemoved.isDirty = false;
+  }
+  if (props->onImageAnchorAdded.isDirty) {
+    hybridView->setOnImageAnchorAdded(props->onImageAnchorAdded.value);
+    props->onImageAnchorAdded.isDirty = false;
+  }
+  if (props->onImageAnchorUpdated.isDirty) {
+    hybridView->setOnImageAnchorUpdated(props->onImageAnchorUpdated.value);
+    props->onImageAnchorUpdated.isDirty = false;
+  }
+  if (props->onImageAnchorRemoved.isDirty) {
+    hybridView->setOnImageAnchorRemoved(props->onImageAnchorRemoved.value);
+    props->onImageAnchorRemoved.isDirty = false;
+  }
+  if (props->onMeshAnchorAdded.isDirty) {
+    hybridView->setOnMeshAnchorAdded(props->onMeshAnchorAdded.value);
+    props->onMeshAnchorAdded.isDirty = false;
+  }
+  if (props->onMeshAnchorUpdated.isDirty) {
+    hybridView->setOnMeshAnchorUpdated(props->onMeshAnchorUpdated.value);
+    props->onMeshAnchorUpdated.isDirty = false;
+  }
+  if (props->onMeshAnchorRemoved.isDirty) {
+    hybridView->setOnMeshAnchorRemoved(props->onMeshAnchorRemoved.value);
+    props->onMeshAnchorRemoved.isDirty = false;
+  }
+  if (props->onFaceAdded.isDirty) {
+    hybridView->setOnFaceAdded(props->onFaceAdded.value);
+    props->onFaceAdded.isDirty = false;
+  }
+  if (props->onFaceUpdated.isDirty) {
+    hybridView->setOnFaceUpdated(props->onFaceUpdated.value);
+    props->onFaceUpdated.isDirty = false;
+  }
+  if (props->onFaceRemoved.isDirty) {
+    hybridView->setOnFaceRemoved(props->onFaceRemoved.value);
+    props->onFaceRemoved.isDirty = false;
   }
   if (props->onError.isDirty) {
     hybridView->setOnError(props->onError.value);

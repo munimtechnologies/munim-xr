@@ -41,6 +41,7 @@ namespace margelo::nitro::munimxr { struct XRPose; }
 #include "XRPlaneAlignment.hpp"
 #include "XRPlaneClassification.hpp"
 #include "XRVector3.hpp"
+#include <optional>
 #include "XRPose.hpp"
 
 namespace margelo::nitro::munimxr {
@@ -54,12 +55,14 @@ namespace margelo::nitro::munimxr {
     XRPlaneAlignment alignment     SWIFT_PRIVATE;
     XRPlaneClassification classification     SWIFT_PRIVATE;
     XRVector3 center     SWIFT_PRIVATE;
+    XRVector3 localCenter     SWIFT_PRIVATE;
     XRVector3 extent     SWIFT_PRIVATE;
+    std::optional<double> extentRotationY     SWIFT_PRIVATE;
     XRPose pose     SWIFT_PRIVATE;
 
   public:
     XRPlane() = default;
-    explicit XRPlane(std::string id, XRPlaneAlignment alignment, XRPlaneClassification classification, XRVector3 center, XRVector3 extent, XRPose pose): id(id), alignment(alignment), classification(classification), center(center), extent(extent), pose(pose) {}
+    explicit XRPlane(std::string id, XRPlaneAlignment alignment, XRPlaneClassification classification, XRVector3 center, XRVector3 localCenter, XRVector3 extent, std::optional<double> extentRotationY, XRPose pose): id(id), alignment(alignment), classification(classification), center(center), localCenter(localCenter), extent(extent), extentRotationY(extentRotationY), pose(pose) {}
 
   public:
     friend bool operator==(const XRPlane& lhs, const XRPlane& rhs) = default;
@@ -79,7 +82,9 @@ namespace margelo::nitro {
         JSIConverter<margelo::nitro::munimxr::XRPlaneAlignment>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "alignment"))),
         JSIConverter<margelo::nitro::munimxr::XRPlaneClassification>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "classification"))),
         JSIConverter<margelo::nitro::munimxr::XRVector3>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "center"))),
+        JSIConverter<margelo::nitro::munimxr::XRVector3>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "localCenter"))),
         JSIConverter<margelo::nitro::munimxr::XRVector3>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "extent"))),
+        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "extentRotationY"))),
         JSIConverter<margelo::nitro::munimxr::XRPose>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "pose")))
       );
     }
@@ -89,7 +94,9 @@ namespace margelo::nitro {
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "alignment"), JSIConverter<margelo::nitro::munimxr::XRPlaneAlignment>::toJSI(runtime, arg.alignment));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "classification"), JSIConverter<margelo::nitro::munimxr::XRPlaneClassification>::toJSI(runtime, arg.classification));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "center"), JSIConverter<margelo::nitro::munimxr::XRVector3>::toJSI(runtime, arg.center));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "localCenter"), JSIConverter<margelo::nitro::munimxr::XRVector3>::toJSI(runtime, arg.localCenter));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "extent"), JSIConverter<margelo::nitro::munimxr::XRVector3>::toJSI(runtime, arg.extent));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "extentRotationY"), JSIConverter<std::optional<double>>::toJSI(runtime, arg.extentRotationY));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "pose"), JSIConverter<margelo::nitro::munimxr::XRPose>::toJSI(runtime, arg.pose));
       return obj;
     }
@@ -105,7 +112,9 @@ namespace margelo::nitro {
       if (!JSIConverter<margelo::nitro::munimxr::XRPlaneAlignment>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "alignment")))) return false;
       if (!JSIConverter<margelo::nitro::munimxr::XRPlaneClassification>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "classification")))) return false;
       if (!JSIConverter<margelo::nitro::munimxr::XRVector3>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "center")))) return false;
+      if (!JSIConverter<margelo::nitro::munimxr::XRVector3>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "localCenter")))) return false;
       if (!JSIConverter<margelo::nitro::munimxr::XRVector3>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "extent")))) return false;
+      if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "extentRotationY")))) return false;
       if (!JSIConverter<margelo::nitro::munimxr::XRPose>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "pose")))) return false;
       return true;
     }

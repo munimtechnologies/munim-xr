@@ -15,10 +15,14 @@
 
 // Forward declaration of `XRAvailability` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRAvailability; }
+// Forward declaration of `XRFeature` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRFeature; }
 
 #include <string>
 #include "XRAvailability.hpp"
 #include <NitroModules/Promise.hpp>
+#include "XRFeature.hpp"
+#include <optional>
 
 namespace margelo::nitro::munimxr {
 
@@ -53,7 +57,7 @@ namespace margelo::nitro::munimxr {
     public:
       // Methods
       virtual bool isSupported() = 0;
-      virtual std::shared_ptr<Promise<XRAvailability>> checkAvailability() = 0;
+      virtual std::shared_ptr<Promise<XRAvailability>> checkAvailability(std::optional<XRFeature> feature) = 0;
       virtual std::shared_ptr<Promise<bool>> requestInstall() = 0;
 
     protected:

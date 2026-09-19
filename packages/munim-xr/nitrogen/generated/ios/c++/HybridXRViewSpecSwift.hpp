@@ -14,6 +14,16 @@ namespace NitroMunimXr { class HybridXRViewSpec_cxx; }
 
 // Forward declaration of `XRPlaneDetection` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRPlaneDetection; }
+// Forward declaration of `XRSessionMode` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRSessionMode; }
+// Forward declaration of `XRLightEstimationMode` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRLightEstimationMode; }
+// Forward declaration of `XREnvironmentTexturing` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XREnvironmentTexturing; }
+// Forward declaration of `XRDetectionImage` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRDetectionImage; }
+// Forward declaration of `XRSceneReconstruction` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRSceneReconstruction; }
 // Forward declaration of `XRFrame` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRFrame; }
 // Forward declaration of `XRTrackingState` to properly resolve imports.
@@ -24,36 +34,75 @@ namespace margelo::nitro::munimxr { struct XRPose; }
 namespace margelo::nitro::munimxr { struct XRVector3; }
 // Forward declaration of `XRQuaternion` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRQuaternion; }
+// Forward declaration of `XRLightEstimate` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRLightEstimate; }
 // Forward declaration of `XRPlane` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRPlane; }
 // Forward declaration of `XRPlaneAlignment` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRPlaneAlignment; }
 // Forward declaration of `XRPlaneClassification` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRPlaneClassification; }
+// Forward declaration of `XRImageAnchor` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRImageAnchor; }
+// Forward declaration of `XRMeshAnchor` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRMeshAnchor; }
+// Forward declaration of `XRMeshClassificationCount` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRMeshClassificationCount; }
+// Forward declaration of `XRMeshClassification` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRMeshClassification; }
+// Forward declaration of `XRFace` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRFace; }
+// Forward declaration of `XRBlendShape` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRBlendShape; }
 // Forward declaration of `XRHitResult` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRHitResult; }
 // Forward declaration of `XRHitType` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRHitType; }
 // Forward declaration of `XRAnchor` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRAnchor; }
+// Forward declaration of `XRDepthFrame` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRDepthFrame; }
+// Forward declaration of `XRDepthFormat` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRDepthFormat; }
+// Forward declaration of `ArrayBufferHolder` to properly resolve imports.
+namespace NitroModules { class ArrayBufferHolder; }
+// Forward declaration of `XRModelOptions` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRModelOptions; }
 
 #include "XRPlaneDetection.hpp"
-#include <functional>
+#include "XRSessionMode.hpp"
 #include <optional>
+#include "XRLightEstimationMode.hpp"
+#include "XREnvironmentTexturing.hpp"
+#include "XRDetectionImage.hpp"
+#include <vector>
+#include <string>
+#include "XRSceneReconstruction.hpp"
+#include <functional>
 #include "XRFrame.hpp"
 #include "XRTrackingState.hpp"
 #include "XRPose.hpp"
 #include "XRVector3.hpp"
 #include "XRQuaternion.hpp"
-#include <vector>
+#include "XRLightEstimate.hpp"
 #include "XRPlane.hpp"
-#include <string>
 #include "XRPlaneAlignment.hpp"
 #include "XRPlaneClassification.hpp"
+#include "XRImageAnchor.hpp"
+#include "XRMeshAnchor.hpp"
+#include "XRMeshClassificationCount.hpp"
+#include "XRMeshClassification.hpp"
+#include "XRFace.hpp"
+#include "XRBlendShape.hpp"
 #include <NitroModules/Promise.hpp>
 #include "XRHitResult.hpp"
 #include "XRHitType.hpp"
 #include "XRAnchor.hpp"
+#include "XRDepthFrame.hpp"
+#include "XRDepthFormat.hpp"
+#include <NitroModules/ArrayBuffer.hpp>
+#include <NitroModules/ArrayBufferHolder.hpp>
+#include "XRModelOptions.hpp"
 
 #include "NitroMunimXr-Swift-Cxx-Umbrella.hpp"
 
@@ -126,6 +175,55 @@ namespace margelo::nitro::munimxr {
     inline void setFrameCallbackFps(double frameCallbackFps) noexcept override {
       _swiftPart.setFrameCallbackFps(std::forward<decltype(frameCallbackFps)>(frameCallbackFps));
     }
+    inline std::optional<XRSessionMode> getMode() noexcept override {
+      auto __result = _swiftPart.getMode();
+      return __result;
+    }
+    inline void setMode(std::optional<XRSessionMode> mode) noexcept override {
+      _swiftPart.setMode(mode);
+    }
+    inline std::optional<double> getTrackableUpdateMaxHz() noexcept override {
+      auto __result = _swiftPart.getTrackableUpdateMaxHz();
+      return __result;
+    }
+    inline void setTrackableUpdateMaxHz(std::optional<double> trackableUpdateMaxHz) noexcept override {
+      _swiftPart.setTrackableUpdateMaxHz(trackableUpdateMaxHz);
+    }
+    inline std::optional<XRLightEstimationMode> getLightEstimationMode() noexcept override {
+      auto __result = _swiftPart.getLightEstimationMode();
+      return __result;
+    }
+    inline void setLightEstimationMode(std::optional<XRLightEstimationMode> lightEstimationMode) noexcept override {
+      _swiftPart.setLightEstimationMode(lightEstimationMode);
+    }
+    inline std::optional<XREnvironmentTexturing> getEnvironmentTexturing() noexcept override {
+      auto __result = _swiftPart.getEnvironmentTexturing();
+      return __result;
+    }
+    inline void setEnvironmentTexturing(std::optional<XREnvironmentTexturing> environmentTexturing) noexcept override {
+      _swiftPart.setEnvironmentTexturing(environmentTexturing);
+    }
+    inline std::optional<bool> getDepthSmoothing() noexcept override {
+      auto __result = _swiftPart.getDepthSmoothing();
+      return __result;
+    }
+    inline void setDepthSmoothing(std::optional<bool> depthSmoothing) noexcept override {
+      _swiftPart.setDepthSmoothing(depthSmoothing);
+    }
+    inline std::optional<std::vector<XRDetectionImage>> getDetectionImages() noexcept override {
+      auto __result = _swiftPart.getDetectionImages();
+      return __result;
+    }
+    inline void setDetectionImages(const std::optional<std::vector<XRDetectionImage>>& detectionImages) noexcept override {
+      _swiftPart.setDetectionImages(detectionImages);
+    }
+    inline std::optional<XRSceneReconstruction> getSceneReconstruction() noexcept override {
+      auto __result = _swiftPart.getSceneReconstruction();
+      return __result;
+    }
+    inline void setSceneReconstruction(std::optional<XRSceneReconstruction> sceneReconstruction) noexcept override {
+      _swiftPart.setSceneReconstruction(sceneReconstruction);
+    }
     inline std::optional<std::function<void()>> getOnReady() noexcept override {
       auto __result = _swiftPart.getOnReady();
       return __result;
@@ -167,6 +265,69 @@ namespace margelo::nitro::munimxr {
     }
     inline void setOnPlaneRemoved(const std::optional<std::function<void(const std::string& /* planeId */)>>& onPlaneRemoved) noexcept override {
       _swiftPart.setOnPlaneRemoved(onPlaneRemoved);
+    }
+    inline std::optional<std::function<void(const XRImageAnchor& /* anchor */)>> getOnImageAnchorAdded() noexcept override {
+      auto __result = _swiftPart.getOnImageAnchorAdded();
+      return __result;
+    }
+    inline void setOnImageAnchorAdded(const std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>& onImageAnchorAdded) noexcept override {
+      _swiftPart.setOnImageAnchorAdded(onImageAnchorAdded);
+    }
+    inline std::optional<std::function<void(const XRImageAnchor& /* anchor */)>> getOnImageAnchorUpdated() noexcept override {
+      auto __result = _swiftPart.getOnImageAnchorUpdated();
+      return __result;
+    }
+    inline void setOnImageAnchorUpdated(const std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>& onImageAnchorUpdated) noexcept override {
+      _swiftPart.setOnImageAnchorUpdated(onImageAnchorUpdated);
+    }
+    inline std::optional<std::function<void(const XRImageAnchor& /* anchor */)>> getOnImageAnchorRemoved() noexcept override {
+      auto __result = _swiftPart.getOnImageAnchorRemoved();
+      return __result;
+    }
+    inline void setOnImageAnchorRemoved(const std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>& onImageAnchorRemoved) noexcept override {
+      _swiftPart.setOnImageAnchorRemoved(onImageAnchorRemoved);
+    }
+    inline std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>> getOnMeshAnchorAdded() noexcept override {
+      auto __result = _swiftPart.getOnMeshAnchorAdded();
+      return __result;
+    }
+    inline void setOnMeshAnchorAdded(const std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>& onMeshAnchorAdded) noexcept override {
+      _swiftPart.setOnMeshAnchorAdded(onMeshAnchorAdded);
+    }
+    inline std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>> getOnMeshAnchorUpdated() noexcept override {
+      auto __result = _swiftPart.getOnMeshAnchorUpdated();
+      return __result;
+    }
+    inline void setOnMeshAnchorUpdated(const std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>& onMeshAnchorUpdated) noexcept override {
+      _swiftPart.setOnMeshAnchorUpdated(onMeshAnchorUpdated);
+    }
+    inline std::optional<std::function<void(const std::string& /* meshId */)>> getOnMeshAnchorRemoved() noexcept override {
+      auto __result = _swiftPart.getOnMeshAnchorRemoved();
+      return __result;
+    }
+    inline void setOnMeshAnchorRemoved(const std::optional<std::function<void(const std::string& /* meshId */)>>& onMeshAnchorRemoved) noexcept override {
+      _swiftPart.setOnMeshAnchorRemoved(onMeshAnchorRemoved);
+    }
+    inline std::optional<std::function<void(const XRFace& /* face */)>> getOnFaceAdded() noexcept override {
+      auto __result = _swiftPart.getOnFaceAdded();
+      return __result;
+    }
+    inline void setOnFaceAdded(const std::optional<std::function<void(const XRFace& /* face */)>>& onFaceAdded) noexcept override {
+      _swiftPart.setOnFaceAdded(onFaceAdded);
+    }
+    inline std::optional<std::function<void(const XRFace& /* face */)>> getOnFaceUpdated() noexcept override {
+      auto __result = _swiftPart.getOnFaceUpdated();
+      return __result;
+    }
+    inline void setOnFaceUpdated(const std::optional<std::function<void(const XRFace& /* face */)>>& onFaceUpdated) noexcept override {
+      _swiftPart.setOnFaceUpdated(onFaceUpdated);
+    }
+    inline std::optional<std::function<void(const std::string& /* faceId */)>> getOnFaceRemoved() noexcept override {
+      auto __result = _swiftPart.getOnFaceRemoved();
+      return __result;
+    }
+    inline void setOnFaceRemoved(const std::optional<std::function<void(const std::string& /* faceId */)>>& onFaceRemoved) noexcept override {
+      _swiftPart.setOnFaceRemoved(onFaceRemoved);
     }
     inline std::optional<std::function<void(const std::string& /* message */)>> getOnError() noexcept override {
       auto __result = _swiftPart.getOnError();
@@ -245,6 +406,42 @@ namespace margelo::nitro::munimxr {
       }
       auto __value = std::move(__result.value());
       return __value;
+    }
+    inline std::shared_ptr<Promise<XRDepthFrame>> getDepthFrame() override {
+      auto __result = _swiftPart.getDepthFrame();
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+      auto __value = std::move(__result.value());
+      return __value;
+    }
+    inline std::shared_ptr<Promise<std::string>> exportMesh() override {
+      auto __result = _swiftPart.exportMesh();
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+      auto __value = std::move(__result.value());
+      return __value;
+    }
+    inline std::shared_ptr<Promise<std::string>> addModel(const XRModelOptions& options) override {
+      auto __result = _swiftPart.addModel(std::forward<decltype(options)>(options));
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+      auto __value = std::move(__result.value());
+      return __value;
+    }
+    inline void removeModel(const std::string& modelId) override {
+      auto __result = _swiftPart.removeModel(modelId);
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+    }
+    inline void setModelTransform(const std::string& modelId, const XRPose& pose, std::optional<double> scale) override {
+      auto __result = _swiftPart.setModelTransform(modelId, std::forward<decltype(pose)>(pose), scale);
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
     }
 
   private:

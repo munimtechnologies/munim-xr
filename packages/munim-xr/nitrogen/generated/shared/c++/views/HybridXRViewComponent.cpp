@@ -66,6 +66,76 @@ namespace margelo::nitro::munimxr::views {
         throw std::runtime_error(std::string("XRView.frameCallbackFps: ") + exc.what());
       }
     }()),
+    mode([&]() -> CachedProp<std::optional<XRSessionMode>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("mode", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.mode;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<XRSessionMode>>::fromRawValue(*runtime, value, sourceProps.mode);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.mode: ") + exc.what());
+      }
+    }()),
+    trackableUpdateMaxHz([&]() -> CachedProp<std::optional<double>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("trackableUpdateMaxHz", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.trackableUpdateMaxHz;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<double>>::fromRawValue(*runtime, value, sourceProps.trackableUpdateMaxHz);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.trackableUpdateMaxHz: ") + exc.what());
+      }
+    }()),
+    lightEstimationMode([&]() -> CachedProp<std::optional<XRLightEstimationMode>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("lightEstimationMode", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.lightEstimationMode;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<XRLightEstimationMode>>::fromRawValue(*runtime, value, sourceProps.lightEstimationMode);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.lightEstimationMode: ") + exc.what());
+      }
+    }()),
+    environmentTexturing([&]() -> CachedProp<std::optional<XREnvironmentTexturing>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("environmentTexturing", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.environmentTexturing;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<XREnvironmentTexturing>>::fromRawValue(*runtime, value, sourceProps.environmentTexturing);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.environmentTexturing: ") + exc.what());
+      }
+    }()),
+    depthSmoothing([&]() -> CachedProp<std::optional<bool>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("depthSmoothing", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.depthSmoothing;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<bool>>::fromRawValue(*runtime, value, sourceProps.depthSmoothing);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.depthSmoothing: ") + exc.what());
+      }
+    }()),
+    detectionImages([&]() -> CachedProp<std::optional<std::vector<XRDetectionImage>>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("detectionImages", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.detectionImages;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<std::vector<XRDetectionImage>>>::fromRawValue(*runtime, value, sourceProps.detectionImages);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.detectionImages: ") + exc.what());
+      }
+    }()),
+    sceneReconstruction([&]() -> CachedProp<std::optional<XRSceneReconstruction>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("sceneReconstruction", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.sceneReconstruction;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<XRSceneReconstruction>>::fromRawValue(*runtime, value, sourceProps.sceneReconstruction);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.sceneReconstruction: ") + exc.what());
+      }
+    }()),
     onReady([&]() -> CachedProp<std::optional<std::function<void()>>> {
       try {
         const react::RawValue* rawValue = rawProps.at("onReady", nullptr, nullptr);
@@ -126,6 +196,96 @@ namespace margelo::nitro::munimxr::views {
         throw std::runtime_error(std::string("XRView.onPlaneRemoved: ") + exc.what());
       }
     }()),
+    onImageAnchorAdded([&]() -> CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("onImageAnchorAdded", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.onImageAnchorAdded;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onImageAnchorAdded);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.onImageAnchorAdded: ") + exc.what());
+      }
+    }()),
+    onImageAnchorUpdated([&]() -> CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("onImageAnchorUpdated", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.onImageAnchorUpdated;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onImageAnchorUpdated);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.onImageAnchorUpdated: ") + exc.what());
+      }
+    }()),
+    onImageAnchorRemoved([&]() -> CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("onImageAnchorRemoved", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.onImageAnchorRemoved;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onImageAnchorRemoved);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.onImageAnchorRemoved: ") + exc.what());
+      }
+    }()),
+    onMeshAnchorAdded([&]() -> CachedProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("onMeshAnchorAdded", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.onMeshAnchorAdded;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onMeshAnchorAdded);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.onMeshAnchorAdded: ") + exc.what());
+      }
+    }()),
+    onMeshAnchorUpdated([&]() -> CachedProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("onMeshAnchorUpdated", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.onMeshAnchorUpdated;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onMeshAnchorUpdated);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.onMeshAnchorUpdated: ") + exc.what());
+      }
+    }()),
+    onMeshAnchorRemoved([&]() -> CachedProp<std::optional<std::function<void(const std::string& /* meshId */)>>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("onMeshAnchorRemoved", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.onMeshAnchorRemoved;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<std::function<void(const std::string& /* meshId */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onMeshAnchorRemoved);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.onMeshAnchorRemoved: ") + exc.what());
+      }
+    }()),
+    onFaceAdded([&]() -> CachedProp<std::optional<std::function<void(const XRFace& /* face */)>>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("onFaceAdded", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.onFaceAdded;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<std::function<void(const XRFace& /* face */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onFaceAdded);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.onFaceAdded: ") + exc.what());
+      }
+    }()),
+    onFaceUpdated([&]() -> CachedProp<std::optional<std::function<void(const XRFace& /* face */)>>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("onFaceUpdated", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.onFaceUpdated;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<std::function<void(const XRFace& /* face */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onFaceUpdated);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.onFaceUpdated: ") + exc.what());
+      }
+    }()),
+    onFaceRemoved([&]() -> CachedProp<std::optional<std::function<void(const std::string& /* faceId */)>>> {
+      try {
+        const react::RawValue* rawValue = rawProps.at("onFaceRemoved", nullptr, nullptr);
+        if (rawValue == nullptr) return sourceProps.onFaceRemoved;
+        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
+        return CachedProp<std::optional<std::function<void(const std::string& /* faceId */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onFaceRemoved);
+      } catch (const std::exception& exc) {
+        throw std::runtime_error(std::string("XRView.onFaceRemoved: ") + exc.what());
+      }
+    }()),
     onError([&]() -> CachedProp<std::optional<std::function<void(const std::string& /* message */)>>> {
       try {
         const react::RawValue* rawValue = rawProps.at("onError", nullptr, nullptr);
@@ -153,12 +313,28 @@ namespace margelo::nitro::munimxr::views {
       case hashString("depthEnabled"): return true;
       case hashString("lightEstimationEnabled"): return true;
       case hashString("frameCallbackFps"): return true;
+      case hashString("mode"): return true;
+      case hashString("trackableUpdateMaxHz"): return true;
+      case hashString("lightEstimationMode"): return true;
+      case hashString("environmentTexturing"): return true;
+      case hashString("depthSmoothing"): return true;
+      case hashString("detectionImages"): return true;
+      case hashString("sceneReconstruction"): return true;
       case hashString("onReady"): return true;
       case hashString("onFrame"): return true;
       case hashString("onTrackingStateChange"): return true;
       case hashString("onPlaneDetected"): return true;
       case hashString("onPlaneUpdated"): return true;
       case hashString("onPlaneRemoved"): return true;
+      case hashString("onImageAnchorAdded"): return true;
+      case hashString("onImageAnchorUpdated"): return true;
+      case hashString("onImageAnchorRemoved"): return true;
+      case hashString("onMeshAnchorAdded"): return true;
+      case hashString("onMeshAnchorUpdated"): return true;
+      case hashString("onMeshAnchorRemoved"): return true;
+      case hashString("onFaceAdded"): return true;
+      case hashString("onFaceUpdated"): return true;
+      case hashString("onFaceRemoved"): return true;
       case hashString("onError"): return true;
       case hashString("hybridRef"): return true;
       default: return false;

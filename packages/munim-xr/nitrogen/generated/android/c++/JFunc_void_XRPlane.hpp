@@ -21,6 +21,7 @@
 #include "JXRPlaneClassification.hpp"
 #include "XRVector3.hpp"
 #include "JXRVector3.hpp"
+#include <optional>
 #include "XRPose.hpp"
 #include "JXRPose.hpp"
 #include "XRQuaternion.hpp"

@@ -9,6 +9,16 @@
 
 // Forward declaration of `XRPlaneDetection` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRPlaneDetection; }
+// Forward declaration of `XRSessionMode` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRSessionMode; }
+// Forward declaration of `XRLightEstimationMode` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRLightEstimationMode; }
+// Forward declaration of `XREnvironmentTexturing` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XREnvironmentTexturing; }
+// Forward declaration of `XRDetectionImage` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRDetectionImage; }
+// Forward declaration of `XRSceneReconstruction` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRSceneReconstruction; }
 // Forward declaration of `XRFrame` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRFrame; }
 // Forward declaration of `XRTrackingState` to properly resolve imports.
@@ -19,23 +29,55 @@ namespace margelo::nitro::munimxr { struct XRPose; }
 namespace margelo::nitro::munimxr { struct XRVector3; }
 // Forward declaration of `XRQuaternion` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRQuaternion; }
+// Forward declaration of `XRLightEstimate` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRLightEstimate; }
 // Forward declaration of `XRPlane` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRPlane; }
 // Forward declaration of `XRPlaneAlignment` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRPlaneAlignment; }
 // Forward declaration of `XRPlaneClassification` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRPlaneClassification; }
+// Forward declaration of `XRImageAnchor` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRImageAnchor; }
+// Forward declaration of `XRMeshAnchor` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRMeshAnchor; }
+// Forward declaration of `XRMeshClassificationCount` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRMeshClassificationCount; }
+// Forward declaration of `XRMeshClassification` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRMeshClassification; }
+// Forward declaration of `XRFace` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRFace; }
+// Forward declaration of `XRBlendShape` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRBlendShape; }
 // Forward declaration of `XRHitResult` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRHitResult; }
 // Forward declaration of `XRHitType` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRHitType; }
 // Forward declaration of `XRAnchor` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRAnchor; }
+// Forward declaration of `XRDepthFrame` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRDepthFrame; }
+// Forward declaration of `XRDepthFormat` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRDepthFormat; }
+// Forward declaration of `XRModelOptions` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRModelOptions; }
 
 #include "XRPlaneDetection.hpp"
 #include "JXRPlaneDetection.hpp"
-#include <functional>
+#include "XRSessionMode.hpp"
 #include <optional>
+#include "JXRSessionMode.hpp"
+#include "XRLightEstimationMode.hpp"
+#include "JXRLightEstimationMode.hpp"
+#include "XREnvironmentTexturing.hpp"
+#include "JXREnvironmentTexturing.hpp"
+#include "XRDetectionImage.hpp"
+#include <vector>
+#include "JXRDetectionImage.hpp"
+#include <string>
+#include "XRSceneReconstruction.hpp"
+#include "JXRSceneReconstruction.hpp"
+#include <functional>
 #include "JFunc_void.hpp"
 #include <NitroModules/JNICallable.hpp>
 #include "XRFrame.hpp"
@@ -49,17 +91,32 @@ namespace margelo::nitro::munimxr { struct XRAnchor; }
 #include "JXRVector3.hpp"
 #include "XRQuaternion.hpp"
 #include "JXRQuaternion.hpp"
-#include <vector>
+#include "XRLightEstimate.hpp"
+#include "JXRLightEstimate.hpp"
 #include "JFunc_void_XRTrackingState.hpp"
 #include "XRPlane.hpp"
 #include "JFunc_void_XRPlane.hpp"
 #include "JXRPlane.hpp"
-#include <string>
 #include "XRPlaneAlignment.hpp"
 #include "JXRPlaneAlignment.hpp"
 #include "XRPlaneClassification.hpp"
 #include "JXRPlaneClassification.hpp"
 #include "JFunc_void_std__string.hpp"
+#include "XRImageAnchor.hpp"
+#include "JFunc_void_XRImageAnchor.hpp"
+#include "JXRImageAnchor.hpp"
+#include "XRMeshAnchor.hpp"
+#include "JFunc_void_XRMeshAnchor.hpp"
+#include "JXRMeshAnchor.hpp"
+#include "XRMeshClassificationCount.hpp"
+#include "JXRMeshClassificationCount.hpp"
+#include "XRMeshClassification.hpp"
+#include "JXRMeshClassification.hpp"
+#include "XRFace.hpp"
+#include "JFunc_void_XRFace.hpp"
+#include "JXRFace.hpp"
+#include "XRBlendShape.hpp"
+#include "JXRBlendShape.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/JPromise.hpp>
 #include <NitroModules/JUnit.hpp>
@@ -69,6 +126,14 @@ namespace margelo::nitro::munimxr { struct XRAnchor; }
 #include "JXRHitType.hpp"
 #include "XRAnchor.hpp"
 #include "JXRAnchor.hpp"
+#include "XRDepthFrame.hpp"
+#include "JXRDepthFrame.hpp"
+#include "XRDepthFormat.hpp"
+#include "JXRDepthFormat.hpp"
+#include <NitroModules/ArrayBuffer.hpp>
+#include <NitroModules/JArrayBuffer.hpp>
+#include "XRModelOptions.hpp"
+#include "JXRModelOptions.hpp"
 
 namespace margelo::nitro::munimxr {
 
@@ -135,6 +200,87 @@ namespace margelo::nitro::munimxr {
   void JHybridXRViewSpec::setFrameCallbackFps(double frameCallbackFps) {
     static const auto method = _javaPart->javaClassStatic()->getMethod<void(double /* frameCallbackFps */)>("setFrameCallbackFps");
     method(_javaPart, frameCallbackFps);
+  }
+  std::optional<XRSessionMode> JHybridXRViewSpec::getMode() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JXRSessionMode>()>("getMode");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional(__result->toCpp()) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setMode(std::optional<XRSessionMode> mode) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JXRSessionMode> /* mode */)>("setMode");
+    method(_javaPart, mode.has_value() ? JXRSessionMode::fromCpp(mode.value()) : nullptr);
+  }
+  std::optional<double> JHybridXRViewSpec::getTrackableUpdateMaxHz() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<jni::JDouble>()>("getTrackableUpdateMaxHz");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional(__result->value()) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setTrackableUpdateMaxHz(std::optional<double> trackableUpdateMaxHz) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<jni::JDouble> /* trackableUpdateMaxHz */)>("setTrackableUpdateMaxHz");
+    method(_javaPart, trackableUpdateMaxHz.has_value() ? jni::JDouble::valueOf(trackableUpdateMaxHz.value()) : nullptr);
+  }
+  std::optional<XRLightEstimationMode> JHybridXRViewSpec::getLightEstimationMode() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JXRLightEstimationMode>()>("getLightEstimationMode");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional(__result->toCpp()) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setLightEstimationMode(std::optional<XRLightEstimationMode> lightEstimationMode) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JXRLightEstimationMode> /* lightEstimationMode */)>("setLightEstimationMode");
+    method(_javaPart, lightEstimationMode.has_value() ? JXRLightEstimationMode::fromCpp(lightEstimationMode.value()) : nullptr);
+  }
+  std::optional<XREnvironmentTexturing> JHybridXRViewSpec::getEnvironmentTexturing() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JXREnvironmentTexturing>()>("getEnvironmentTexturing");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional(__result->toCpp()) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setEnvironmentTexturing(std::optional<XREnvironmentTexturing> environmentTexturing) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JXREnvironmentTexturing> /* environmentTexturing */)>("setEnvironmentTexturing");
+    method(_javaPart, environmentTexturing.has_value() ? JXREnvironmentTexturing::fromCpp(environmentTexturing.value()) : nullptr);
+  }
+  std::optional<bool> JHybridXRViewSpec::getDepthSmoothing() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<jni::JBoolean>()>("getDepthSmoothing");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional(static_cast<bool>(__result->value())) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setDepthSmoothing(std::optional<bool> depthSmoothing) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<jni::JBoolean> /* depthSmoothing */)>("setDepthSmoothing");
+    method(_javaPart, depthSmoothing.has_value() ? jni::JBoolean::valueOf(depthSmoothing.value()) : nullptr);
+  }
+  std::optional<std::vector<XRDetectionImage>> JHybridXRViewSpec::getDetectionImages() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<jni::JArrayClass<JXRDetectionImage>>()>("getDetectionImages");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional([&](auto&& __input) {
+      size_t __size = __input->size();
+      std::vector<XRDetectionImage> __vector;
+      __vector.reserve(__size);
+      for (size_t __i = 0; __i < __size; __i++) {
+        auto __element = __input->getElement(__i);
+        __vector.push_back(__element->toCpp());
+      }
+      return __vector;
+    }(__result)) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setDetectionImages(const std::optional<std::vector<XRDetectionImage>>& detectionImages) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<jni::JArrayClass<JXRDetectionImage>> /* detectionImages */)>("setDetectionImages");
+    method(_javaPart, detectionImages.has_value() ? [&](auto&& __input) {
+      size_t __size = __input.size();
+      jni::local_ref<jni::JArrayClass<JXRDetectionImage>> __array = jni::JArrayClass<JXRDetectionImage>::newArray(__size);
+      for (size_t __i = 0; __i < __size; __i++) {
+        const auto& __element = __input[__i];
+        auto __elementJni = JXRDetectionImage::fromCpp(__element);
+        __array->setElement(__i, *__elementJni);
+      }
+      return __array;
+    }(detectionImages.value()) : nullptr);
+  }
+  std::optional<XRSceneReconstruction> JHybridXRViewSpec::getSceneReconstruction() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JXRSceneReconstruction>()>("getSceneReconstruction");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional(__result->toCpp()) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setSceneReconstruction(std::optional<XRSceneReconstruction> sceneReconstruction) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JXRSceneReconstruction> /* sceneReconstruction */)>("setSceneReconstruction");
+    method(_javaPart, sceneReconstruction.has_value() ? JXRSceneReconstruction::fromCpp(sceneReconstruction.value()) : nullptr);
   }
   std::optional<std::function<void()>> JHybridXRViewSpec::getOnReady() {
     static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void::javaobject>()>("getOnReady_cxx");
@@ -237,6 +383,159 @@ namespace margelo::nitro::munimxr {
   void JHybridXRViewSpec::setOnPlaneRemoved(const std::optional<std::function<void(const std::string& /* planeId */)>>& onPlaneRemoved) {
     static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JFunc_void_std__string::javaobject> /* onPlaneRemoved */)>("setOnPlaneRemoved_cxx");
     method(_javaPart, onPlaneRemoved.has_value() ? JFunc_void_std__string_cxx::fromCpp(onPlaneRemoved.value()) : nullptr);
+  }
+  std::optional<std::function<void(const XRImageAnchor& /* anchor */)>> JHybridXRViewSpec::getOnImageAnchorAdded() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void_XRImageAnchor::javaobject>()>("getOnImageAnchorAdded_cxx");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional([&]() -> std::function<void(const XRImageAnchor& /* anchor */)> {
+      if (__result->isInstanceOf(JFunc_void_XRImageAnchor_cxx::javaClassStatic())) [[likely]] {
+        auto downcast = jni::static_ref_cast<JFunc_void_XRImageAnchor_cxx::javaobject>(__result);
+        return downcast->cthis()->getFunction();
+      } else {
+        auto __resultRef = jni::make_global(__result);
+        return JNICallable<JFunc_void_XRImageAnchor, void(XRImageAnchor)>(std::move(__resultRef));
+      }
+    }()) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setOnImageAnchorAdded(const std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>& onImageAnchorAdded) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JFunc_void_XRImageAnchor::javaobject> /* onImageAnchorAdded */)>("setOnImageAnchorAdded_cxx");
+    method(_javaPart, onImageAnchorAdded.has_value() ? JFunc_void_XRImageAnchor_cxx::fromCpp(onImageAnchorAdded.value()) : nullptr);
+  }
+  std::optional<std::function<void(const XRImageAnchor& /* anchor */)>> JHybridXRViewSpec::getOnImageAnchorUpdated() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void_XRImageAnchor::javaobject>()>("getOnImageAnchorUpdated_cxx");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional([&]() -> std::function<void(const XRImageAnchor& /* anchor */)> {
+      if (__result->isInstanceOf(JFunc_void_XRImageAnchor_cxx::javaClassStatic())) [[likely]] {
+        auto downcast = jni::static_ref_cast<JFunc_void_XRImageAnchor_cxx::javaobject>(__result);
+        return downcast->cthis()->getFunction();
+      } else {
+        auto __resultRef = jni::make_global(__result);
+        return JNICallable<JFunc_void_XRImageAnchor, void(XRImageAnchor)>(std::move(__resultRef));
+      }
+    }()) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setOnImageAnchorUpdated(const std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>& onImageAnchorUpdated) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JFunc_void_XRImageAnchor::javaobject> /* onImageAnchorUpdated */)>("setOnImageAnchorUpdated_cxx");
+    method(_javaPart, onImageAnchorUpdated.has_value() ? JFunc_void_XRImageAnchor_cxx::fromCpp(onImageAnchorUpdated.value()) : nullptr);
+  }
+  std::optional<std::function<void(const XRImageAnchor& /* anchor */)>> JHybridXRViewSpec::getOnImageAnchorRemoved() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void_XRImageAnchor::javaobject>()>("getOnImageAnchorRemoved_cxx");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional([&]() -> std::function<void(const XRImageAnchor& /* anchor */)> {
+      if (__result->isInstanceOf(JFunc_void_XRImageAnchor_cxx::javaClassStatic())) [[likely]] {
+        auto downcast = jni::static_ref_cast<JFunc_void_XRImageAnchor_cxx::javaobject>(__result);
+        return downcast->cthis()->getFunction();
+      } else {
+        auto __resultRef = jni::make_global(__result);
+        return JNICallable<JFunc_void_XRImageAnchor, void(XRImageAnchor)>(std::move(__resultRef));
+      }
+    }()) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setOnImageAnchorRemoved(const std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>& onImageAnchorRemoved) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JFunc_void_XRImageAnchor::javaobject> /* onImageAnchorRemoved */)>("setOnImageAnchorRemoved_cxx");
+    method(_javaPart, onImageAnchorRemoved.has_value() ? JFunc_void_XRImageAnchor_cxx::fromCpp(onImageAnchorRemoved.value()) : nullptr);
+  }
+  std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>> JHybridXRViewSpec::getOnMeshAnchorAdded() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void_XRMeshAnchor::javaobject>()>("getOnMeshAnchorAdded_cxx");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional([&]() -> std::function<void(const XRMeshAnchor& /* mesh */)> {
+      if (__result->isInstanceOf(JFunc_void_XRMeshAnchor_cxx::javaClassStatic())) [[likely]] {
+        auto downcast = jni::static_ref_cast<JFunc_void_XRMeshAnchor_cxx::javaobject>(__result);
+        return downcast->cthis()->getFunction();
+      } else {
+        auto __resultRef = jni::make_global(__result);
+        return JNICallable<JFunc_void_XRMeshAnchor, void(XRMeshAnchor)>(std::move(__resultRef));
+      }
+    }()) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setOnMeshAnchorAdded(const std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>& onMeshAnchorAdded) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JFunc_void_XRMeshAnchor::javaobject> /* onMeshAnchorAdded */)>("setOnMeshAnchorAdded_cxx");
+    method(_javaPart, onMeshAnchorAdded.has_value() ? JFunc_void_XRMeshAnchor_cxx::fromCpp(onMeshAnchorAdded.value()) : nullptr);
+  }
+  std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>> JHybridXRViewSpec::getOnMeshAnchorUpdated() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void_XRMeshAnchor::javaobject>()>("getOnMeshAnchorUpdated_cxx");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional([&]() -> std::function<void(const XRMeshAnchor& /* mesh */)> {
+      if (__result->isInstanceOf(JFunc_void_XRMeshAnchor_cxx::javaClassStatic())) [[likely]] {
+        auto downcast = jni::static_ref_cast<JFunc_void_XRMeshAnchor_cxx::javaobject>(__result);
+        return downcast->cthis()->getFunction();
+      } else {
+        auto __resultRef = jni::make_global(__result);
+        return JNICallable<JFunc_void_XRMeshAnchor, void(XRMeshAnchor)>(std::move(__resultRef));
+      }
+    }()) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setOnMeshAnchorUpdated(const std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>& onMeshAnchorUpdated) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JFunc_void_XRMeshAnchor::javaobject> /* onMeshAnchorUpdated */)>("setOnMeshAnchorUpdated_cxx");
+    method(_javaPart, onMeshAnchorUpdated.has_value() ? JFunc_void_XRMeshAnchor_cxx::fromCpp(onMeshAnchorUpdated.value()) : nullptr);
+  }
+  std::optional<std::function<void(const std::string& /* meshId */)>> JHybridXRViewSpec::getOnMeshAnchorRemoved() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void_std__string::javaobject>()>("getOnMeshAnchorRemoved_cxx");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional([&]() -> std::function<void(const std::string& /* meshId */)> {
+      if (__result->isInstanceOf(JFunc_void_std__string_cxx::javaClassStatic())) [[likely]] {
+        auto downcast = jni::static_ref_cast<JFunc_void_std__string_cxx::javaobject>(__result);
+        return downcast->cthis()->getFunction();
+      } else {
+        auto __resultRef = jni::make_global(__result);
+        return JNICallable<JFunc_void_std__string, void(std::string)>(std::move(__resultRef));
+      }
+    }()) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setOnMeshAnchorRemoved(const std::optional<std::function<void(const std::string& /* meshId */)>>& onMeshAnchorRemoved) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JFunc_void_std__string::javaobject> /* onMeshAnchorRemoved */)>("setOnMeshAnchorRemoved_cxx");
+    method(_javaPart, onMeshAnchorRemoved.has_value() ? JFunc_void_std__string_cxx::fromCpp(onMeshAnchorRemoved.value()) : nullptr);
+  }
+  std::optional<std::function<void(const XRFace& /* face */)>> JHybridXRViewSpec::getOnFaceAdded() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void_XRFace::javaobject>()>("getOnFaceAdded_cxx");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional([&]() -> std::function<void(const XRFace& /* face */)> {
+      if (__result->isInstanceOf(JFunc_void_XRFace_cxx::javaClassStatic())) [[likely]] {
+        auto downcast = jni::static_ref_cast<JFunc_void_XRFace_cxx::javaobject>(__result);
+        return downcast->cthis()->getFunction();
+      } else {
+        auto __resultRef = jni::make_global(__result);
+        return JNICallable<JFunc_void_XRFace, void(XRFace)>(std::move(__resultRef));
+      }
+    }()) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setOnFaceAdded(const std::optional<std::function<void(const XRFace& /* face */)>>& onFaceAdded) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JFunc_void_XRFace::javaobject> /* onFaceAdded */)>("setOnFaceAdded_cxx");
+    method(_javaPart, onFaceAdded.has_value() ? JFunc_void_XRFace_cxx::fromCpp(onFaceAdded.value()) : nullptr);
+  }
+  std::optional<std::function<void(const XRFace& /* face */)>> JHybridXRViewSpec::getOnFaceUpdated() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void_XRFace::javaobject>()>("getOnFaceUpdated_cxx");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional([&]() -> std::function<void(const XRFace& /* face */)> {
+      if (__result->isInstanceOf(JFunc_void_XRFace_cxx::javaClassStatic())) [[likely]] {
+        auto downcast = jni::static_ref_cast<JFunc_void_XRFace_cxx::javaobject>(__result);
+        return downcast->cthis()->getFunction();
+      } else {
+        auto __resultRef = jni::make_global(__result);
+        return JNICallable<JFunc_void_XRFace, void(XRFace)>(std::move(__resultRef));
+      }
+    }()) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setOnFaceUpdated(const std::optional<std::function<void(const XRFace& /* face */)>>& onFaceUpdated) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JFunc_void_XRFace::javaobject> /* onFaceUpdated */)>("setOnFaceUpdated_cxx");
+    method(_javaPart, onFaceUpdated.has_value() ? JFunc_void_XRFace_cxx::fromCpp(onFaceUpdated.value()) : nullptr);
+  }
+  std::optional<std::function<void(const std::string& /* faceId */)>> JHybridXRViewSpec::getOnFaceRemoved() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void_std__string::javaobject>()>("getOnFaceRemoved_cxx");
+    auto __result = method(_javaPart);
+    return __result != nullptr ? std::make_optional([&]() -> std::function<void(const std::string& /* faceId */)> {
+      if (__result->isInstanceOf(JFunc_void_std__string_cxx::javaClassStatic())) [[likely]] {
+        auto downcast = jni::static_ref_cast<JFunc_void_std__string_cxx::javaobject>(__result);
+        return downcast->cthis()->getFunction();
+      } else {
+        auto __resultRef = jni::make_global(__result);
+        return JNICallable<JFunc_void_std__string, void(std::string)>(std::move(__resultRef));
+      }
+    }()) : std::nullopt;
+  }
+  void JHybridXRViewSpec::setOnFaceRemoved(const std::optional<std::function<void(const std::string& /* faceId */)>>& onFaceRemoved) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JFunc_void_std__string::javaobject> /* onFaceRemoved */)>("setOnFaceRemoved_cxx");
+    method(_javaPart, onFaceRemoved.has_value() ? JFunc_void_std__string_cxx::fromCpp(onFaceRemoved.value()) : nullptr);
   }
   std::optional<std::function<void(const std::string& /* message */)>> JHybridXRViewSpec::getOnError() {
     static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JFunc_void_std__string::javaobject>()>("getOnError_cxx");
@@ -370,6 +669,62 @@ namespace margelo::nitro::munimxr {
       });
       return __promise;
     }();
+  }
+  std::shared_ptr<Promise<XRDepthFrame>> JHybridXRViewSpec::getDepthFrame() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>()>("getDepthFrame");
+    auto __result = method(_javaPart);
+    return [&]() {
+      auto __promise = Promise<XRDepthFrame>::create();
+      __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
+        auto __result = jni::static_ref_cast<JXRDepthFrame>(__boxedResult);
+        __promise->resolve(__result->toCpp());
+      });
+      __result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JThrowable>& __throwable) {
+        jni::JniException __jniError(__throwable);
+        __promise->reject(std::make_exception_ptr(__jniError));
+      });
+      return __promise;
+    }();
+  }
+  std::shared_ptr<Promise<std::string>> JHybridXRViewSpec::exportMesh() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>()>("exportMesh");
+    auto __result = method(_javaPart);
+    return [&]() {
+      auto __promise = Promise<std::string>::create();
+      __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
+        auto __result = jni::static_ref_cast<jni::JString>(__boxedResult);
+        __promise->resolve(__result->toStdString());
+      });
+      __result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JThrowable>& __throwable) {
+        jni::JniException __jniError(__throwable);
+        __promise->reject(std::make_exception_ptr(__jniError));
+      });
+      return __promise;
+    }();
+  }
+  std::shared_ptr<Promise<std::string>> JHybridXRViewSpec::addModel(const XRModelOptions& options) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<JXRModelOptions> /* options */)>("addModel");
+    auto __result = method(_javaPart, JXRModelOptions::fromCpp(options));
+    return [&]() {
+      auto __promise = Promise<std::string>::create();
+      __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
+        auto __result = jni::static_ref_cast<jni::JString>(__boxedResult);
+        __promise->resolve(__result->toStdString());
+      });
+      __result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JThrowable>& __throwable) {
+        jni::JniException __jniError(__throwable);
+        __promise->reject(std::make_exception_ptr(__jniError));
+      });
+      return __promise;
+    }();
+  }
+  void JHybridXRViewSpec::removeModel(const std::string& modelId) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<jni::JString> /* modelId */)>("removeModel");
+    method(_javaPart, jni::make_jstring(modelId));
+  }
+  void JHybridXRViewSpec::setModelTransform(const std::string& modelId, const XRPose& pose, std::optional<double> scale) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<jni::JString> /* modelId */, jni::alias_ref<JXRPose> /* pose */, jni::alias_ref<jni::JDouble> /* scale */)>("setModelTransform");
+    method(_javaPart, jni::make_jstring(modelId), JXRPose::fromCpp(pose), scale.has_value() ? jni::JDouble::valueOf(scale.value()) : nullptr);
   }
 
 } // namespace margelo::nitro::munimxr

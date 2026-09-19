@@ -32,7 +32,13 @@ data class XRPlane(
   val center: XRVector3,
   @DoNotStrip
   @Keep
+  val localCenter: XRVector3,
+  @DoNotStrip
+  @Keep
   val extent: XRVector3,
+  @DoNotStrip
+  @Keep
+  val extentRotationY: Double?,
   @DoNotStrip
   @Keep
   val pose: XRPose
@@ -46,7 +52,9 @@ data class XRPlane(
       && Objects.deepEquals(this.alignment, other.alignment)
       && Objects.deepEquals(this.classification, other.classification)
       && Objects.deepEquals(this.center, other.center)
+      && Objects.deepEquals(this.localCenter, other.localCenter)
       && Objects.deepEquals(this.extent, other.extent)
+      && Objects.deepEquals(this.extentRotationY, other.extentRotationY)
       && Objects.deepEquals(this.pose, other.pose)
   }
 
@@ -56,7 +64,9 @@ data class XRPlane(
       alignment,
       classification,
       center,
+      localCenter,
       extent,
+      extentRotationY,
       pose
     ).contentDeepHashCode()
   }
@@ -69,8 +79,8 @@ data class XRPlane(
     @Keep
     @Suppress("unused")
     @JvmStatic
-    private fun fromCpp(id: String, alignment: XRPlaneAlignment, classification: XRPlaneClassification, center: XRVector3, extent: XRVector3, pose: XRPose): XRPlane {
-      return XRPlane(id, alignment, classification, center, extent, pose)
+    private fun fromCpp(id: String, alignment: XRPlaneAlignment, classification: XRPlaneClassification, center: XRVector3, localCenter: XRVector3, extent: XRVector3, extentRotationY: Double?, pose: XRPose): XRPlane {
+      return XRPlane(id, alignment, classification, center, localCenter, extent, extentRotationY, pose)
     }
   }
 }

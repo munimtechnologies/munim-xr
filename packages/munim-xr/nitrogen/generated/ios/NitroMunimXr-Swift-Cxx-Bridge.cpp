@@ -95,6 +95,30 @@ namespace margelo::nitro::munimxr::bridge::swift {
     };
   }
   
+  // pragma MARK: std::function<void(const XRImageAnchor& /* anchor */)>
+  Func_void_XRImageAnchor create_Func_void_XRImageAnchor(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = NitroMunimXr::Func_void_XRImageAnchor::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](const XRImageAnchor& anchor) mutable -> void {
+      swiftClosure.call(anchor);
+    };
+  }
+  
+  // pragma MARK: std::function<void(const XRMeshAnchor& /* mesh */)>
+  Func_void_XRMeshAnchor create_Func_void_XRMeshAnchor(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = NitroMunimXr::Func_void_XRMeshAnchor::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](const XRMeshAnchor& mesh) mutable -> void {
+      swiftClosure.call(mesh);
+    };
+  }
+  
+  // pragma MARK: std::function<void(const XRFace& /* face */)>
+  Func_void_XRFace create_Func_void_XRFace(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = NitroMunimXr::Func_void_XRFace::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](const XRFace& face) mutable -> void {
+      swiftClosure.call(face);
+    };
+  }
+  
   // pragma MARK: std::function<void(const std::vector<XRHitResult>& /* result */)>
   Func_void_std__vector_XRHitResult_ create_Func_void_std__vector_XRHitResult_(void* NON_NULL swiftClosureWrapper) noexcept {
     auto swiftClosure = NitroMunimXr::Func_void_std__vector_XRHitResult_::fromUnsafe(swiftClosureWrapper);
@@ -107,6 +131,14 @@ namespace margelo::nitro::munimxr::bridge::swift {
   Func_void_XRAnchor create_Func_void_XRAnchor(void* NON_NULL swiftClosureWrapper) noexcept {
     auto swiftClosure = NitroMunimXr::Func_void_XRAnchor::fromUnsafe(swiftClosureWrapper);
     return [swiftClosure = std::move(swiftClosure)](const XRAnchor& result) mutable -> void {
+      swiftClosure.call(result);
+    };
+  }
+  
+  // pragma MARK: std::function<void(const XRDepthFrame& /* result */)>
+  Func_void_XRDepthFrame create_Func_void_XRDepthFrame(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = NitroMunimXr::Func_void_XRDepthFrame::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](const XRDepthFrame& result) mutable -> void {
       swiftClosure.call(result);
     };
   }

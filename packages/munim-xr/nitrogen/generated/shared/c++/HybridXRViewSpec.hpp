@@ -15,31 +15,61 @@
 
 // Forward declaration of `XRPlaneDetection` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRPlaneDetection; }
+// Forward declaration of `XRSessionMode` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRSessionMode; }
+// Forward declaration of `XRLightEstimationMode` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRLightEstimationMode; }
+// Forward declaration of `XREnvironmentTexturing` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XREnvironmentTexturing; }
+// Forward declaration of `XRDetectionImage` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRDetectionImage; }
+// Forward declaration of `XRSceneReconstruction` to properly resolve imports.
+namespace margelo::nitro::munimxr { enum class XRSceneReconstruction; }
 // Forward declaration of `XRFrame` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRFrame; }
 // Forward declaration of `XRTrackingState` to properly resolve imports.
 namespace margelo::nitro::munimxr { enum class XRTrackingState; }
 // Forward declaration of `XRPlane` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRPlane; }
+// Forward declaration of `XRImageAnchor` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRImageAnchor; }
+// Forward declaration of `XRMeshAnchor` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRMeshAnchor; }
+// Forward declaration of `XRFace` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRFace; }
 // Forward declaration of `XRHitResult` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRHitResult; }
 // Forward declaration of `XRAnchor` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRAnchor; }
 // Forward declaration of `XRPose` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRPose; }
+// Forward declaration of `XRDepthFrame` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRDepthFrame; }
+// Forward declaration of `XRModelOptions` to properly resolve imports.
+namespace margelo::nitro::munimxr { struct XRModelOptions; }
 
 #include "XRPlaneDetection.hpp"
-#include <functional>
+#include "XRSessionMode.hpp"
 #include <optional>
+#include "XRLightEstimationMode.hpp"
+#include "XREnvironmentTexturing.hpp"
+#include "XRDetectionImage.hpp"
+#include <vector>
+#include "XRSceneReconstruction.hpp"
+#include <functional>
 #include "XRFrame.hpp"
 #include "XRTrackingState.hpp"
 #include "XRPlane.hpp"
 #include <string>
+#include "XRImageAnchor.hpp"
+#include "XRMeshAnchor.hpp"
+#include "XRFace.hpp"
 #include <NitroModules/Promise.hpp>
 #include "XRHitResult.hpp"
-#include <vector>
 #include "XRAnchor.hpp"
 #include "XRPose.hpp"
+#include "XRDepthFrame.hpp"
+#include "XRModelOptions.hpp"
 
 namespace margelo::nitro::munimxr {
 
@@ -76,6 +106,20 @@ namespace margelo::nitro::munimxr {
       virtual void setLightEstimationEnabled(bool lightEstimationEnabled) = 0;
       virtual double getFrameCallbackFps() = 0;
       virtual void setFrameCallbackFps(double frameCallbackFps) = 0;
+      virtual std::optional<XRSessionMode> getMode() = 0;
+      virtual void setMode(std::optional<XRSessionMode> mode) = 0;
+      virtual std::optional<double> getTrackableUpdateMaxHz() = 0;
+      virtual void setTrackableUpdateMaxHz(std::optional<double> trackableUpdateMaxHz) = 0;
+      virtual std::optional<XRLightEstimationMode> getLightEstimationMode() = 0;
+      virtual void setLightEstimationMode(std::optional<XRLightEstimationMode> lightEstimationMode) = 0;
+      virtual std::optional<XREnvironmentTexturing> getEnvironmentTexturing() = 0;
+      virtual void setEnvironmentTexturing(std::optional<XREnvironmentTexturing> environmentTexturing) = 0;
+      virtual std::optional<bool> getDepthSmoothing() = 0;
+      virtual void setDepthSmoothing(std::optional<bool> depthSmoothing) = 0;
+      virtual std::optional<std::vector<XRDetectionImage>> getDetectionImages() = 0;
+      virtual void setDetectionImages(const std::optional<std::vector<XRDetectionImage>>& detectionImages) = 0;
+      virtual std::optional<XRSceneReconstruction> getSceneReconstruction() = 0;
+      virtual void setSceneReconstruction(std::optional<XRSceneReconstruction> sceneReconstruction) = 0;
       virtual std::optional<std::function<void()>> getOnReady() = 0;
       virtual void setOnReady(const std::optional<std::function<void()>>& onReady) = 0;
       virtual std::optional<std::function<void(const XRFrame& /* frame */)>> getOnFrame() = 0;
@@ -88,6 +132,24 @@ namespace margelo::nitro::munimxr {
       virtual void setOnPlaneUpdated(const std::optional<std::function<void(const XRPlane& /* plane */)>>& onPlaneUpdated) = 0;
       virtual std::optional<std::function<void(const std::string& /* planeId */)>> getOnPlaneRemoved() = 0;
       virtual void setOnPlaneRemoved(const std::optional<std::function<void(const std::string& /* planeId */)>>& onPlaneRemoved) = 0;
+      virtual std::optional<std::function<void(const XRImageAnchor& /* anchor */)>> getOnImageAnchorAdded() = 0;
+      virtual void setOnImageAnchorAdded(const std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>& onImageAnchorAdded) = 0;
+      virtual std::optional<std::function<void(const XRImageAnchor& /* anchor */)>> getOnImageAnchorUpdated() = 0;
+      virtual void setOnImageAnchorUpdated(const std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>& onImageAnchorUpdated) = 0;
+      virtual std::optional<std::function<void(const XRImageAnchor& /* anchor */)>> getOnImageAnchorRemoved() = 0;
+      virtual void setOnImageAnchorRemoved(const std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>& onImageAnchorRemoved) = 0;
+      virtual std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>> getOnMeshAnchorAdded() = 0;
+      virtual void setOnMeshAnchorAdded(const std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>& onMeshAnchorAdded) = 0;
+      virtual std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>> getOnMeshAnchorUpdated() = 0;
+      virtual void setOnMeshAnchorUpdated(const std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>& onMeshAnchorUpdated) = 0;
+      virtual std::optional<std::function<void(const std::string& /* meshId */)>> getOnMeshAnchorRemoved() = 0;
+      virtual void setOnMeshAnchorRemoved(const std::optional<std::function<void(const std::string& /* meshId */)>>& onMeshAnchorRemoved) = 0;
+      virtual std::optional<std::function<void(const XRFace& /* face */)>> getOnFaceAdded() = 0;
+      virtual void setOnFaceAdded(const std::optional<std::function<void(const XRFace& /* face */)>>& onFaceAdded) = 0;
+      virtual std::optional<std::function<void(const XRFace& /* face */)>> getOnFaceUpdated() = 0;
+      virtual void setOnFaceUpdated(const std::optional<std::function<void(const XRFace& /* face */)>>& onFaceUpdated) = 0;
+      virtual std::optional<std::function<void(const std::string& /* faceId */)>> getOnFaceRemoved() = 0;
+      virtual void setOnFaceRemoved(const std::optional<std::function<void(const std::string& /* faceId */)>>& onFaceRemoved) = 0;
       virtual std::optional<std::function<void(const std::string& /* message */)>> getOnError() = 0;
       virtual void setOnError(const std::optional<std::function<void(const std::string& /* message */)>>& onError) = 0;
 
@@ -102,6 +164,11 @@ namespace margelo::nitro::munimxr {
       virtual std::vector<XRAnchor> getAnchors() = 0;
       virtual std::optional<XRPose> getCameraPose() = 0;
       virtual std::shared_ptr<Promise<std::string>> captureSnapshot() = 0;
+      virtual std::shared_ptr<Promise<XRDepthFrame>> getDepthFrame() = 0;
+      virtual std::shared_ptr<Promise<std::string>> exportMesh() = 0;
+      virtual std::shared_ptr<Promise<std::string>> addModel(const XRModelOptions& options) = 0;
+      virtual void removeModel(const std::string& modelId) = 0;
+      virtual void setModelTransform(const std::string& modelId, const XRPose& pose, std::optional<double> scale) = 0;
 
     protected:
       // Hybrid Setup

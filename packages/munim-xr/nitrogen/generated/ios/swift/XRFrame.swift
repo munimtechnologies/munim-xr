@@ -63,6 +63,6 @@ public extension XRFrame {
   
   @inline(__always)
   var lightEstimate: XRLightEstimate? {
-    return self.__lightEstimate.value
+    return (bridge.has_value_std__optional_XRLightEstimate_(self.__lightEstimate) ? bridge.get_std__optional_XRLightEstimate_(self.__lightEstimate) : nil)
   }
 }

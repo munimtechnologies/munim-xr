@@ -30,8 +30,6 @@ namespace margelo::nitro::munimxr { struct XRDetectionImage; }
 namespace margelo::nitro::munimxr { enum class XREnvironmentTexturing; }
 // Forward declaration of `XRFace` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRFace; }
-// Forward declaration of `XRFeature` to properly resolve imports.
-namespace margelo::nitro::munimxr { enum class XRFeature; }
 // Forward declaration of `XRFrame` to properly resolve imports.
 namespace margelo::nitro::munimxr { struct XRFrame; }
 // Forward declaration of `XRHitResult` to properly resolve imports.
@@ -86,7 +84,6 @@ namespace NitroMunimXr { class HybridXRViewSpec_cxx; }
 #include "XRDetectionImage.hpp"
 #include "XREnvironmentTexturing.hpp"
 #include "XRFace.hpp"
-#include "XRFeature.hpp"
 #include "XRFrame.hpp"
 #include "XRHitResult.hpp"
 #include "XRHitType.hpp"
@@ -177,21 +174,6 @@ namespace margelo::nitro::munimxr::bridge::swift {
   Func_void_std__exception_ptr create_Func_void_std__exception_ptr(void* NON_NULL swiftClosureWrapper) noexcept;
   inline Func_void_std__exception_ptr_Wrapper wrap_Func_void_std__exception_ptr(Func_void_std__exception_ptr value) noexcept {
     return Func_void_std__exception_ptr_Wrapper(std::move(value));
-  }
-  
-  // pragma MARK: std::optional<XRFeature>
-  /**
-   * Specialized version of `std::optional<XRFeature>`.
-   */
-  using std__optional_XRFeature_ = std::optional<XRFeature>;
-  inline std::optional<XRFeature> create_std__optional_XRFeature_(const XRFeature& value) noexcept {
-    return std::optional<XRFeature>(value);
-  }
-  inline bool has_value_std__optional_XRFeature_(const std::optional<XRFeature>& optional) noexcept {
-    return optional.has_value();
-  }
-  inline XRFeature get_std__optional_XRFeature_(const std::optional<XRFeature>& optional) noexcept {
-    return optional.value();
   }
   
   // pragma MARK: std::shared_ptr<Promise<bool>>

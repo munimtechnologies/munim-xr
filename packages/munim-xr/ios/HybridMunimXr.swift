@@ -12,8 +12,9 @@ final class HybridMunimXr: HybridMunimXrSpec {
     ARWorldTrackingConfiguration.isSupported
   }
 
-  func checkAvailability(feature: XRFeature?) throws -> Promise<XRAvailability> {
-    Promise.resolved(withResult: Self.isAvailable(feature) ? .supported : .unsupported)
+  func checkAvailability(feature: XRFeature) throws -> Promise<XRAvailability> {
+    let feature: XRFeature? = feature
+    return Promise.resolved(withResult: Self.isAvailable(feature) ? .supported : .unsupported)
   }
 
   func requestInstall() throws -> Promise<Bool> {

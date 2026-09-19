@@ -15,7 +15,7 @@ public protocol HybridMunimXrSpec_protocol: HybridObject {
 
   // Methods
   func isSupported() throws -> Bool
-  func checkAvailability(feature: XRFeature?) throws -> Promise<XRAvailability>
+  func checkAvailability(feature: XRFeature) throws -> Promise<XRAvailability>
   func requestInstall() throws -> Promise<Bool>
 }
 

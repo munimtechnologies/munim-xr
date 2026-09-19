@@ -114,7 +114,7 @@ public extension XRLightEstimate {
   
   @inline(__always)
   var mainLightDirection: XRVector3? {
-    return self.__mainLightDirection.value
+    return (bridge.has_value_std__optional_XRVector3_(self.__mainLightDirection) ? bridge.get_std__optional_XRVector3_(self.__mainLightDirection) : nil)
   }
   
   @inline(__always)

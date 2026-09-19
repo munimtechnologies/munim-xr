@@ -16,5 +16,8 @@
     "example:start": "npm --workspace example run start",
     "example:ios": "npm --workspace example run ios",
     "example:android": "npm --workspace example run android"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }

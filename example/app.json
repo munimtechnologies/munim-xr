@@ -27,6 +27,14 @@
           "cameraPermission": "Allow Munim XR Example to use the camera for augmented reality.",
           "arRequired": false
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
       ]
     ],
     "web": {

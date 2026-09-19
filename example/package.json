@@ -4,6 +4,7 @@
   "main": "index.ts",
   "dependencies": {
     "expo": "~57.0.24",
+    "expo-build-properties": "~57.0.21",
     "expo-status-bar": "~57.0.1",
     "munim-xr": "*",
     "react": "19.2.3",

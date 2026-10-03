@@ -38,7 +38,10 @@ data class XRDepthFrame(
   val confidence: ArrayBuffer?,
   @DoNotStrip
   @Keep
-  val smoothed: Boolean
+  val smoothed: Boolean,
+  @DoNotStrip
+  @Keep
+  val depthMeters: ArrayBuffer?
 ) {
   /* primary constructor */
 
@@ -52,6 +55,7 @@ data class XRDepthFrame(
       && Objects.deepEquals(this.depth, other.depth)
       && Objects.deepEquals(this.confidence, other.confidence)
       && Objects.deepEquals(this.smoothed, other.smoothed)
+      && Objects.deepEquals(this.depthMeters, other.depthMeters)
   }
 
   override fun hashCode(): Int {
@@ -62,7 +66,8 @@ data class XRDepthFrame(
       format,
       depth,
       confidence,
-      smoothed
+      smoothed,
+      depthMeters
     ).contentDeepHashCode()
   }
 
@@ -74,8 +79,8 @@ data class XRDepthFrame(
     @Keep
     @Suppress("unused")
     @JvmStatic
-    private fun fromCpp(timestamp: Double, width: Double, height: Double, format: XRDepthFormat, depth: ArrayBuffer, confidence: ArrayBuffer?, smoothed: Boolean): XRDepthFrame {
-      return XRDepthFrame(timestamp, width, height, format, depth, confidence, smoothed)
+    private fun fromCpp(timestamp: Double, width: Double, height: Double, format: XRDepthFormat, depth: ArrayBuffer, confidence: ArrayBuffer?, smoothed: Boolean, depthMeters: ArrayBuffer?): XRDepthFrame {
+      return XRDepthFrame(timestamp, width, height, format, depth, confidence, smoothed, depthMeters)
     }
   }
 }

@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
-    "expo": "~57.0.24",
-    "expo-build-properties": "~57.0.21",
+    "expo": "~57.0.26",
+    "expo-build-properties": "~57.0.22",
+    "expo-file-system": "~57.0.7",
     "expo-status-bar": "~57.0.1",
     "munim-xr": "*",
     "react": "19.2.3",

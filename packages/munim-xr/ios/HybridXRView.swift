@@ -516,6 +516,7 @@ final class HybridXRView: HybridXRViewSpec {
       }
       let configuration = ARFaceTrackingConfiguration()
       configuration.isLightEstimationEnabled = lightEstimationEnabled
+      applyFaceEnvironmentTexturing(configuration)
       return configuration
 
     case .world:
@@ -569,6 +570,25 @@ final class HybridXRView: HybridXRViewSpec {
         configuration.maximumNumberOfTrackedImages = min(referenceImages.count, 4)
       }
       return configuration
+    }
+  }
+
+  /// iOS 27 adds automatic environment texturing to face tracking (a boolean;
+  /// face sessions have no manual probes, so `manual` also means automatic).
+  private func applyFaceEnvironmentTexturing(_ configuration: ARFaceTrackingConfiguration) {
+    let wanted: Bool
+    switch environmentTexturing {
+    case .some(.manual), .some(.automatic): wanted = true
+    default: wanted = false
+    }
+    #if compiler(>=6.4)
+    if #available(iOS 27.0, *) {
+      configuration.isEnvironmentTexturingEnabled = wanted
+      return
+    }
+    #endif
+    if wanted {
+      onError?(MunimXrError.faceEnvironmentTexturingUnsupported.localizedDescription)
     }
   }
 
@@ -1021,7 +1041,9 @@ final class HybridXRView: HybridXRViewSpec {
       format: .float32Meters,
       depth: depth,
       confidence: confidence,
-      smoothed: capture.smoothed
+      smoothed: capture.smoothed,
+      // ARKit depth is already float32 metres; expose the same buffer.
+      depthMeters: depth
     )
   }
 
@@ -1218,6 +1240,7 @@ enum MunimXrError: LocalizedError {
   case unsupportedDevice
   case faceTrackingUnsupported
   case sceneReconstructionUnsupported
+  case faceEnvironmentTexturingUnsupported
   case depthDisabled
   case depthUnsupported
   case depthNotYetAvailable
@@ -1248,6 +1271,8 @@ enum MunimXrError: LocalizedError {
       return "This device does not support ARKit face tracking."
     case .sceneReconstructionUnsupported:
       return "Scene reconstruction requires a LiDAR device; continuing without a mesh."
+    case .faceEnvironmentTexturingUnsupported:
+      return "environmentTexturing in face mode requires iOS 27; continuing without it."
     case .depthDisabled:
       return "Depth is disabled. Set depthEnabled to true before calling getDepthFrame()."
     case .depthUnsupported:

@@ -160,13 +160,23 @@ export interface XRDepthFrame {
   timestamp: number
   width: number
   height: number
-  /** iOS: `float32-meters`. Android: `uint16-millimeters`. */
+  /**
+   * Format of `depth`. iOS: `float32-meters`. Android: `uint16-millimeters`
+   * (use `depthMeters` for float metres on both platforms).
+   */
   format: XRDepthFormat
   /** Row-major, tightly packed depth samples (`width * height`). */
   depth: ArrayBuffer
   /** Optional per-pixel confidence, uint8 from 0 (low) to 255 (high). */
   confidence?: ArrayBuffer
   smoothed: boolean
+  /**
+   * The same depth as row-major float32 metres (`width * height`), so one
+   * code path reads both platforms. iOS: the same memory as `depth`.
+   * Android: ARCore 1.56+ `acquireDepthImageMeters()`; undefined when the
+   * installed Google Play Services for AR cannot provide it.
+   */
+  depthMeters?: ArrayBuffer
 }
 
 export interface XRModelOptions {
@@ -194,7 +204,11 @@ export interface XRViewProps extends HybridViewProps {
   trackableUpdateMaxHz?: number
   /** Defaults to `ambient-intensity`. */
   lightEstimationMode?: XRLightEstimationMode
-  /** iOS only. Defaults to `none`. */
+  /**
+   * iOS only. Defaults to `none`. In `face` mode it needs iOS 27 (automatic
+   * texturing only, so `manual` behaves like `automatic`); older iOS versions
+   * report it through `onError` and continue without it.
+   */
   environmentTexturing?: XREnvironmentTexturing
   /** iOS only: enables smoothed scene depth alongside raw depth. */
   depthSmoothing?: boolean

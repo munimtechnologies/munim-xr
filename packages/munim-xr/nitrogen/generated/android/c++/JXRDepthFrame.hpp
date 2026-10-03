@@ -49,6 +49,8 @@ namespace margelo::nitro::munimxr {
       jni::local_ref<JArrayBuffer::javaobject> confidence = this->getFieldValue(fieldConfidence);
       static const auto fieldSmoothed = clazz->getField<jboolean>("smoothed");
       jboolean smoothed = this->getFieldValue(fieldSmoothed);
+      static const auto fieldDepthMeters = clazz->getField<JArrayBuffer::javaobject>("depthMeters");
+      jni::local_ref<JArrayBuffer::javaobject> depthMeters = this->getFieldValue(fieldDepthMeters);
       return XRDepthFrame(
         timestamp,
         width,
@@ -56,7 +58,8 @@ namespace margelo::nitro::munimxr {
         format->toCpp(),
         depth->cthis()->getArrayBuffer(),
         confidence != nullptr ? std::make_optional(confidence->cthis()->getArrayBuffer()) : std::nullopt,
-        static_cast<bool>(smoothed)
+        static_cast<bool>(smoothed),
+        depthMeters != nullptr ? std::make_optional(depthMeters->cthis()->getArrayBuffer()) : std::nullopt
       );
     }
 
@@ -66,7 +69,7 @@ namespace margelo::nitro::munimxr {
      */
     [[maybe_unused]]
     static jni::local_ref<JXRDepthFrame::javaobject> fromCpp(const XRDepthFrame& value) {
-      using JSignature = JXRDepthFrame(double, double, double, jni::alias_ref<JXRDepthFormat>, jni::alias_ref<JArrayBuffer::javaobject>, jni::alias_ref<JArrayBuffer::javaobject>, jboolean);
+      using JSignature = JXRDepthFrame(double, double, double, jni::alias_ref<JXRDepthFormat>, jni::alias_ref<JArrayBuffer::javaobject>, jni::alias_ref<JArrayBuffer::javaobject>, jboolean, jni::alias_ref<JArrayBuffer::javaobject>);
       static const auto clazz = javaClassStatic();
       static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
       return create(
@@ -77,7 +80,8 @@ namespace margelo::nitro::munimxr {
         JXRDepthFormat::fromCpp(value.format),
         JArrayBuffer::wrap(value.depth),
         value.confidence.has_value() ? JArrayBuffer::wrap(value.confidence.value()) : nullptr,
-        value.smoothed
+        value.smoothed,
+        value.depthMeters.has_value() ? JArrayBuffer::wrap(value.depthMeters.value()) : nullptr
       );
     }
   };

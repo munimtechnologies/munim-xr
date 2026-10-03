@@ -121,6 +121,8 @@ if (hits?.[0]) {
 - Android API 24+ with Google Play Services for AR
 - Expo development build or bare React Native app
 
+Known issues: iOS renders through SceneKit (`ARSCNView`), deprecated by Apple since iOS 26 (a RealityKit migration is on the roadmap), and any Nitro module built with Xcode 27 crashes at launch on iOS 17 and earlier until margelo/nitro#1666 ships. Details and workarounds are in the [Known issues and roadmap](https://github.com/munimtechnologies/munim-xr#known-issues-and-roadmap) section.
+
 See the [complete documentation](https://github.com/munimtechnologies/munim-xr#readme) for the platform matrix, API reference, runtime notes, and development instructions.
 
 ## License

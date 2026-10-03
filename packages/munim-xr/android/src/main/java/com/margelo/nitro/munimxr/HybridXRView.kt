@@ -8,6 +8,7 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.view.PixelCopy
 import androidx.annotation.Keep
 import androidx.core.content.ContextCompat
@@ -30,6 +31,7 @@ import com.google.ar.core.Point
 import com.google.ar.core.Pose
 import com.google.ar.core.Session
 import com.google.ar.core.TrackingState
+import com.google.ar.core.exceptions.DeadlineExceededException
 import com.google.ar.core.exceptions.ImageInsufficientQualityException
 import com.google.ar.core.exceptions.NotYetAvailableException
 import com.google.ar.core.exceptions.UnsupportedConfigurationException
@@ -54,7 +56,7 @@ import kotlin.math.abs
 class HybridXRView(
   private val context: ThemedReactContext,
 ) : HybridXRViewSpec(), GLSurfaceView.Renderer, LifecycleEventListener {
-  override val view: GLSurfaceView = GLSurfaceView(context).apply {
+  override val view: GLSurfaceView = XRSurfaceView(context) { displayGeometryDirty = true }.apply {
     setEGLContextClientVersion(2)
     preserveEGLContextOnPause = true
     setRenderer(this@HybridXRView)
@@ -104,6 +106,11 @@ class HybridXRView(
   private var lastFrameCallbackTimestamp = 0.0
   private var lastTrackingState = XRTrackingState.UNAVAILABLE
   private var configuredKey: ConfigKey? = null
+  @Volatile private var metersDepthAvailable = true
+  // UI thread only.
+  private var lastResumeUptime = 0L
+  private var reconfigurePending = false
+  private val mainHandler = Handler(Looper.getMainLooper())
   private var sessionMode: XRSessionMode? = null
 
   // GL-thread only (and the UI thread while the GL thread is paused).
@@ -161,6 +168,7 @@ class HybridXRView(
     val activeSession = session ?: return
     try {
       activeSession.resume()
+      lastResumeUptime = SystemClock.uptimeMillis()
       view.onResume()
       displayGeometryDirty = true
       running = true
@@ -184,6 +192,7 @@ class HybridXRView(
   override fun onDropView() {
     context.removeLifecycleEventListener(this)
     displayManager?.unregisterDisplayListener(displayListener)
+    mainHandler.removeCallbacksAndMessages(null)
     context.runOnUiQueueThread { closeSession() }
   }
 
@@ -413,6 +422,9 @@ class HybridXRView(
     try {
       if (displayGeometryDirty && surfaceWidth > 0 && surfaceHeight > 0) {
         displayGeometryDirty = false
+        // The view may rotate or resize at any time: since targetSdk 36, large
+        // screens (sw >= 600dp) ignore orientation and resizability locks, and
+        // multi-window / foldables resize without recreating the Activity.
         activeSession.setDisplayGeometry(view.display?.rotation ?: 0, surfaceWidth, surfaceHeight)
       }
       activeSession.setCameraTextureNames(intArrayOf(cameraTextureId))
@@ -462,6 +474,7 @@ class HybridXRView(
     if (cameraTextureId != 0) activeSession.setCameraTextureNames(intArrayOf(cameraTextureId))
     displayGeometryDirty = true
     activeSession.resume()
+    lastResumeUptime = SystemClock.uptimeMillis()
     view.onResume()
     pausedByHost = false
     running = true
@@ -564,6 +577,21 @@ class HybridXRView(
 
   private fun reconfigureSession() {
     context.runOnUiQueueThread {
+      if (reconfigurePending) return@runOnUiQueueThread
+      // ARCore opens the camera asynchronously after Session.resume(). Pausing
+      // or closing the session before that finishes can leave the camera
+      // device open ("Too many cameras already open" for the next session), so
+      // give a fresh resume time to settle. The delayed run reads the latest
+      // props, so prop changes made meanwhile are coalesced into it.
+      val wait = lastResumeUptime + RESUME_SETTLE_MS - SystemClock.uptimeMillis()
+      if (wait > 0) {
+        reconfigurePending = true
+        mainHandler.postDelayed({
+          reconfigurePending = false
+          reconfigureSession()
+        }, wait)
+        return@runOnUiQueueThread
+      }
       val activeSession = session ?: return@runOnUiQueueThread
       if (!running) return@runOnUiQueueThread
       try {
@@ -578,6 +606,7 @@ class HybridXRView(
         activeSession.pause()
         configure(activeSession)
         activeSession.resume()
+        lastResumeUptime = SystemClock.uptimeMillis()
         view.onResume()
         running = true
       } catch (error: Throwable) {
@@ -612,6 +641,8 @@ class HybridXRView(
     latestCameraPose = null
     anchorSnapshot = emptyMap()
     deliveredReady = false
+    lastFrameCallbackTimestamp = 0.0
+    lastTrackingState = XRTrackingState.UNAVAILABLE
   }
 
   // endregion
@@ -699,6 +730,9 @@ class HybridXRView(
     }
 
     val timestampSeconds = frame.timestamp / 1_000_000_000.0
+    // A new session (e.g. switching to the front camera) can use a different
+    // camera clock whose timestamps are smaller than the last delivered one.
+    if (timestampSeconds < lastFrameCallbackTimestamp) lastFrameCallbackTimestamp = 0.0
     val interval = if (frameCallbackFps > 0) 1.0 / frameCallbackFps else Double.POSITIVE_INFINITY
     if (timestampSeconds - lastFrameCallbackTimestamp < interval) return
     lastFrameCallbackTimestamp = timestampSeconds
@@ -875,7 +909,35 @@ class HybridXRView(
         depth = depth,
         confidence = confidence,
         smoothed = true,
+        depthMeters = readDepthMeters(frame, width, height),
       )
+    }
+  }
+
+  /**
+   * ARCore 1.56+ float32 depth in metres (`Frame.acquireDepthImageMeters()`),
+   * same resolution as the 16-bit image. `null` when this frame or the
+   * installed Google Play Services for AR cannot provide it.
+   */
+  private fun readDepthMeters(frame: Frame, width: Int, height: Int): ArrayBuffer? {
+    if (!metersDepthAvailable) return null
+    return try {
+      frame.acquireDepthImageMeters().use { image ->
+        if (image.width != width || image.height != height) return@use null
+        val plane = image.planes[0]
+        if (plane.pixelStride != Float.SIZE_BYTES) return@use null
+        copyPlane(plane.buffer, plane.rowStride, plane.pixelStride, width, height, bytesPerPixel = Float.SIZE_BYTES)
+      }
+    } catch (_: NotYetAvailableException) {
+      null
+    } catch (_: DeadlineExceededException) {
+      null
+    } catch (error: Throwable) {
+      // Older ARCore services (or a missing native symbol) cannot produce it;
+      // stop asking instead of failing every getDepthFrame() call.
+      metersDepthAvailable = false
+      onError?.invoke("Float depth in metres is unavailable: ${error.message ?: error.javaClass.simpleName}")
+      null
     }
   }
 
@@ -1099,6 +1161,7 @@ class HybridXRView(
 
   companion object {
     private const val DEFAULT_TRACKABLE_UPDATE_HZ = 10.0
+    private const val RESUME_SETTLE_MS = 1000L
     private const val MODELS_UNSUPPORTED =
       "3D models (addModel/removeModel/setModelTransform) are not yet supported on Android."
 

@@ -18,14 +18,20 @@ public extension XRDepthFrame {
   /**
    * Create a new instance of `XRDepthFrame`.
    */
-  init(timestamp: Double, width: Double, height: Double, format: XRDepthFormat, depth: ArrayBuffer, confidence: ArrayBuffer?, smoothed: Bool) {
+  init(timestamp: Double, width: Double, height: Double, format: XRDepthFormat, depth: ArrayBuffer, confidence: ArrayBuffer?, smoothed: Bool, depthMeters: ArrayBuffer?) {
     self.init(timestamp, width, height, format, depth.getArrayBuffer(), { () -> bridge.std__optional_std__shared_ptr_ArrayBuffer__ in
       if let __unwrappedValue = confidence {
         return bridge.create_std__optional_std__shared_ptr_ArrayBuffer__(__unwrappedValue.getArrayBuffer())
       } else {
         return .init()
       }
-    }(), smoothed)
+    }(), smoothed, { () -> bridge.std__optional_std__shared_ptr_ArrayBuffer__ in
+      if let __unwrappedValue = depthMeters {
+        return bridge.create_std__optional_std__shared_ptr_ArrayBuffer__(__unwrappedValue.getArrayBuffer())
+      } else {
+        return .init()
+      }
+    }())
   }
 
   @inline(__always)
@@ -68,5 +74,17 @@ public extension XRDepthFrame {
   @inline(__always)
   var smoothed: Bool {
     return self.__smoothed
+  }
+  
+  @inline(__always)
+  var depthMeters: ArrayBuffer? {
+    return { () -> ArrayBuffer? in
+      if bridge.has_value_std__optional_std__shared_ptr_ArrayBuffer__(self.__depthMeters) {
+        let __unwrapped = bridge.get_std__optional_std__shared_ptr_ArrayBuffer__(self.__depthMeters)
+        return ArrayBuffer(__unwrapped)
+      } else {
+        return nil
+      }
+    }()
   }
 }

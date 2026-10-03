@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-03
+
+### Added
+
+- `XRDepthFrame.depthMeters`: depth as row-major float32 metres on both platforms. Android reads it from ARCore 1.56's `Frame.acquireDepthImageMeters()` (undefined if the installed Google Play Services for AR cannot provide it); on iOS it is the same memory as `depth`. `depth` keeps its platform format (`uint16-millimeters` on Android), so existing code is unaffected.
+- iOS 27: `environmentTexturing` now also applies to `mode="face"` sessions through `ARFaceTrackingConfiguration.isEnvironmentTexturingEnabled` (automatic texturing; `manual` behaves like `automatic`). On earlier iOS versions face sessions report through `onError` that it is unavailable and continue. Guarded with `#if compiler(>=6.4)` + `#available(iOS 27, *)`, so Xcode 16/26 builds are unaffected.
+- The example app has an unattended device self-test (`munimxrexample://selftest` or the Self-test button) that writes `Documents/munim-xr-selftest.json` and logs `MUNIM_XR_CHECK` lines.
+
+### Changed
+
+- Android library defaults (used only when the app does not set them): `compileSdkVersion` 37, `targetSdkVersion` 36, Kotlin 2.2.0, NDK 27.1.12297006 (matching React Native 0.87).
+- Android: the camera view follows rotation and resizing explicitly (configuration, size and re-attach changes all refresh ARCore's display geometry). Apps targeting SDK 36+ cannot lock orientation or resizability on large screens, so a portrait-only app's `XRView` can still rotate there.
+- Example app: Expo 57.0.26 (keeps `enableSceneSupport`), sets its own `compileSdkVersion` 37 / `targetSdkVersion` 36 / Kotlin 2.2.0 so ARCore 1.56's manifest (`targetSdkVersion` 37) cannot change what is tested, and enables React Native's `enableExclusivePropsUpdateAndroid` flag to exercise React Native 0.87's props path.
+- CI restored: package checks (codegen is committed, lint, typecheck, build, example typecheck, Expo config, pack), an Android Release build, and an iOS simulator build on Xcode 26.
+
+### Fixed
+
+- Android on React Native 0.87, and 0.84–0.86 with `enableExclusivePropsUpdateAndroid`: `XRView` received no base view props (`opacity`, `backgroundColor`, `transform`, `testID`, accessibility), because React Native no longer fills a Nitro Hybrid View's raw props (margelo/nitro#1656). `scripts/patch-nitro-viewprops.js` now runs after `nitrogen` and calls `initializeDynamicProps` from the generated props constructor exactly when React Native skips it, mirroring the unreleased upstream fix margelo/nitro#1661. The script fails if the generated code drifts.
+- Android: after the session was recreated (switching `mode` between `world` and `face`), `onFrame` stopped firing: the frame-rate gate kept the previous camera's timestamp, and the front camera's clock starts lower. The gate and the reported tracking state now reset with the session.
+- Android: changing props right after a session (re)started could pause or close ARCore before its asynchronous camera open finished, leaving the camera device held so the next session (e.g. the front camera for `mode="face"`) was refused with "Too many cameras already open". Reconfiguration now waits until a resume has settled (1 s) and coalesces prop changes made in the meantime.
+
+### Documentation
+
+- README: known issues and roadmap — SceneKit/`ARSCNView` deprecation since iOS 26 (RealityKit migration planned as a separate release), Xcode 27 + iOS < 18 Nitro launch crash (margelo/nitro#1652) workaround, UIScene requirement, Android large-screen rotation and `targetSdkVersion` notes.
+
 ## [0.3.1] - 2026-09-19
 
 ### Fixed
@@ -74,7 +99,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Runtime support checks and ARCore install/update flow.
 - Expo config plugin, typed example app, native build workflows, and npm provenance publishing.
 
-[Unreleased]: https://github.com/munimtechnologies/munim-xr/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/munimtechnologies/munim-xr/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/munimtechnologies/munim-xr/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/munimtechnologies/munim-xr/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/munimtechnologies/munim-xr/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/munimtechnologies/munim-xr/compare/v0.1.1...v0.2.0

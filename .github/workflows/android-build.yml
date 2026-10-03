@@ -1,0 +1,61 @@
+name: Build Android
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/android-build.yml'
+      - 'package*.json'
+      - 'example/**'
+      - 'packages/munim-xr/android/**'
+      - 'packages/munim-xr/nitrogen/**'
+      - 'packages/munim-xr/src/**'
+      - 'packages/munim-xr/scripts/**'
+      - 'packages/munim-xr/app.plugin.js'
+      - 'packages/munim-xr/nitro.json'
+      - 'packages/munim-xr/package.json'
+  pull_request:
+    paths:
+      - '.github/workflows/android-build.yml'
+      - 'package*.json'
+      - 'example/**'
+      - 'packages/munim-xr/android/**'
+      - 'packages/munim-xr/nitrogen/**'
+      - 'packages/munim-xr/src/**'
+      - 'packages/munim-xr/scripts/**'
+      - 'packages/munim-xr/app.plugin.js'
+      - 'packages/munim-xr/nitro.json'
+      - 'packages/munim-xr/package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Android example (Release, arm64-v8a)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: 17
+          cache: gradle
+      - run: npm ci --no-audit --no-fund
+      - name: Generate Android project
+        run: npx expo prebuild --platform android --clean --no-install
+        working-directory: example
+      # Release, because library packaging problems (e.g. duplicate classes)
+      # only surface there.
+      - name: Build Release APK
+        run: ./gradlew :app:assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+        working-directory: example/android

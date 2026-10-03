@@ -49,10 +49,11 @@ namespace margelo::nitro::munimxr {
     std::shared_ptr<ArrayBuffer> depth     SWIFT_PRIVATE;
     std::optional<std::shared_ptr<ArrayBuffer>> confidence     SWIFT_PRIVATE;
     bool smoothed     SWIFT_PRIVATE;
+    std::optional<std::shared_ptr<ArrayBuffer>> depthMeters     SWIFT_PRIVATE;
 
   public:
     XRDepthFrame() = default;
-    explicit XRDepthFrame(double timestamp, double width, double height, XRDepthFormat format, std::shared_ptr<ArrayBuffer> depth, std::optional<std::shared_ptr<ArrayBuffer>> confidence, bool smoothed): timestamp(timestamp), width(width), height(height), format(format), depth(depth), confidence(confidence), smoothed(smoothed) {}
+    explicit XRDepthFrame(double timestamp, double width, double height, XRDepthFormat format, std::shared_ptr<ArrayBuffer> depth, std::optional<std::shared_ptr<ArrayBuffer>> confidence, bool smoothed, std::optional<std::shared_ptr<ArrayBuffer>> depthMeters): timestamp(timestamp), width(width), height(height), format(format), depth(depth), confidence(confidence), smoothed(smoothed), depthMeters(depthMeters) {}
 
   public:
     friend bool operator==(const XRDepthFrame& lhs, const XRDepthFrame& rhs) = default;
@@ -74,7 +75,8 @@ namespace margelo::nitro {
         JSIConverter<margelo::nitro::munimxr::XRDepthFormat>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "format"))),
         JSIConverter<std::shared_ptr<ArrayBuffer>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "depth"))),
         JSIConverter<std::optional<std::shared_ptr<ArrayBuffer>>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "confidence"))),
-        JSIConverter<bool>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "smoothed")))
+        JSIConverter<bool>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "smoothed"))),
+        JSIConverter<std::optional<std::shared_ptr<ArrayBuffer>>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "depthMeters")))
       );
     }
     static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::munimxr::XRDepthFrame& arg) {
@@ -86,6 +88,7 @@ namespace margelo::nitro {
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "depth"), JSIConverter<std::shared_ptr<ArrayBuffer>>::toJSI(runtime, arg.depth));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "confidence"), JSIConverter<std::optional<std::shared_ptr<ArrayBuffer>>>::toJSI(runtime, arg.confidence));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "smoothed"), JSIConverter<bool>::toJSI(runtime, arg.smoothed));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "depthMeters"), JSIConverter<std::optional<std::shared_ptr<ArrayBuffer>>>::toJSI(runtime, arg.depthMeters));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -103,6 +106,7 @@ namespace margelo::nitro {
       if (!JSIConverter<std::shared_ptr<ArrayBuffer>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "depth")))) return false;
       if (!JSIConverter<std::optional<std::shared_ptr<ArrayBuffer>>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "confidence")))) return false;
       if (!JSIConverter<bool>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "smoothed")))) return false;
+      if (!JSIConverter<std::optional<std::shared_ptr<ArrayBuffer>>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "depthMeters")))) return false;
       return true;
     }
   };

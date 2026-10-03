@@ -67,13 +67,14 @@ The package uses ARKit on iOS and ARCore on Android. It contains native code, re
 | Native anchors | Yes | Yes |
 | Plane classification | ARKit semantic classes | `unknown` (ARCore has no plane semantics) |
 | Light estimation | Ambient intensity + color temperature; directional light and spherical harmonics in face mode | Ambient intensity + color correction, or Environmental HDR main light + spherical harmonics |
-| Environment texturing | `environmentTexturing` | No |
+| Environment texturing | `environmentTexturing` (world mode; face mode on iOS 27+) | No |
 | Image tracking | `ARReferenceImage` | `AugmentedImageDatabase` |
-| Depth frames | Scene Depth (LiDAR) float32 meters, optional smoothing; TrueDepth in face mode | Depth API uint16 millimeters when supported |
+| Depth frames | Scene Depth (LiDAR) float32 meters, optional smoothing; TrueDepth in face mode | Depth API uint16 millimeters, plus float32 meters (`depthMeters`, ARCore 1.56+) when supported |
 | Face tracking | `ARFaceTrackingConfiguration` with blend shapes | Augmented Faces (pose + 468-vertex mesh count) |
 | Scene mesh | LiDAR `sceneReconstruction`, mesh events, OBJ export | No |
 | 3D models | SceneKit (`addModel`) | Not yet supported (rejects) |
 | Snapshot | PNG temporary file | PNG cache file |
+| Rotation / resizing | `ARSCNView` | Display geometry follows rotation, multi-window and large-screen resizing |
 | Expo Go | No | No |
 
 ## Installation
@@ -213,18 +214,22 @@ Reference images need plenty of high-contrast detail. Low-quality images are ski
 if ((await checkAvailability('depth')) === 'supported') {
   // with depthEnabled on the XRView
   const frame = await xrRef.current?.getDepthFrame()
-  const depth =
-    frame?.format === 'float32-meters'
-      ? new Float32Array(frame.depth)
-      : new Uint16Array(frame!.depth) // millimeters
+  if (frame?.depthMeters) {
+    const meters = new Float32Array(frame.depthMeters) // both platforms
+  } else if (frame) {
+    const depth =
+      frame.format === 'float32-meters'
+        ? new Float32Array(frame.depth)
+        : new Uint16Array(frame.depth) // millimeters
+  }
 }
 ```
 
-Samples are row-major and tightly packed (`width * height`). `confidence` (when present) holds one byte per pixel from 0 (low) to 255 (high). On iOS, `depthSmoothing` switches to `smoothedSceneDepth`. In face mode on devices with a TrueDepth camera, `getDepthFrame()` returns the latest TrueDepth frame, which arrives at a lower rate than the camera.
+Samples are row-major and tightly packed (`width * height`). `depthMeters` carries the same depth as float32 metres on both platforms: on iOS it is the same memory as `depth`; on Android it comes from ARCore 1.56's `acquireDepthImageMeters()` and is `undefined` if the installed Google Play Services for AR cannot provide it (then use the `uint16-millimeters` `depth`). `confidence` (when present) holds one byte per pixel from 0 (low) to 255 (high). On iOS, `depthSmoothing` switches to `smoothedSceneDepth`. In face mode on devices with a TrueDepth camera, `getDepthFrame()` returns the latest TrueDepth frame, which arrives at a lower rate than the camera.
 
 ### Face tracking
 
-Set `mode="face"` to run a front-camera session. `onFaceAdded`, `onFaceUpdated`, and `onFaceRemoved` report the face pose and mesh vertex count. iOS additionally reports these blend shapes: `eyeBlinkLeft`, `eyeBlinkRight`, `jawOpen`, `mouthSmileLeft`, `mouthSmileRight`, `browInnerUp`, `cheekPuff`, `mouthFunnel`, `mouthPucker`, `tongueOut`. Switching modes restarts the session and clears anchors.
+Set `mode="face"` to run a front-camera session. On iOS 27 and later, `environmentTexturing` other than `none` also turns on automatic environment texturing for face sessions (`ARFaceTrackingConfiguration.isEnvironmentTexturingEnabled`); earlier iOS versions report through `onError` that it is unavailable and continue without it. `onFaceAdded`, `onFaceUpdated`, and `onFaceRemoved` report the face pose and mesh vertex count. iOS additionally reports these blend shapes: `eyeBlinkLeft`, `eyeBlinkRight`, `jawOpen`, `mouthSmileLeft`, `mouthSmileRight`, `browInnerUp`, `cheekPuff`, `mouthFunnel`, `mouthPucker`, `tongueOut`. Switching modes restarts the session and clears anchors.
 
 ### LiDAR mesh (iOS)
 
@@ -269,7 +274,7 @@ Models are loaded with `SCNScene(url:)` into the existing `ARSCNView` (USDZ, SCN
 - `mode`: `world` (default, rear camera) or `face` (front camera)
 - `trackableUpdateMaxHz`: maximum rate of update events per plane, image, mesh, or face (default `10`, `0` disables updates). Updates are also skipped unless the trackable moved or resized by more than about 1 cm; tracking-state changes are delivered immediately
 - `lightEstimationMode`: `ambient-intensity` (default) or `environmental-hdr` (Android main light + spherical harmonics; on iOS the directional estimate is only available in face mode)
-- `environmentTexturing` (iOS): `none`, `manual`, or `automatic`
+- `environmentTexturing` (iOS): `none`, `manual`, or `automatic`. Face mode needs iOS 27 and only supports automatic texturing
 - `depthSmoothing` (iOS): use smoothed scene depth
 - `detectionImages`: `{ name, uri, physicalWidthMeters }[]`
 - `sceneReconstruction` (iOS LiDAR): `none`, `mesh`, or `mesh-with-classification`
@@ -300,8 +305,16 @@ Models are loaded with `SCNScene(url:)` into the existing `ARSCNView` (USDZ, SCN
 - Frame callbacks cross the native/JavaScript boundary. Keep `frameCallbackFps` as low as your UI permits.
 - Snapshot and mesh-export paths point into temporary app storage (`munim-xr/` under the temporary or cache directory). Only the newest 10 snapshots and 3 mesh exports are kept, so move a file if it must persist.
 - On Android the session pauses when the app goes to the background (releasing the camera) and resumes when it returns, if it was running.
-- iOS renders through SceneKit (`ARSCNView`). Apple has soft-deprecated SceneKit in favor of RealityKit; a RealityKit migration is a known follow-up and is not part of this release.
+- Android rotation and resizing: apps targeting SDK 36 or later cannot lock orientation or resizability on large screens (smallest width 600 dp and up), so an `XRView` can rotate or resize even in a portrait-only app. The view updates ARCore's display geometry on every rotation (including 180° turns) and size change. Keep the host Activity handling configuration changes itself (`android:configChanges` with `orientation|screenSize|smallestScreenSize|screenLayout`, the Expo and React Native default); if the Activity is recreated instead, the session is closed and must be started again.
+- Android `targetSdkVersion`: ARCore 1.56's library manifest declares `targetSdkVersion 37`. Set your app's own `targetSdkVersion` explicitly (Expo: `expo-build-properties` → `android.targetSdkVersion`) so the value you test against is the one that ships. The library defaults to `compileSdkVersion 37`, `targetSdkVersion 36`, and Kotlin 2.2.0 when the app does not provide them.
 - The iOS Simulator can compile the module but does not provide a normal world-tracking ARKit session.
+
+## Known issues and roadmap
+
+- **SceneKit is deprecated (iOS 26+).** iOS renders through SceneKit (`ARSCNView`), which Apple deprecated in iOS 26 in favour of RealityKit. It still works, and apps building munim-xr see the deprecation warnings. Moving `XRView` and the model APIs to RealityKit's `ARView` is on the roadmap; it changes the rendering stack and the model APIs, so it is planned as a separate release.
+- **Android base view props on React Native 0.87 (margelo/nitro#1656).** React Native 0.87 (and 0.84–0.86 with the `enableExclusivePropsUpdateAndroid` feature flag) no longer fills a Nitro Hybrid View's raw props, so `opacity`, `backgroundColor`, `transform`, `testID` and accessibility props would silently not apply on Android. munim-xr's generated code is patched (`scripts/patch-nitro-viewprops.js`, mirroring the unreleased upstream fix margelo/nitro#1661), so `XRView` receives them on every React Native version.
+- **Xcode 27 builds crash at launch on iOS 17 and earlier (margelo/nitro#1652).** This affects every Nitro module built with Xcode 27, not only munim-xr: `react-native-nitro-modules` uses `std::make_exception_ptr`, which Xcode 27 links against a symbol missing on iOS < 18. Until a Nitro release contains the fix (margelo/nitro#1666), patch `node_modules/react-native-nitro-modules/ios/utils/RuntimeError.hpp` (e.g. with `patch-package`) to build the exception with `throw` / `catch` + `std::current_exception()`, or build with Xcode 26 if you support iOS 17 and earlier.
+- **Xcode 27 apps need the UIScene lifecycle.** Apps built with the iOS 27 SDK crash at launch without it (TN3187). Expo 57: `expo-build-properties` → `ios.enableSceneSupport: true` (as the example does).
 
 ## Development
 
@@ -311,7 +324,18 @@ npm run codegen
 npm run check
 ```
 
-Generated Nitro bindings live under `packages/munim-xr/nitrogen/generated` and are committed. Native implementation files live outside that generated directory.
+Generated Nitro bindings live under `packages/munim-xr/nitrogen/generated` and are committed. `npm run codegen` runs `nitrogen` and then two patch scripts that fail loudly if the generated code no longer matches what they expect: `patch-nitro-optionals.js` (margelo/nitro#1319, iOS Release builds) and `patch-nitro-viewprops.js` (margelo/nitro#1656, Android base view props). Native implementation files live outside that generated directory.
+
+### Device self-test
+
+The example app runs an unattended check when opened with `munimxrexample://selftest` (or the **Self-test** button): session start, frames, tracking, planes, hit test, anchor lifecycle, snapshot, depth (`depthMeters` against `depth`), face mode (iOS 27 environment texturing), and pause. Results are logged as `MUNIM_XR_CHECK` lines and written to `Documents/munim-xr-selftest.json`. While it runs the view is drawn at 50% opacity over a magenta stage, with `testID="munim-xr-view"`, to show that base view props reach the native view on Android. The example also enables React Native's `enableExclusivePropsUpdateAndroid` flag (`example/plugins/withExclusivePropsUpdate.js`), so it exercises React Native 0.87's props path.
+
+```bash
+# iOS (Release build installed on a device)
+xcrun devicectl device process launch --device <udid> --payload-url munimxrexample://selftest com.sheehanmunim.munimxrexample
+# Android
+adb shell am start -a android.intent.action.VIEW -d munimxrexample://selftest
+```
 
 ## License
 

@@ -105,7 +105,7 @@ public extension XRLightEstimate {
     return { () -> [Double]? in
       if bridge.has_value_std__optional_std__vector_double__(self.__colorCorrection) {
         let __unwrapped = bridge.get_std__optional_std__vector_double__(self.__colorCorrection)
-        return __unwrapped.map({ __item in __item })
+        return __nitroDoubleVectorToArray(__unwrapped)
       } else {
         return nil
       }
@@ -122,7 +122,7 @@ public extension XRLightEstimate {
     return { () -> [Double]? in
       if bridge.has_value_std__optional_std__vector_double__(self.__mainLightIntensity) {
         let __unwrapped = bridge.get_std__optional_std__vector_double__(self.__mainLightIntensity)
-        return __unwrapped.map({ __item in __item })
+        return __nitroDoubleVectorToArray(__unwrapped)
       } else {
         return nil
       }
@@ -134,10 +134,24 @@ public extension XRLightEstimate {
     return { () -> [Double]? in
       if bridge.has_value_std__optional_std__vector_double__(self.__sphericalHarmonics) {
         let __unwrapped = bridge.get_std__optional_std__vector_double__(self.__sphericalHarmonics)
-        return __unwrapped.map({ __item in __item })
+        return __nitroDoubleVectorToArray(__unwrapped)
       } else {
         return nil
       }
     }()
   }
+}
+
+/// munim-xr: see scripts/patch-nitro-double-vectors.js (Xcode 26 cannot `.map` a std::vector<double>).
+@inline(__always)
+fileprivate func __nitroDoubleVectorToArray(_ vector: margelo.nitro.munimxr.bridge.swift.std__vector_double_) -> [Double] {
+  let count = Int(vector.size())
+  var result: [Double] = []
+  result.reserveCapacity(count)
+  var index = 0
+  while index < count {
+    result.append(vector[index])
+    index += 1
+  }
+  return result
 }

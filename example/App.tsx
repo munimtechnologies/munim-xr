@@ -1,9 +1,11 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { File, Paths } from 'expo-file-system'
 import { StatusBar } from 'expo-status-bar'
 import {
   ActivityIndicator,
   Image,
   LayoutChangeEvent,
+  Linking,
   Platform,
   Pressable,
   SafeAreaView,
@@ -32,6 +34,7 @@ import {
   type XRSessionMode,
   type XRViewRef,
 } from 'munim-xr'
+import { runSelfTest, type SelfTestEvents, type SelfTestProps } from './selftest'
 
 const TAG = 'MUNIM_XR'
 const FEATURES: XRFeature[] = [
@@ -128,6 +131,15 @@ export default function App() {
   const [planeCount, setPlaneCount] = useState(0)
   const [lastFrame, setLastFrame] = useState<XRFrame | null>(null)
   const [logLines, setLogLines] = useState<string[]>([])
+  const [selfTesting, setSelfTesting] = useState(false)
+  const selfTestEvents = useRef<SelfTestEvents>({
+    ready: 0,
+    frames: 0,
+    trackingStates: [],
+    planes: 0,
+    faces: 0,
+    errors: [],
+  })
 
   const log = useCallback((event: string, data?: unknown) => {
     const line = `${event} ${describe(data)}`.trim()
@@ -153,10 +165,18 @@ export default function App() {
     () => callback((ref: XRViewRef) => (xrRef.current = ref)),
     []
   )
-  const onReady = useMemo(() => callback(() => log('ready')), [log])
+  const onReady = useMemo(
+    () =>
+      callback(() => {
+        selfTestEvents.current.ready++
+        log('ready')
+      }),
+    [log]
+  )
   const onFrame = useMemo(
     () =>
       callback((frame: XRFrame) => {
+        selfTestEvents.current.frames++
         setLastFrame(frame)
         // Log light estimation roughly every 3 s at frameCallbackFps=6.
         if (frameCount.current++ % 18 === 0) {
@@ -170,12 +190,17 @@ export default function App() {
     [log]
   )
   const onTrackingStateChange = useMemo(
-    () => callback((state: string) => log('tracking', state)),
+    () =>
+      callback((state: string) => {
+        selfTestEvents.current.trackingStates.push(state)
+        log('tracking', state)
+      }),
     [log]
   )
   const onPlaneDetected = useMemo(
     () =>
       callback((plane: XRPlane) => {
+        selfTestEvents.current.planes++
         setPlaneCount((count) => count + 1)
         log('plane.detected', {
           id: plane.id.slice(-6),
@@ -280,7 +305,11 @@ export default function App() {
     [log]
   )
   const onFaceAdded = useMemo(
-    () => callback((face: XRFace) => faceEvent('face.added', face)),
+    () =>
+      callback((face: XRFace) => {
+        selfTestEvents.current.faces++
+        faceEvent('face.added', face)
+      }),
     [faceEvent]
   )
   const onFaceUpdated = useMemo(
@@ -292,7 +321,11 @@ export default function App() {
     [log]
   )
   const onError = useMemo(
-    () => callback((message: string) => log('onError', message)),
+    () =>
+      callback((message: string) => {
+        selfTestEvents.current.errors.push(message)
+        log('onError', message)
+      }),
     [log]
   )
 
@@ -481,9 +514,66 @@ export default function App() {
     log(`prop.${name}`, !value)
   }
 
+  const selfTest = useCallback(async () => {
+    if (selfTesting) return
+    setSelfTesting(true)
+    selfTestEvents.current = {
+      ready: 0,
+      frames: 0,
+      trackingStates: [],
+      planes: 0,
+      faces: 0,
+      errors: [],
+    }
+    log('selftest.start')
+    try {
+      const report = await runSelfTest({
+        view: () => xrRef.current,
+        events: selfTestEvents.current,
+        setProps: async (props: Partial<SelfTestProps>) => {
+          if (props.mode !== undefined) setMode(props.mode)
+          if (props.depthEnabled !== undefined) setDepthEnabled(props.depthEnabled)
+          if (props.environmentTexturing !== undefined) {
+            setEnvironmentTexturing(props.environmentTexturing)
+          }
+          // Let React commit the new props to the native view.
+          await new Promise<void>((resolve) => setTimeout(resolve, 400))
+        },
+      })
+      setRunning(false)
+      log('selftest.done', { passed: report.passed, failed: report.failed, skipped: report.skipped })
+      // Read back on iOS with `devicectl device copy from --domain-type appDataContainer`.
+      try {
+        const file = new File(Paths.document, 'munim-xr-selftest.json')
+        if (file.exists) file.delete()
+        file.create()
+        file.write(JSON.stringify(report, null, 2))
+      } catch (error) {
+        fail('selftest.write', error)
+      }
+    } catch (error) {
+      fail('selftest', error)
+    } finally {
+      setSelfTesting(false)
+    }
+  }, [fail, log, selfTesting])
+
+  // `munimxrexample://selftest` (or the Self-test button) runs the device check.
+  const selfTestRef = useRef(selfTest)
+  selfTestRef.current = selfTest
+  useEffect(() => {
+    const handle = (url: string | null) => {
+      if (url?.includes('selftest')) setTimeout(() => void selfTestRef.current(), 1000)
+    }
+    void Linking.getInitialURL().then(handle)
+    const subscription = Linking.addEventListener('url', (event) => handle(event.url))
+    return () => subscription.remove()
+  }, [])
+
   const position = lastFrame?.cameraPose.position
 
   const buttons: { label: string; onPress: () => void; active?: boolean }[] = [
+    { label: 'Self-test', onPress: () => void selfTest(), active: selfTesting },
     { label: 'Reset', onPress: () => void reset() },
     {
       label: `Mode: ${mode}`,
@@ -538,7 +628,10 @@ export default function App() {
         onTouchEnd={(event) =>
           void placeAnchor(event.nativeEvent.locationX, event.nativeEvent.locationY)
         }
-        style={styles.stage}
+        // While the self-test runs, a magenta stage shows through the
+        // half-transparent XRView: on Android that proves base ViewProps
+        // (opacity, testID, accessibilityLabel) reach a Nitro view (nitro#1656).
+        style={[styles.stage, selfTesting && styles.stageSelfTest]}
       >
         <XRView
           depthEnabled={depthEnabled}
@@ -568,7 +661,9 @@ export default function App() {
           onTrackingStateChange={onTrackingStateChange}
           planeDetection="both"
           sceneReconstruction={meshEnabled ? 'mesh-with-classification' : 'none'}
-          style={StyleSheet.absoluteFill}
+          accessibilityLabel="Munim XR camera view"
+          style={[StyleSheet.absoluteFill, selfTesting && styles.selfTestView]}
+          testID="munim-xr-view"
           trackableUpdateMaxHz={UPDATE_HZ}
         />
 
@@ -641,6 +736,8 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#07111f' },
   stage: { flex: 1, backgroundColor: '#02050a', overflow: 'hidden' },
+  stageSelfTest: { backgroundColor: '#ff00ff' },
+  selfTestView: { opacity: 0.5 },
   header: { left: 16, position: 'absolute', right: 16, top: 16 },
   title: { color: '#f3fbff', fontSize: 24, fontWeight: '800', letterSpacing: -0.6, marginBottom: 6 },
   logLine: {

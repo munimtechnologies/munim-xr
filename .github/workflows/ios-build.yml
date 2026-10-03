@@ -1,0 +1,69 @@
+name: Build iOS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ios-build.yml'
+      - 'package*.json'
+      - 'example/**'
+      - 'packages/munim-xr/ios/**'
+      - 'packages/munim-xr/nitrogen/**'
+      - 'packages/munim-xr/src/**'
+      - 'packages/munim-xr/scripts/**'
+      - 'packages/munim-xr/app.plugin.js'
+      - 'packages/munim-xr/*.podspec'
+      - 'packages/munim-xr/nitro.json'
+      - 'packages/munim-xr/package.json'
+  pull_request:
+    paths:
+      - '.github/workflows/ios-build.yml'
+      - 'package*.json'
+      - 'example/**'
+      - 'packages/munim-xr/ios/**'
+      - 'packages/munim-xr/nitrogen/**'
+      - 'packages/munim-xr/src/**'
+      - 'packages/munim-xr/scripts/**'
+      - 'packages/munim-xr/app.plugin.js'
+      - 'packages/munim-xr/*.podspec'
+      - 'packages/munim-xr/nitro.json'
+      - 'packages/munim-xr/package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # Hosted runners have no Xcode 27 yet, so this also proves the iOS 27 code
+    # compiles out under Swift < 6.4 (`#if compiler(>=6.4)`).
+    name: Build iOS example (Xcode 26)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Generate iOS project
+        run: npx expo prebuild --platform ios --clean --no-install
+        working-directory: example
+      - run: pod install
+        working-directory: example/ios
+      - name: Build simulator app
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -workspace MunimXRExample.xcworkspace \
+            -scheme MunimXRExample \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+        working-directory: example/ios

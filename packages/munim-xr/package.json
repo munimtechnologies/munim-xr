@@ -1,6 +1,6 @@
 {
   "name": "munim-xr",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Cross-platform XR sessions and native AR views for Expo and React Native, powered by Nitro Modules",
   "main": "lib/index",
   "module": "lib/index",
@@ -37,7 +37,7 @@
     "build": "npm run typecheck && tsc",
     "prepack": "npm run build",
     "typescript": "tsc",
-    "codegen": "nitrogen --logLevel=\"debug\" && node scripts/patch-nitro-optionals.js",
+    "codegen": "nitrogen --logLevel=\"debug\" && node scripts/patch-nitro-optionals.js && node scripts/patch-nitro-viewprops.js && node scripts/patch-nitro-double-vectors.js",
     "specs": "npm run codegen"
   },
   "keywords": [

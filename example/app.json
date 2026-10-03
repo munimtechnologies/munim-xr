@@ -2,6 +2,7 @@
   "expo": {
     "name": "Munim XR Example",
     "slug": "munim-xr-example",
+    "scheme": "munimxrexample",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -33,9 +34,16 @@
         {
           "ios": {
             "enableSceneSupport": true
+          },
+          "android": {
+            "compileSdkVersion": 37,
+            "targetSdkVersion": 36,
+            "buildToolsVersion": "37.0.0",
+            "kotlinVersion": "2.2.0"
           }
         }
-      ]
+      ],
+      "./plugins/withExclusivePropsUpdate"
     ],
     "web": {
       "favicon": "./assets/favicon.png"

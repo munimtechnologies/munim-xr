@@ -40,6 +40,20 @@ public extension XRPose {
   
   @inline(__always)
   var matrix: [Double] {
-    return self.__matrix.map({ __item in __item })
+    return __nitroDoubleVectorToArray(self.__matrix)
   }
+}
+
+/// munim-xr: see scripts/patch-nitro-double-vectors.js (Xcode 26 cannot `.map` a std::vector<double>).
+@inline(__always)
+fileprivate func __nitroDoubleVectorToArray(_ vector: margelo.nitro.munimxr.bridge.swift.std__vector_double_) -> [Double] {
+  let count = Int(vector.size())
+  var result: [Double] = []
+  result.reserveCapacity(count)
+  var index = 0
+  while index < count {
+    result.append(vector[index])
+    index += 1
+  }
+  return result
 }

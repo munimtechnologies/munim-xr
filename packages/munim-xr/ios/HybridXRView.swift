@@ -1299,6 +1299,12 @@ enum MunimXrError: LocalizedError {
   }
 }
 
+// Nitro builds the JavaScript error message with `String(describing:)`, which
+// would otherwise print the bare case name (e.g. "depthUnsupported").
+extension MunimXrError: CustomStringConvertible {
+  var description: String { errorDescription ?? "munim-xr error" }
+}
+
 private final class XRSessionDelegate: NSObject, ARSessionDelegate {
   weak var owner: HybridXRView?
 

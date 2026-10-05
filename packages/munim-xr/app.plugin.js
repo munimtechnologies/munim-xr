@@ -53,13 +53,18 @@ function withMunimXr(config, options = {}) {
     const arMetadata = application['meta-data'].find(
       (item) => item.$?.['android:name'] === 'com.google.ar.core'
     )
+    // The library manifest declares this meta-data as "optional"; without
+    // tools:replace, "required" here fails the Gradle manifest merge.
+    AndroidConfig.Manifest.ensureToolsAvailable(configWithManifest.modResults)
     if (arMetadata) {
       arMetadata.$['android:value'] = arRequired ? 'required' : 'optional'
+      arMetadata.$['tools:replace'] = 'android:value'
     } else {
       application['meta-data'].push({
         $: {
           'android:name': 'com.google.ar.core',
           'android:value': arRequired ? 'required' : 'optional',
+          'tools:replace': 'android:value',
         },
       })
     }

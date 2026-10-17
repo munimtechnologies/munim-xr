@@ -7,16 +7,8 @@
 
 #include "HybridXRViewComponent.hpp"
 
-#include <string>
-#include <exception>
-#include <utility>
-#include <NitroModules/NitroDefines.hpp>
-#include <NitroModules/JSIConverter.hpp>
-#include <NitroModules/PropNameIDCache.hpp>
-#include <react/renderer/core/RawValue.h>
-#include <react/renderer/core/ShadowNode.h>
-#include <react/renderer/core/ComponentDescriptor.h>
-#include <react/renderer/components/view/ViewProps.h>
+#include <NitroModules/NitroHash.hpp>
+#include <NitroModules/ReactProp.hpp>
 
 // munim-xr: margelo/nitro#1656 (see scripts/patch-nitro-viewprops.js)
 #ifdef ANDROID
@@ -30,292 +22,42 @@
 
 namespace margelo::nitro::munimxr::views {
 
+  using namespace facebook;
+
   extern const char HybridXRViewComponentName[] = "XRView";
 
   HybridXRViewProps::HybridXRViewProps(const react::PropsParserContext& context,
                                        const HybridXRViewProps& sourceProps,
                                        const react::RawProps& rawProps):
     react::ViewProps(context, sourceProps, rawProps, filterObjectKeys),
-    planeDetection([&]() -> CachedProp<XRPlaneDetection> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("planeDetection", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.planeDetection;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<XRPlaneDetection>::fromRawValue(*runtime, value, sourceProps.planeDetection);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.planeDetection: ") + exc.what());
-      }
-    }()),
-    depthEnabled([&]() -> CachedProp<bool> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("depthEnabled", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.depthEnabled;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<bool>::fromRawValue(*runtime, value, sourceProps.depthEnabled);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.depthEnabled: ") + exc.what());
-      }
-    }()),
-    lightEstimationEnabled([&]() -> CachedProp<bool> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("lightEstimationEnabled", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.lightEstimationEnabled;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<bool>::fromRawValue(*runtime, value, sourceProps.lightEstimationEnabled);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.lightEstimationEnabled: ") + exc.what());
-      }
-    }()),
-    frameCallbackFps([&]() -> CachedProp<double> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("frameCallbackFps", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.frameCallbackFps;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<double>::fromRawValue(*runtime, value, sourceProps.frameCallbackFps);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.frameCallbackFps: ") + exc.what());
-      }
-    }()),
-    mode([&]() -> CachedProp<std::optional<XRSessionMode>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("mode", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.mode;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<XRSessionMode>>::fromRawValue(*runtime, value, sourceProps.mode);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.mode: ") + exc.what());
-      }
-    }()),
-    trackableUpdateMaxHz([&]() -> CachedProp<std::optional<double>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("trackableUpdateMaxHz", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.trackableUpdateMaxHz;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<double>>::fromRawValue(*runtime, value, sourceProps.trackableUpdateMaxHz);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.trackableUpdateMaxHz: ") + exc.what());
-      }
-    }()),
-    lightEstimationMode([&]() -> CachedProp<std::optional<XRLightEstimationMode>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("lightEstimationMode", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.lightEstimationMode;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<XRLightEstimationMode>>::fromRawValue(*runtime, value, sourceProps.lightEstimationMode);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.lightEstimationMode: ") + exc.what());
-      }
-    }()),
-    environmentTexturing([&]() -> CachedProp<std::optional<XREnvironmentTexturing>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("environmentTexturing", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.environmentTexturing;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<XREnvironmentTexturing>>::fromRawValue(*runtime, value, sourceProps.environmentTexturing);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.environmentTexturing: ") + exc.what());
-      }
-    }()),
-    depthSmoothing([&]() -> CachedProp<std::optional<bool>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("depthSmoothing", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.depthSmoothing;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<bool>>::fromRawValue(*runtime, value, sourceProps.depthSmoothing);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.depthSmoothing: ") + exc.what());
-      }
-    }()),
-    detectionImages([&]() -> CachedProp<std::optional<std::vector<XRDetectionImage>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("detectionImages", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.detectionImages;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::vector<XRDetectionImage>>>::fromRawValue(*runtime, value, sourceProps.detectionImages);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.detectionImages: ") + exc.what());
-      }
-    }()),
-    sceneReconstruction([&]() -> CachedProp<std::optional<XRSceneReconstruction>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("sceneReconstruction", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.sceneReconstruction;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<XRSceneReconstruction>>::fromRawValue(*runtime, value, sourceProps.sceneReconstruction);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.sceneReconstruction: ") + exc.what());
-      }
-    }()),
-    onReady([&]() -> CachedProp<std::optional<std::function<void()>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onReady", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onReady;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void()>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onReady);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onReady: ") + exc.what());
-      }
-    }()),
-    onFrame([&]() -> CachedProp<std::optional<std::function<void(const XRFrame& /* frame */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onFrame", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onFrame;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const XRFrame& /* frame */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onFrame);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onFrame: ") + exc.what());
-      }
-    }()),
-    onTrackingStateChange([&]() -> CachedProp<std::optional<std::function<void(XRTrackingState /* state */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onTrackingStateChange", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onTrackingStateChange;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(XRTrackingState /* state */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onTrackingStateChange);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onTrackingStateChange: ") + exc.what());
-      }
-    }()),
-    onPlaneDetected([&]() -> CachedProp<std::optional<std::function<void(const XRPlane& /* plane */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onPlaneDetected", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onPlaneDetected;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const XRPlane& /* plane */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onPlaneDetected);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onPlaneDetected: ") + exc.what());
-      }
-    }()),
-    onPlaneUpdated([&]() -> CachedProp<std::optional<std::function<void(const XRPlane& /* plane */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onPlaneUpdated", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onPlaneUpdated;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const XRPlane& /* plane */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onPlaneUpdated);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onPlaneUpdated: ") + exc.what());
-      }
-    }()),
-    onPlaneRemoved([&]() -> CachedProp<std::optional<std::function<void(const std::string& /* planeId */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onPlaneRemoved", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onPlaneRemoved;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const std::string& /* planeId */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onPlaneRemoved);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onPlaneRemoved: ") + exc.what());
-      }
-    }()),
-    onImageAnchorAdded([&]() -> CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onImageAnchorAdded", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onImageAnchorAdded;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onImageAnchorAdded);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onImageAnchorAdded: ") + exc.what());
-      }
-    }()),
-    onImageAnchorUpdated([&]() -> CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onImageAnchorUpdated", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onImageAnchorUpdated;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onImageAnchorUpdated);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onImageAnchorUpdated: ") + exc.what());
-      }
-    }()),
-    onImageAnchorRemoved([&]() -> CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onImageAnchorRemoved", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onImageAnchorRemoved;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onImageAnchorRemoved);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onImageAnchorRemoved: ") + exc.what());
-      }
-    }()),
-    onMeshAnchorAdded([&]() -> CachedProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onMeshAnchorAdded", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onMeshAnchorAdded;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onMeshAnchorAdded);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onMeshAnchorAdded: ") + exc.what());
-      }
-    }()),
-    onMeshAnchorUpdated([&]() -> CachedProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onMeshAnchorUpdated", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onMeshAnchorUpdated;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onMeshAnchorUpdated);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onMeshAnchorUpdated: ") + exc.what());
-      }
-    }()),
-    onMeshAnchorRemoved([&]() -> CachedProp<std::optional<std::function<void(const std::string& /* meshId */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onMeshAnchorRemoved", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onMeshAnchorRemoved;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const std::string& /* meshId */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onMeshAnchorRemoved);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onMeshAnchorRemoved: ") + exc.what());
-      }
-    }()),
-    onFaceAdded([&]() -> CachedProp<std::optional<std::function<void(const XRFace& /* face */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onFaceAdded", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onFaceAdded;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const XRFace& /* face */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onFaceAdded);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onFaceAdded: ") + exc.what());
-      }
-    }()),
-    onFaceUpdated([&]() -> CachedProp<std::optional<std::function<void(const XRFace& /* face */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onFaceUpdated", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onFaceUpdated;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const XRFace& /* face */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onFaceUpdated);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onFaceUpdated: ") + exc.what());
-      }
-    }()),
-    onFaceRemoved([&]() -> CachedProp<std::optional<std::function<void(const std::string& /* faceId */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onFaceRemoved", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onFaceRemoved;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const std::string& /* faceId */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onFaceRemoved);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onFaceRemoved: ") + exc.what());
-      }
-    }()),
-    onError([&]() -> CachedProp<std::optional<std::function<void(const std::string& /* message */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("onError", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.onError;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const std::string& /* message */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.onError);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.onError: ") + exc.what());
-      }
-    }()),
-    hybridRef([&]() -> CachedProp<std::optional<std::function<void(const std::shared_ptr<HybridXRViewSpec>& /* ref */)>>> {
-      try {
-        const react::RawValue* rawValue = rawProps.at("hybridRef", nullptr, nullptr);
-        if (rawValue == nullptr) return sourceProps.hybridRef;
-        const auto& [runtime, value] = (std::pair<jsi::Runtime*, jsi::Value>)*rawValue;
-        return CachedProp<std::optional<std::function<void(const std::shared_ptr<HybridXRViewSpec>& /* ref */)>>>::fromRawValue(*runtime, value.asObject(*runtime).getProperty(*runtime, PropNameIDCache::get(*runtime, "f")), sourceProps.hybridRef);
-      } catch (const std::exception& exc) {
-        throw std::runtime_error(std::string("XRView.hybridRef: ") + exc.what());
-      }
-    }()) {
+    planeDetection(nitro::ReactProp<XRPlaneDetection>::fromRawValue("XRView", "planeDetection", rawProps, sourceProps.planeDetection)),
+    depthEnabled(nitro::ReactProp<bool>::fromRawValue("XRView", "depthEnabled", rawProps, sourceProps.depthEnabled)),
+    lightEstimationEnabled(nitro::ReactProp<bool>::fromRawValue("XRView", "lightEstimationEnabled", rawProps, sourceProps.lightEstimationEnabled)),
+    frameCallbackFps(nitro::ReactProp<double>::fromRawValue("XRView", "frameCallbackFps", rawProps, sourceProps.frameCallbackFps)),
+    mode(nitro::ReactProp<std::optional<XRSessionMode>>::fromRawValue("XRView", "mode", rawProps, sourceProps.mode)),
+    trackableUpdateMaxHz(nitro::ReactProp<std::optional<double>>::fromRawValue("XRView", "trackableUpdateMaxHz", rawProps, sourceProps.trackableUpdateMaxHz)),
+    lightEstimationMode(nitro::ReactProp<std::optional<XRLightEstimationMode>>::fromRawValue("XRView", "lightEstimationMode", rawProps, sourceProps.lightEstimationMode)),
+    environmentTexturing(nitro::ReactProp<std::optional<XREnvironmentTexturing>>::fromRawValue("XRView", "environmentTexturing", rawProps, sourceProps.environmentTexturing)),
+    depthSmoothing(nitro::ReactProp<std::optional<bool>>::fromRawValue("XRView", "depthSmoothing", rawProps, sourceProps.depthSmoothing)),
+    detectionImages(nitro::ReactProp<std::optional<std::vector<XRDetectionImage>>>::fromRawValue("XRView", "detectionImages", rawProps, sourceProps.detectionImages)),
+    sceneReconstruction(nitro::ReactProp<std::optional<XRSceneReconstruction>>::fromRawValue("XRView", "sceneReconstruction", rawProps, sourceProps.sceneReconstruction)),
+    onReady(nitro::ReactProp<std::optional<std::function<void()>>>::fromRawValue("XRView", "onReady", rawProps, sourceProps.onReady)),
+    onFrame(nitro::ReactProp<std::optional<std::function<void(const XRFrame& /* frame */)>>>::fromRawValue("XRView", "onFrame", rawProps, sourceProps.onFrame)),
+    onTrackingStateChange(nitro::ReactProp<std::optional<std::function<void(XRTrackingState /* state */)>>>::fromRawValue("XRView", "onTrackingStateChange", rawProps, sourceProps.onTrackingStateChange)),
+    onPlaneDetected(nitro::ReactProp<std::optional<std::function<void(const XRPlane& /* plane */)>>>::fromRawValue("XRView", "onPlaneDetected", rawProps, sourceProps.onPlaneDetected)),
+    onPlaneUpdated(nitro::ReactProp<std::optional<std::function<void(const XRPlane& /* plane */)>>>::fromRawValue("XRView", "onPlaneUpdated", rawProps, sourceProps.onPlaneUpdated)),
+    onPlaneRemoved(nitro::ReactProp<std::optional<std::function<void(const std::string& /* planeId */)>>>::fromRawValue("XRView", "onPlaneRemoved", rawProps, sourceProps.onPlaneRemoved)),
+    onImageAnchorAdded(nitro::ReactProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>>::fromRawValue("XRView", "onImageAnchorAdded", rawProps, sourceProps.onImageAnchorAdded)),
+    onImageAnchorUpdated(nitro::ReactProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>>::fromRawValue("XRView", "onImageAnchorUpdated", rawProps, sourceProps.onImageAnchorUpdated)),
+    onImageAnchorRemoved(nitro::ReactProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>>::fromRawValue("XRView", "onImageAnchorRemoved", rawProps, sourceProps.onImageAnchorRemoved)),
+    onMeshAnchorAdded(nitro::ReactProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>>::fromRawValue("XRView", "onMeshAnchorAdded", rawProps, sourceProps.onMeshAnchorAdded)),
+    onMeshAnchorUpdated(nitro::ReactProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>>::fromRawValue("XRView", "onMeshAnchorUpdated", rawProps, sourceProps.onMeshAnchorUpdated)),
+    onMeshAnchorRemoved(nitro::ReactProp<std::optional<std::function<void(const std::string& /* meshId */)>>>::fromRawValue("XRView", "onMeshAnchorRemoved", rawProps, sourceProps.onMeshAnchorRemoved)),
+    onFaceAdded(nitro::ReactProp<std::optional<std::function<void(const XRFace& /* face */)>>>::fromRawValue("XRView", "onFaceAdded", rawProps, sourceProps.onFaceAdded)),
+    onFaceUpdated(nitro::ReactProp<std::optional<std::function<void(const XRFace& /* face */)>>>::fromRawValue("XRView", "onFaceUpdated", rawProps, sourceProps.onFaceUpdated)),
+    onFaceRemoved(nitro::ReactProp<std::optional<std::function<void(const std::string& /* faceId */)>>>::fromRawValue("XRView", "onFaceRemoved", rawProps, sourceProps.onFaceRemoved)),
+    onError(nitro::ReactProp<std::optional<std::function<void(const std::string& /* message */)>>>::fromRawValue("XRView", "onError", rawProps, sourceProps.onError)),
+    hybridRef(nitro::ReactProp<std::optional<std::function<void(const std::shared_ptr<HybridXRViewSpec>& /* ref */)>>>::fromRawValue("XRView", "hybridRef", rawProps, sourceProps.hybridRef)) {
     // munim-xr: margelo/nitro#1656: React Native no longer fills Props::rawProps for us.
 #if defined(ANDROID) && defined(RN_SERIALIZABLE_STATE) && defined(REACT_NATIVE_VERSION_MINOR)
 #if REACT_NATIVE_VERSION_MAJOR > 0 || REACT_NATIVE_VERSION_MINOR >= 87
@@ -361,30 +103,5 @@ namespace margelo::nitro::munimxr::views {
       default: return false;
     }
   }
-
-  HybridXRViewComponentDescriptor::HybridXRViewComponentDescriptor(const react::ComponentDescriptorParameters& parameters)
-    : ConcreteComponentDescriptor(parameters,
-                                  react::RawPropsParser()) {}
-
-  std::shared_ptr<const react::Props> HybridXRViewComponentDescriptor::cloneProps(const react::PropsParserContext& context,
-                                                                                  const std::shared_ptr<const react::Props>& props,
-                                                                                  react::RawProps rawProps) const {
-    // 1. Prepare raw props parser
-    rawProps.parse(rawPropsParser_);
-    // 2. Copy props with Nitro's cached copy constructor
-    return HybridXRViewShadowNode::Props(context, /* & */ rawProps, props);
-  }
-
-#ifdef ANDROID
-  void HybridXRViewComponentDescriptor::adopt(react::ShadowNode& shadowNode) const {
-    // This is called immediately after `ShadowNode` is created, cloned or in progress.
-    // On Android, we need to wrap props in our state, which gets routed through Java and later unwrapped in JNI/C++.
-    auto& concreteShadowNode = static_cast<HybridXRViewShadowNode&>(shadowNode);
-    const std::shared_ptr<const HybridXRViewProps>& constProps = concreteShadowNode.getConcreteSharedProps();
-    const std::shared_ptr<HybridXRViewProps>& props = std::const_pointer_cast<HybridXRViewProps>(constProps);
-    HybridXRViewState state{props};
-    concreteShadowNode.setStateData(std::move(state));
-  }
-#endif
 
 } // namespace margelo::nitro::munimxr::views

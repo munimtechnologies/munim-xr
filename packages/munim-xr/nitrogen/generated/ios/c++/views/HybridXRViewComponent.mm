@@ -37,6 +37,7 @@ using namespace margelo::nitro::munimxr::views;
 
 @implementation HybridXRViewComponent {
   std::shared_ptr<HybridXRViewSpecSwift> _hybridView;
+  BOOL _didDropView;
 }
 
 + (void) load {
@@ -50,6 +51,7 @@ using namespace margelo::nitro::munimxr::views;
 
 - (instancetype) init {
   if (self = [super init]) {
+    _props = HybridXRViewShadowNode::defaultSharedProps();
     std::shared_ptr<HybridXRViewSpec> hybridView = NitroMunimXr::NitroMunimXrAutolinking::createXRView();
     _hybridView = std::dynamic_pointer_cast<HybridXRViewSpecSwift>(hybridView);
     [self updateView];
@@ -69,165 +71,211 @@ using namespace margelo::nitro::munimxr::views;
   [self setContentView:view];
 }
 
+- (void) notifyOnDropView {
+  // A recycled component can later be invalidated. Notify only once per mount.
+  if (_didDropView) {
+    return;
+  }
+  NitroMunimXr::HybridXRViewSpec_cxx& swiftPart = _hybridView->getSwiftPart();
+  swiftPart.onDropView();
+  _didDropView = YES;
+}
+
 - (void) updateProps:(const std::shared_ptr<const react::Props>&)props
             oldProps:(const std::shared_ptr<const react::Props>&)oldProps {
+  // A props update marks a newly mounted or still-active component.
+  _didDropView = NO;
+
   // 1. Downcast props
-  const auto& newViewPropsConst = *std::static_pointer_cast<HybridXRViewProps const>(props);
-  auto& newViewProps = const_cast<HybridXRViewProps&>(newViewPropsConst);
+  const auto& newViewProps = *std::static_pointer_cast<const HybridXRViewProps>(props);
+  const auto* oldViewProps = static_cast<const HybridXRViewProps*>(oldProps.get());
   NitroMunimXr::HybridXRViewSpec_cxx& swiftPart = _hybridView->getSwiftPart();
 
-  // 2. Update each prop individually
-  swiftPart.beforeUpdate();
+  // 2. Update only props that differ from the previous Props snapshot.
+  const bool hasTransactionPropChanges = oldViewProps == nullptr
+      ? newViewProps.hasAnyProvidedProps()
+      : !newViewProps.hasSameProps(*oldViewProps);
+  if (hasTransactionPropChanges) {
+    swiftPart.beforeUpdate();
 
-  // planeDetection: enum
-  if (newViewProps.planeDetection.isDirty) {
-    swiftPart.setPlaneDetection(static_cast<int>(newViewProps.planeDetection.value));
-    newViewProps.planeDetection.isDirty = false;
-  }
-  // depthEnabled: boolean
-  if (newViewProps.depthEnabled.isDirty) {
-    swiftPart.setDepthEnabled(newViewProps.depthEnabled.value);
-    newViewProps.depthEnabled.isDirty = false;
-  }
-  // lightEstimationEnabled: boolean
-  if (newViewProps.lightEstimationEnabled.isDirty) {
-    swiftPart.setLightEstimationEnabled(newViewProps.lightEstimationEnabled.value);
-    newViewProps.lightEstimationEnabled.isDirty = false;
-  }
-  // frameCallbackFps: number
-  if (newViewProps.frameCallbackFps.isDirty) {
-    swiftPart.setFrameCallbackFps(newViewProps.frameCallbackFps.value);
-    newViewProps.frameCallbackFps.isDirty = false;
-  }
-  // mode: optional
-  if (newViewProps.mode.isDirty) {
-    swiftPart.setMode(newViewProps.mode.value);
-    newViewProps.mode.isDirty = false;
-  }
-  // trackableUpdateMaxHz: optional
-  if (newViewProps.trackableUpdateMaxHz.isDirty) {
-    swiftPart.setTrackableUpdateMaxHz(newViewProps.trackableUpdateMaxHz.value);
-    newViewProps.trackableUpdateMaxHz.isDirty = false;
-  }
-  // lightEstimationMode: optional
-  if (newViewProps.lightEstimationMode.isDirty) {
-    swiftPart.setLightEstimationMode(newViewProps.lightEstimationMode.value);
-    newViewProps.lightEstimationMode.isDirty = false;
-  }
-  // environmentTexturing: optional
-  if (newViewProps.environmentTexturing.isDirty) {
-    swiftPart.setEnvironmentTexturing(newViewProps.environmentTexturing.value);
-    newViewProps.environmentTexturing.isDirty = false;
-  }
-  // depthSmoothing: optional
-  if (newViewProps.depthSmoothing.isDirty) {
-    swiftPart.setDepthSmoothing(newViewProps.depthSmoothing.value);
-    newViewProps.depthSmoothing.isDirty = false;
-  }
-  // detectionImages: optional
-  if (newViewProps.detectionImages.isDirty) {
-    swiftPart.setDetectionImages(newViewProps.detectionImages.value);
-    newViewProps.detectionImages.isDirty = false;
-  }
-  // sceneReconstruction: optional
-  if (newViewProps.sceneReconstruction.isDirty) {
-    swiftPart.setSceneReconstruction(newViewProps.sceneReconstruction.value);
-    newViewProps.sceneReconstruction.isDirty = false;
-  }
-  // onReady: optional
-  if (newViewProps.onReady.isDirty) {
-    swiftPart.setOnReady(newViewProps.onReady.value);
-    newViewProps.onReady.isDirty = false;
-  }
-  // onFrame: optional
-  if (newViewProps.onFrame.isDirty) {
-    swiftPart.setOnFrame(newViewProps.onFrame.value);
-    newViewProps.onFrame.isDirty = false;
-  }
-  // onTrackingStateChange: optional
-  if (newViewProps.onTrackingStateChange.isDirty) {
-    swiftPart.setOnTrackingStateChange(newViewProps.onTrackingStateChange.value);
-    newViewProps.onTrackingStateChange.isDirty = false;
-  }
-  // onPlaneDetected: optional
-  if (newViewProps.onPlaneDetected.isDirty) {
-    swiftPart.setOnPlaneDetected(newViewProps.onPlaneDetected.value);
-    newViewProps.onPlaneDetected.isDirty = false;
-  }
-  // onPlaneUpdated: optional
-  if (newViewProps.onPlaneUpdated.isDirty) {
-    swiftPart.setOnPlaneUpdated(newViewProps.onPlaneUpdated.value);
-    newViewProps.onPlaneUpdated.isDirty = false;
-  }
-  // onPlaneRemoved: optional
-  if (newViewProps.onPlaneRemoved.isDirty) {
-    swiftPart.setOnPlaneRemoved(newViewProps.onPlaneRemoved.value);
-    newViewProps.onPlaneRemoved.isDirty = false;
-  }
-  // onImageAnchorAdded: optional
-  if (newViewProps.onImageAnchorAdded.isDirty) {
-    swiftPart.setOnImageAnchorAdded(newViewProps.onImageAnchorAdded.value);
-    newViewProps.onImageAnchorAdded.isDirty = false;
-  }
-  // onImageAnchorUpdated: optional
-  if (newViewProps.onImageAnchorUpdated.isDirty) {
-    swiftPart.setOnImageAnchorUpdated(newViewProps.onImageAnchorUpdated.value);
-    newViewProps.onImageAnchorUpdated.isDirty = false;
-  }
-  // onImageAnchorRemoved: optional
-  if (newViewProps.onImageAnchorRemoved.isDirty) {
-    swiftPart.setOnImageAnchorRemoved(newViewProps.onImageAnchorRemoved.value);
-    newViewProps.onImageAnchorRemoved.isDirty = false;
-  }
-  // onMeshAnchorAdded: optional
-  if (newViewProps.onMeshAnchorAdded.isDirty) {
-    swiftPart.setOnMeshAnchorAdded(newViewProps.onMeshAnchorAdded.value);
-    newViewProps.onMeshAnchorAdded.isDirty = false;
-  }
-  // onMeshAnchorUpdated: optional
-  if (newViewProps.onMeshAnchorUpdated.isDirty) {
-    swiftPart.setOnMeshAnchorUpdated(newViewProps.onMeshAnchorUpdated.value);
-    newViewProps.onMeshAnchorUpdated.isDirty = false;
-  }
-  // onMeshAnchorRemoved: optional
-  if (newViewProps.onMeshAnchorRemoved.isDirty) {
-    swiftPart.setOnMeshAnchorRemoved(newViewProps.onMeshAnchorRemoved.value);
-    newViewProps.onMeshAnchorRemoved.isDirty = false;
-  }
-  // onFaceAdded: optional
-  if (newViewProps.onFaceAdded.isDirty) {
-    swiftPart.setOnFaceAdded(newViewProps.onFaceAdded.value);
-    newViewProps.onFaceAdded.isDirty = false;
-  }
-  // onFaceUpdated: optional
-  if (newViewProps.onFaceUpdated.isDirty) {
-    swiftPart.setOnFaceUpdated(newViewProps.onFaceUpdated.value);
-    newViewProps.onFaceUpdated.isDirty = false;
-  }
-  // onFaceRemoved: optional
-  if (newViewProps.onFaceRemoved.isDirty) {
-    swiftPart.setOnFaceRemoved(newViewProps.onFaceRemoved.value);
-    newViewProps.onFaceRemoved.isDirty = false;
-  }
-  // onError: optional
-  if (newViewProps.onError.isDirty) {
-    swiftPart.setOnError(newViewProps.onError.value);
-    newViewProps.onError.isDirty = false;
-  }
-
-  swiftPart.afterUpdate();
-
-  // 3. Update hybridRef if it changed
-  if (newViewProps.hybridRef.isDirty) {
-    // hybridRef changed - call it with new this
-    const auto& maybeFunc = newViewProps.hybridRef.value;
-    if (maybeFunc.has_value()) {
-      maybeFunc.value()(_hybridView);
+    // planeDetection: enum
+    if (oldViewProps == nullptr
+          ? newViewProps.planeDetection.isProvided()
+          : !newViewProps.planeDetection.hasSameValue(oldViewProps->planeDetection)) {
+      swiftPart.setPlaneDetection(static_cast<int>(newViewProps.planeDetection.get()));
     }
-    newViewProps.hybridRef.isDirty = false;
+    // depthEnabled: boolean
+    if (oldViewProps == nullptr
+          ? newViewProps.depthEnabled.isProvided()
+          : !newViewProps.depthEnabled.hasSameValue(oldViewProps->depthEnabled)) {
+      swiftPart.setDepthEnabled(newViewProps.depthEnabled.get());
+    }
+    // lightEstimationEnabled: boolean
+    if (oldViewProps == nullptr
+          ? newViewProps.lightEstimationEnabled.isProvided()
+          : !newViewProps.lightEstimationEnabled.hasSameValue(oldViewProps->lightEstimationEnabled)) {
+      swiftPart.setLightEstimationEnabled(newViewProps.lightEstimationEnabled.get());
+    }
+    // frameCallbackFps: number
+    if (oldViewProps == nullptr
+          ? newViewProps.frameCallbackFps.isProvided()
+          : !newViewProps.frameCallbackFps.hasSameValue(oldViewProps->frameCallbackFps)) {
+      swiftPart.setFrameCallbackFps(newViewProps.frameCallbackFps.get());
+    }
+    // mode: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.mode.isProvided()
+          : !newViewProps.mode.hasSameValue(oldViewProps->mode)) {
+      swiftPart.setMode(newViewProps.mode.get());
+    }
+    // trackableUpdateMaxHz: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.trackableUpdateMaxHz.isProvided()
+          : !newViewProps.trackableUpdateMaxHz.hasSameValue(oldViewProps->trackableUpdateMaxHz)) {
+      swiftPart.setTrackableUpdateMaxHz(newViewProps.trackableUpdateMaxHz.get());
+    }
+    // lightEstimationMode: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.lightEstimationMode.isProvided()
+          : !newViewProps.lightEstimationMode.hasSameValue(oldViewProps->lightEstimationMode)) {
+      swiftPart.setLightEstimationMode(newViewProps.lightEstimationMode.get());
+    }
+    // environmentTexturing: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.environmentTexturing.isProvided()
+          : !newViewProps.environmentTexturing.hasSameValue(oldViewProps->environmentTexturing)) {
+      swiftPart.setEnvironmentTexturing(newViewProps.environmentTexturing.get());
+    }
+    // depthSmoothing: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.depthSmoothing.isProvided()
+          : !newViewProps.depthSmoothing.hasSameValue(oldViewProps->depthSmoothing)) {
+      swiftPart.setDepthSmoothing(newViewProps.depthSmoothing.get());
+    }
+    // detectionImages: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.detectionImages.isProvided()
+          : !newViewProps.detectionImages.hasSameValue(oldViewProps->detectionImages)) {
+      swiftPart.setDetectionImages(newViewProps.detectionImages.get());
+    }
+    // sceneReconstruction: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.sceneReconstruction.isProvided()
+          : !newViewProps.sceneReconstruction.hasSameValue(oldViewProps->sceneReconstruction)) {
+      swiftPart.setSceneReconstruction(newViewProps.sceneReconstruction.get());
+    }
+    // onReady: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onReady.isProvided()
+          : !newViewProps.onReady.hasSameValue(oldViewProps->onReady)) {
+      swiftPart.setOnReady(newViewProps.onReady.get());
+    }
+    // onFrame: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onFrame.isProvided()
+          : !newViewProps.onFrame.hasSameValue(oldViewProps->onFrame)) {
+      swiftPart.setOnFrame(newViewProps.onFrame.get());
+    }
+    // onTrackingStateChange: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onTrackingStateChange.isProvided()
+          : !newViewProps.onTrackingStateChange.hasSameValue(oldViewProps->onTrackingStateChange)) {
+      swiftPart.setOnTrackingStateChange(newViewProps.onTrackingStateChange.get());
+    }
+    // onPlaneDetected: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onPlaneDetected.isProvided()
+          : !newViewProps.onPlaneDetected.hasSameValue(oldViewProps->onPlaneDetected)) {
+      swiftPart.setOnPlaneDetected(newViewProps.onPlaneDetected.get());
+    }
+    // onPlaneUpdated: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onPlaneUpdated.isProvided()
+          : !newViewProps.onPlaneUpdated.hasSameValue(oldViewProps->onPlaneUpdated)) {
+      swiftPart.setOnPlaneUpdated(newViewProps.onPlaneUpdated.get());
+    }
+    // onPlaneRemoved: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onPlaneRemoved.isProvided()
+          : !newViewProps.onPlaneRemoved.hasSameValue(oldViewProps->onPlaneRemoved)) {
+      swiftPart.setOnPlaneRemoved(newViewProps.onPlaneRemoved.get());
+    }
+    // onImageAnchorAdded: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onImageAnchorAdded.isProvided()
+          : !newViewProps.onImageAnchorAdded.hasSameValue(oldViewProps->onImageAnchorAdded)) {
+      swiftPart.setOnImageAnchorAdded(newViewProps.onImageAnchorAdded.get());
+    }
+    // onImageAnchorUpdated: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onImageAnchorUpdated.isProvided()
+          : !newViewProps.onImageAnchorUpdated.hasSameValue(oldViewProps->onImageAnchorUpdated)) {
+      swiftPart.setOnImageAnchorUpdated(newViewProps.onImageAnchorUpdated.get());
+    }
+    // onImageAnchorRemoved: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onImageAnchorRemoved.isProvided()
+          : !newViewProps.onImageAnchorRemoved.hasSameValue(oldViewProps->onImageAnchorRemoved)) {
+      swiftPart.setOnImageAnchorRemoved(newViewProps.onImageAnchorRemoved.get());
+    }
+    // onMeshAnchorAdded: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onMeshAnchorAdded.isProvided()
+          : !newViewProps.onMeshAnchorAdded.hasSameValue(oldViewProps->onMeshAnchorAdded)) {
+      swiftPart.setOnMeshAnchorAdded(newViewProps.onMeshAnchorAdded.get());
+    }
+    // onMeshAnchorUpdated: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onMeshAnchorUpdated.isProvided()
+          : !newViewProps.onMeshAnchorUpdated.hasSameValue(oldViewProps->onMeshAnchorUpdated)) {
+      swiftPart.setOnMeshAnchorUpdated(newViewProps.onMeshAnchorUpdated.get());
+    }
+    // onMeshAnchorRemoved: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onMeshAnchorRemoved.isProvided()
+          : !newViewProps.onMeshAnchorRemoved.hasSameValue(oldViewProps->onMeshAnchorRemoved)) {
+      swiftPart.setOnMeshAnchorRemoved(newViewProps.onMeshAnchorRemoved.get());
+    }
+    // onFaceAdded: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onFaceAdded.isProvided()
+          : !newViewProps.onFaceAdded.hasSameValue(oldViewProps->onFaceAdded)) {
+      swiftPart.setOnFaceAdded(newViewProps.onFaceAdded.get());
+    }
+    // onFaceUpdated: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onFaceUpdated.isProvided()
+          : !newViewProps.onFaceUpdated.hasSameValue(oldViewProps->onFaceUpdated)) {
+      swiftPart.setOnFaceUpdated(newViewProps.onFaceUpdated.get());
+    }
+    // onFaceRemoved: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onFaceRemoved.isProvided()
+          : !newViewProps.onFaceRemoved.hasSameValue(oldViewProps->onFaceRemoved)) {
+      swiftPart.setOnFaceRemoved(newViewProps.onFaceRemoved.get());
+    }
+    // onError: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onError.isProvided()
+          : !newViewProps.onError.hasSameValue(oldViewProps->onError)) {
+      swiftPart.setOnError(newViewProps.onError.get());
+    }
+
+    // Update hybridRef if it changed
+    if (oldViewProps == nullptr
+          ? newViewProps.hybridRef.isProvided()
+          : !newViewProps.hybridRef.hasSameValue(oldViewProps->hybridRef)) {
+      // hybridRef changed - call it with new this
+      const auto& maybeFunc = newViewProps.hybridRef.get();
+      if (maybeFunc.has_value()) {
+        maybeFunc.value()(_hybridView);
+      }
+    }
+
+    swiftPart.afterUpdate();
   }
 
-  // 4. Continue in base class
+  // 3. Continue in base class
   [super updateProps:props oldProps:oldProps];
 }
 
@@ -236,6 +284,7 @@ using namespace margelo::nitro::munimxr::views;
 }
 
 - (void)prepareForRecycle {
+  [self notifyOnDropView];
   [super prepareForRecycle];
   NitroMunimXr::HybridXRViewSpec_cxx& swiftPart = _hybridView->getSwiftPart();
   swiftPart.maybePrepareForRecycle();
@@ -243,8 +292,7 @@ using namespace margelo::nitro::munimxr::views;
 
 #ifdef ENABLE_RCT_COMPONENT_VIEW_INVALIDATE
 - (void)invalidate {
-  NitroMunimXr::HybridXRViewSpec_cxx& swiftPart = _hybridView->getSwiftPart();
-  swiftPart.onDropView();
+  [self notifyOnDropView];
   [super invalidate];
 }
 #endif

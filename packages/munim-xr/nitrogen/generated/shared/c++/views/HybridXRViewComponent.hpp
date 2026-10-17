@@ -7,14 +7,15 @@
 
 #pragma once
 
-#include <optional>
-#include <NitroModules/NitroDefines.hpp>
-#include <NitroModules/NitroHash.hpp>
-#include <NitroModules/CachedProp.hpp>
-#include <react/renderer/core/ConcreteComponentDescriptor.h>
-#include <react/renderer/core/PropsParserContext.h>
+#include <NitroModules/ReactProp.hpp>
+#include <NitroModules/ViewComponentDescriptor.hpp>
+#include <NitroModules/ViewPropsHolderState.hpp>
 #include <react/renderer/components/view/ConcreteViewShadowNode.h>
 #include <react/renderer/components/view/ViewProps.h>
+#include <react/renderer/core/PropsParserContext.h>
+#include <react/renderer/core/RawProps.h>
+
+#include <string>
 
 #include "XRPlaneDetection.hpp"
 #include "XRSessionMode.hpp"
@@ -55,34 +56,98 @@ namespace margelo::nitro::munimxr::views {
                       const react::RawProps& rawProps);
 
   public:
-    CachedProp<XRPlaneDetection> planeDetection;
-    CachedProp<bool> depthEnabled;
-    CachedProp<bool> lightEstimationEnabled;
-    CachedProp<double> frameCallbackFps;
-    CachedProp<std::optional<XRSessionMode>> mode;
-    CachedProp<std::optional<double>> trackableUpdateMaxHz;
-    CachedProp<std::optional<XRLightEstimationMode>> lightEstimationMode;
-    CachedProp<std::optional<XREnvironmentTexturing>> environmentTexturing;
-    CachedProp<std::optional<bool>> depthSmoothing;
-    CachedProp<std::optional<std::vector<XRDetectionImage>>> detectionImages;
-    CachedProp<std::optional<XRSceneReconstruction>> sceneReconstruction;
-    CachedProp<std::optional<std::function<void()>>> onReady;
-    CachedProp<std::optional<std::function<void(const XRFrame& /* frame */)>>> onFrame;
-    CachedProp<std::optional<std::function<void(XRTrackingState /* state */)>>> onTrackingStateChange;
-    CachedProp<std::optional<std::function<void(const XRPlane& /* plane */)>>> onPlaneDetected;
-    CachedProp<std::optional<std::function<void(const XRPlane& /* plane */)>>> onPlaneUpdated;
-    CachedProp<std::optional<std::function<void(const std::string& /* planeId */)>>> onPlaneRemoved;
-    CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> onImageAnchorAdded;
-    CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> onImageAnchorUpdated;
-    CachedProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> onImageAnchorRemoved;
-    CachedProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>> onMeshAnchorAdded;
-    CachedProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>> onMeshAnchorUpdated;
-    CachedProp<std::optional<std::function<void(const std::string& /* meshId */)>>> onMeshAnchorRemoved;
-    CachedProp<std::optional<std::function<void(const XRFace& /* face */)>>> onFaceAdded;
-    CachedProp<std::optional<std::function<void(const XRFace& /* face */)>>> onFaceUpdated;
-    CachedProp<std::optional<std::function<void(const std::string& /* faceId */)>>> onFaceRemoved;
-    CachedProp<std::optional<std::function<void(const std::string& /* message */)>>> onError;
-    CachedProp<std::optional<std::function<void(const std::shared_ptr<HybridXRViewSpec>& /* ref */)>>> hybridRef;
+    nitro::ReactProp<XRPlaneDetection> planeDetection;
+    nitro::ReactProp<bool> depthEnabled;
+    nitro::ReactProp<bool> lightEstimationEnabled;
+    nitro::ReactProp<double> frameCallbackFps;
+    nitro::ReactProp<std::optional<XRSessionMode>> mode;
+    nitro::ReactProp<std::optional<double>> trackableUpdateMaxHz;
+    nitro::ReactProp<std::optional<XRLightEstimationMode>> lightEstimationMode;
+    nitro::ReactProp<std::optional<XREnvironmentTexturing>> environmentTexturing;
+    nitro::ReactProp<std::optional<bool>> depthSmoothing;
+    nitro::ReactProp<std::optional<std::vector<XRDetectionImage>>> detectionImages;
+    nitro::ReactProp<std::optional<XRSceneReconstruction>> sceneReconstruction;
+    nitro::ReactProp<std::optional<std::function<void()>>> onReady;
+    nitro::ReactProp<std::optional<std::function<void(const XRFrame& /* frame */)>>> onFrame;
+    nitro::ReactProp<std::optional<std::function<void(XRTrackingState /* state */)>>> onTrackingStateChange;
+    nitro::ReactProp<std::optional<std::function<void(const XRPlane& /* plane */)>>> onPlaneDetected;
+    nitro::ReactProp<std::optional<std::function<void(const XRPlane& /* plane */)>>> onPlaneUpdated;
+    nitro::ReactProp<std::optional<std::function<void(const std::string& /* planeId */)>>> onPlaneRemoved;
+    nitro::ReactProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> onImageAnchorAdded;
+    nitro::ReactProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> onImageAnchorUpdated;
+    nitro::ReactProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>> onImageAnchorRemoved;
+    nitro::ReactProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>> onMeshAnchorAdded;
+    nitro::ReactProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>> onMeshAnchorUpdated;
+    nitro::ReactProp<std::optional<std::function<void(const std::string& /* meshId */)>>> onMeshAnchorRemoved;
+    nitro::ReactProp<std::optional<std::function<void(const XRFace& /* face */)>>> onFaceAdded;
+    nitro::ReactProp<std::optional<std::function<void(const XRFace& /* face */)>>> onFaceUpdated;
+    nitro::ReactProp<std::optional<std::function<void(const std::string& /* faceId */)>>> onFaceRemoved;
+    nitro::ReactProp<std::optional<std::function<void(const std::string& /* message */)>>> onError;
+    nitro::ReactProp<std::optional<std::function<void(const std::shared_ptr<HybridXRViewSpec>& /* ref */)>>> hybridRef;
+
+    [[nodiscard]]
+    bool hasSameProps(const HybridXRViewProps& other) const noexcept {
+      return planeDetection.hasSameValue(other.planeDetection) &&
+             depthEnabled.hasSameValue(other.depthEnabled) &&
+             lightEstimationEnabled.hasSameValue(other.lightEstimationEnabled) &&
+             frameCallbackFps.hasSameValue(other.frameCallbackFps) &&
+             mode.hasSameValue(other.mode) &&
+             trackableUpdateMaxHz.hasSameValue(other.trackableUpdateMaxHz) &&
+             lightEstimationMode.hasSameValue(other.lightEstimationMode) &&
+             environmentTexturing.hasSameValue(other.environmentTexturing) &&
+             depthSmoothing.hasSameValue(other.depthSmoothing) &&
+             detectionImages.hasSameValue(other.detectionImages) &&
+             sceneReconstruction.hasSameValue(other.sceneReconstruction) &&
+             onReady.hasSameValue(other.onReady) &&
+             onFrame.hasSameValue(other.onFrame) &&
+             onTrackingStateChange.hasSameValue(other.onTrackingStateChange) &&
+             onPlaneDetected.hasSameValue(other.onPlaneDetected) &&
+             onPlaneUpdated.hasSameValue(other.onPlaneUpdated) &&
+             onPlaneRemoved.hasSameValue(other.onPlaneRemoved) &&
+             onImageAnchorAdded.hasSameValue(other.onImageAnchorAdded) &&
+             onImageAnchorUpdated.hasSameValue(other.onImageAnchorUpdated) &&
+             onImageAnchorRemoved.hasSameValue(other.onImageAnchorRemoved) &&
+             onMeshAnchorAdded.hasSameValue(other.onMeshAnchorAdded) &&
+             onMeshAnchorUpdated.hasSameValue(other.onMeshAnchorUpdated) &&
+             onMeshAnchorRemoved.hasSameValue(other.onMeshAnchorRemoved) &&
+             onFaceAdded.hasSameValue(other.onFaceAdded) &&
+             onFaceUpdated.hasSameValue(other.onFaceUpdated) &&
+             onFaceRemoved.hasSameValue(other.onFaceRemoved) &&
+             onError.hasSameValue(other.onError) &&
+             hybridRef.hasSameValue(other.hybridRef);
+    }
+
+    [[nodiscard]]
+    bool hasAnyProvidedProps() const noexcept {
+      return planeDetection.isProvided() ||
+             depthEnabled.isProvided() ||
+             lightEstimationEnabled.isProvided() ||
+             frameCallbackFps.isProvided() ||
+             mode.isProvided() ||
+             trackableUpdateMaxHz.isProvided() ||
+             lightEstimationMode.isProvided() ||
+             environmentTexturing.isProvided() ||
+             depthSmoothing.isProvided() ||
+             detectionImages.isProvided() ||
+             sceneReconstruction.isProvided() ||
+             onReady.isProvided() ||
+             onFrame.isProvided() ||
+             onTrackingStateChange.isProvided() ||
+             onPlaneDetected.isProvided() ||
+             onPlaneUpdated.isProvided() ||
+             onPlaneRemoved.isProvided() ||
+             onImageAnchorAdded.isProvided() ||
+             onImageAnchorUpdated.isProvided() ||
+             onImageAnchorRemoved.isProvided() ||
+             onMeshAnchorAdded.isProvided() ||
+             onMeshAnchorUpdated.isProvided() ||
+             onMeshAnchorRemoved.isProvided() ||
+             onFaceAdded.isProvided() ||
+             onFaceUpdated.isProvided() ||
+             onFaceRemoved.isProvided() ||
+             onError.isProvided() ||
+             hybridRef.isProvided();
+    }
 
   private:
     static bool filterObjectKeys(const std::string& propName);
@@ -91,32 +156,7 @@ namespace margelo::nitro::munimxr::views {
   /**
    * State for the "XRView" View.
    */
-  class HybridXRViewState final {
-  public:
-    HybridXRViewState() = default;
-    explicit HybridXRViewState(const std::shared_ptr<HybridXRViewProps>& props):
-      _props(props) {}
-
-  public:
-    [[nodiscard]]
-    const std::shared_ptr<HybridXRViewProps>& getProps() const {
-      return _props;
-    }
-
-  public:
-#ifdef ANDROID
-  HybridXRViewState(const HybridXRViewState& /* previousState */, folly::dynamic /* data */) {}
-  folly::dynamic getDynamic() const {
-    throw std::runtime_error("HybridXRViewState does not support folly!");
-  }
-  react::MapBuffer getMapBuffer() const {
-    throw std::runtime_error("HybridXRViewState does not support MapBuffer!");
-  };
-#endif
-
-  private:
-    std::shared_ptr<HybridXRViewProps> _props;
-  };
+  using HybridXRViewState = nitro::ViewPropsHolderState<HybridXRViewProps>;
 
   /**
    * The Shadow Node for the "XRView" View.
@@ -129,21 +169,7 @@ namespace margelo::nitro::munimxr::views {
   /**
    * The Component Descriptor for the "XRView" View.
    */
-  class HybridXRViewComponentDescriptor final: public react::ConcreteComponentDescriptor<HybridXRViewShadowNode> {
-  public:
-    explicit HybridXRViewComponentDescriptor(const react::ComponentDescriptorParameters& parameters);
-
-  public:
-    /**
-     * A faster path for cloning props - reuses the caching logic from `HybridXRViewProps`.
-     */
-    std::shared_ptr<const react::Props> cloneProps(const react::PropsParserContext& context,
-                                                   const std::shared_ptr<const react::Props>& props,
-                                                   react::RawProps rawProps) const override;
-#ifdef ANDROID
-    void adopt(react::ShadowNode& shadowNode) const override;
-#endif
-  };
+  using HybridXRViewComponentDescriptor = nitro::ViewComponentDescriptor<HybridXRViewShadowNode>;
 
   /* The actual view for "XRView" needs to be implemented in platform-specific code. */
 

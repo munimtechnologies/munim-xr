@@ -123,7 +123,7 @@ For bare React Native on iOS, run `pod install` in the `ios` directory.
 ### Requirements
 
 - React Native 0.78 or newer with the New Architecture enabled
-- `react-native-nitro-modules` 0.36.5 or newer
+- `react-native-nitro-modules` 0.37.1 or newer (munim-xr 0.4.x works with 0.36.5)
 - iOS 15.1 or newer on an ARKit-capable device
 - Android API 24 or newer with Google Play Services for AR
 - A physical device for normal runtime testing
@@ -314,7 +314,8 @@ Models are loaded with `SCNScene(url:)` into the existing `ARSCNView` (USDZ, SCN
 - **SceneKit is deprecated (iOS 26+).** iOS renders through SceneKit (`ARSCNView`), which Apple deprecated in iOS 26 in favour of RealityKit. It still works, and apps building munim-xr see the deprecation warnings. Moving `XRView` and the model APIs to RealityKit's `ARView` is on the roadmap; it changes the rendering stack and the model APIs, so it is planned as a separate release.
 - **Android base view props on React Native 0.87 (margelo/nitro#1656).** React Native 0.87 (and 0.84–0.86 with the `enableExclusivePropsUpdateAndroid` feature flag) no longer fills a Nitro Hybrid View's raw props, so `opacity`, `backgroundColor`, `transform`, `testID` and accessibility props would silently not apply on Android. munim-xr's generated code is patched (`scripts/patch-nitro-viewprops.js`, mirroring the unreleased upstream fix margelo/nitro#1661), so `XRView` receives them on every React Native version.
 - **Xcode 27 builds crash at launch on iOS 17 and earlier (margelo/nitro#1652).** This affects every Nitro module built with Xcode 27, not only munim-xr: `react-native-nitro-modules` uses `std::make_exception_ptr`, which Xcode 27 links against a symbol missing on iOS < 18. Until a Nitro release contains the fix (margelo/nitro#1666), patch `node_modules/react-native-nitro-modules/ios/utils/RuntimeError.hpp` (e.g. with `patch-package`) to build the exception with `throw` / `catch` + `std::current_exception()`, or build with Xcode 26 if you support iOS 17 and earlier.
-- **Xcode 27 apps need the UIScene lifecycle.** Apps built with the iOS 27 SDK crash at launch without it (TN3187). Expo 57: `expo-build-properties` → `ios.enableSceneSupport: true` (as the example does).
+- **Xcode 27 apps need the UIScene lifecycle.** Apps built with the iOS 27 SDK crash at launch without it (TN3187). Expo SDK 58 and newer adopt it for you; on Expo 57 set `expo-build-properties` → `ios.enableSceneSupport: true`.
+- **Nitro 0.37 on React Native 0.83 and older (margelo/nitro#1573).** `react-native-nitro-modules` 0.37 does not build for iOS in apps on React Native 0.83 or older that use static CocoaPods (no `use_frameworks!`), and munim-xr 0.5 needs Nitro 0.37 for its view bindings. Stay on munim-xr 0.4.x with Nitro 0.36.5 there until the upstream fix ships.
 
 ## Development
 

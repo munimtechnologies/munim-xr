@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-16
+
+### Changed
+
+- React Native 0.88 and Nitro Modules 0.37.1: bindings regenerated with nitrogen 0.37.1, and `react-native-nitro-modules` >= 0.37.1 is now required (its view bindings use Nitro 0.37's `ReactProp`). Apps on React Native 0.83 or older with static CocoaPods cannot build Nitro 0.37 for iOS (margelo/nitro#1573) and should stay on 0.4.x.
+- `scripts/patch-nitro-viewprops.js` follows nitrogen 0.37.1's generated props constructor; the margelo/nitro#1656 workaround still applies because the upstream fix (margelo/nitro#1661) is unreleased.
+- Example app: Expo SDK 58 (drops the `enableSceneSupport` workaround, which SDK 58 applies itself) and writes the self-test report with `File.writeSync()` now that SDK 58's `File.write()` is asynchronous.
+
+Self-test, Release builds: iPad Air M3 (iPadOS 27.0.1) 14 pass / 0 fail / 3 skip; Galaxy A14 (Android 15, ARCore 1.56) 13 / 0 / 3, with the XRView's `testID` and accessibility label reaching the Android view tree.
+
 ## [0.4.0] - 2026-10-03
 
 ### Added
@@ -101,7 +111,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Runtime support checks and ARCore install/update flow.
 - Expo config plugin, typed example app, native build workflows, and npm provenance publishing.
 
-[Unreleased]: https://github.com/munimtechnologies/munim-xr/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/munimtechnologies/munim-xr/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/munimtechnologies/munim-xr/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/munimtechnologies/munim-xr/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/munimtechnologies/munim-xr/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/munimtechnologies/munim-xr/compare/v0.2.0...v0.3.0

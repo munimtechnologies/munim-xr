@@ -32,9 +32,6 @@
       [
         "expo-build-properties",
         {
-          "ios": {
-            "enableSceneSupport": true
-          },
           "android": {
             "compileSdkVersion": 37,
             "targetSdkVersion": 36,

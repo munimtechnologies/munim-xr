@@ -50,8 +50,8 @@ const FEATURES: XRFeature[] = [
 ]
 // Print xr-target.png (or show it on another screen) at this width.
 const TARGET_WIDTH_METERS = 0.15
-const TARGET_URI = Image.resolveAssetSource(require('./assets/xr-target.png')).uri
-const CUBE_URI = Image.resolveAssetSource(require('./assets/cube.obj')).uri
+const TARGET_URI = Image.resolveAssetSource(require('./assets/xr-target.png'))?.uri ?? ''
+const CUBE_URI = Image.resolveAssetSource(require('./assets/cube.obj'))?.uri ?? ''
 // Keep per-trackable update logs readable in Metro/logcat.
 const UPDATE_HZ = 2
 
@@ -547,7 +547,7 @@ export default function App() {
         const file = new File(Paths.document, 'munim-xr-selftest.json')
         if (file.exists) file.delete()
         file.create()
-        file.write(JSON.stringify(report, null, 2))
+        file.writeSync(JSON.stringify(report, null, 2))
       } catch (error) {
         fail('selftest.write', error)
       }
@@ -562,7 +562,7 @@ export default function App() {
   const selfTestRef = useRef(selfTest)
   selfTestRef.current = selfTest
   useEffect(() => {
-    const handle = (url: string | null) => {
+    const handle = (url: string | null | undefined) => {
       if (url?.includes('selftest')) setTimeout(() => void selfTestRef.current(), 1000)
     }
     void Linking.getInitialURL().then(handle)

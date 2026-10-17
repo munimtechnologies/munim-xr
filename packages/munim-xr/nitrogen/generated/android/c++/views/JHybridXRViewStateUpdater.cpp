@@ -15,145 +15,189 @@ namespace margelo::nitro::munimxr::views {
 using namespace facebook;
 using ConcreteStateData = react::ConcreteState<HybridXRViewState>;
 
-void JHybridXRViewStateUpdater::updateViewProps(jni::alias_ref<jni::JClass> /* class */,
-                                           jni::alias_ref<JHybridXRViewSpec::JavaPart> javaView,
-                                           jni::alias_ref<JStateWrapper::javaobject> stateWrapperInterface) {
-  std::shared_ptr<JHybridXRViewSpec> hybridView = javaView->getJHybridXRViewSpec();
-
-  // Get concrete StateWrapperImpl from passed StateWrapper interface object
-  jobject rawStateWrapper = stateWrapperInterface.get();
-  if (!stateWrapperInterface->isInstanceOf(react::StateWrapperImpl::javaClassStatic())) [[unlikely]] {
-      throw std::runtime_error("StateWrapper is not a StateWrapperImpl");
+std::shared_ptr<const HybridXRViewProps> JHybridXRViewStateUpdater::getPropsFromStateWrapper(
+    jni::alias_ref<JStateWrapper::javaobject> stateWrapper) {
+  if (stateWrapper.get() == nullptr) {
+    return nullptr;
   }
-  auto stateWrapper = jni::alias_ref<react::StateWrapperImpl::javaobject>{
-            static_cast<react::StateWrapperImpl::javaobject>(rawStateWrapper)};
-  std::shared_ptr<const react::State> state = stateWrapper->cthis()->getState();
+  // Get concrete StateWrapperImpl from passed StateWrapper interface object
+  jobject rawStateWrapper = stateWrapper.get();
+  if (!stateWrapper->isInstanceOf(react::StateWrapperImpl::javaClassStatic())) [[unlikely]] {
+    throw std::runtime_error("StateWrapper is not a StateWrapperImpl");
+  }
+  auto stateWrapperImpl = jni::alias_ref<react::StateWrapperImpl::javaobject>{
+    static_cast<react::StateWrapperImpl::javaobject>(rawStateWrapper)
+  };
+  std::shared_ptr<const react::State> state = stateWrapperImpl->cthis()->getState();
+  if (state == nullptr) {
+    return nullptr;
+  }
   auto concreteState = std::static_pointer_cast<const ConcreteStateData>(state);
   const HybridXRViewState& data = concreteState->getData();
-  const std::shared_ptr<HybridXRViewProps>& props = data.getProps();
+  const std::shared_ptr<const HybridXRViewProps>& props = data.getProps();
   if (props == nullptr) [[unlikely]] {
-    // Props aren't set yet!
     throw std::runtime_error("HybridXRViewState's data doesn't contain any props!");
   }
+  return props;
+}
 
-  // Update all props if they are dirty
-  if (props->planeDetection.isDirty) {
-    hybridView->setPlaneDetection(props->planeDetection.value);
-    props->planeDetection.isDirty = false;
+void JHybridXRViewStateUpdater::updateViewProps(jni::alias_ref<jni::JClass> /* class */,
+                                           jni::alias_ref<JHybridXRViewSpec::JavaPart> javaView,
+                                           jni::alias_ref<JStateWrapper::javaobject> newState,
+                                           jni::alias_ref<JStateWrapper::javaobject> oldState) {
+  std::shared_ptr<JHybridXRViewSpec> hybridView = javaView->getJHybridXRViewSpec();
+  std::shared_ptr<const HybridXRViewProps> newProps = getPropsFromStateWrapper(newState);
+  std::shared_ptr<const HybridXRViewProps> oldProps = getPropsFromStateWrapper(oldState);
+  if (newProps == nullptr) [[unlikely]] {
+    throw std::runtime_error("Current StateWrapper doesn't contain any props!");
   }
-  if (props->depthEnabled.isDirty) {
-    hybridView->setDepthEnabled(props->depthEnabled.value);
-    props->depthEnabled.isDirty = false;
+
+  // Update only props that differ from the previous State snapshot.
+  if (oldProps == nullptr
+        ? newProps->planeDetection.isProvided()
+        : !newProps->planeDetection.hasSameValue(oldProps->planeDetection)) {
+    hybridView->setPlaneDetection(newProps->planeDetection.get());
   }
-  if (props->lightEstimationEnabled.isDirty) {
-    hybridView->setLightEstimationEnabled(props->lightEstimationEnabled.value);
-    props->lightEstimationEnabled.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->depthEnabled.isProvided()
+        : !newProps->depthEnabled.hasSameValue(oldProps->depthEnabled)) {
+    hybridView->setDepthEnabled(newProps->depthEnabled.get());
   }
-  if (props->frameCallbackFps.isDirty) {
-    hybridView->setFrameCallbackFps(props->frameCallbackFps.value);
-    props->frameCallbackFps.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->lightEstimationEnabled.isProvided()
+        : !newProps->lightEstimationEnabled.hasSameValue(oldProps->lightEstimationEnabled)) {
+    hybridView->setLightEstimationEnabled(newProps->lightEstimationEnabled.get());
   }
-  if (props->mode.isDirty) {
-    hybridView->setMode(props->mode.value);
-    props->mode.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->frameCallbackFps.isProvided()
+        : !newProps->frameCallbackFps.hasSameValue(oldProps->frameCallbackFps)) {
+    hybridView->setFrameCallbackFps(newProps->frameCallbackFps.get());
   }
-  if (props->trackableUpdateMaxHz.isDirty) {
-    hybridView->setTrackableUpdateMaxHz(props->trackableUpdateMaxHz.value);
-    props->trackableUpdateMaxHz.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->mode.isProvided()
+        : !newProps->mode.hasSameValue(oldProps->mode)) {
+    hybridView->setMode(newProps->mode.get());
   }
-  if (props->lightEstimationMode.isDirty) {
-    hybridView->setLightEstimationMode(props->lightEstimationMode.value);
-    props->lightEstimationMode.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->trackableUpdateMaxHz.isProvided()
+        : !newProps->trackableUpdateMaxHz.hasSameValue(oldProps->trackableUpdateMaxHz)) {
+    hybridView->setTrackableUpdateMaxHz(newProps->trackableUpdateMaxHz.get());
   }
-  if (props->environmentTexturing.isDirty) {
-    hybridView->setEnvironmentTexturing(props->environmentTexturing.value);
-    props->environmentTexturing.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->lightEstimationMode.isProvided()
+        : !newProps->lightEstimationMode.hasSameValue(oldProps->lightEstimationMode)) {
+    hybridView->setLightEstimationMode(newProps->lightEstimationMode.get());
   }
-  if (props->depthSmoothing.isDirty) {
-    hybridView->setDepthSmoothing(props->depthSmoothing.value);
-    props->depthSmoothing.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->environmentTexturing.isProvided()
+        : !newProps->environmentTexturing.hasSameValue(oldProps->environmentTexturing)) {
+    hybridView->setEnvironmentTexturing(newProps->environmentTexturing.get());
   }
-  if (props->detectionImages.isDirty) {
-    hybridView->setDetectionImages(props->detectionImages.value);
-    props->detectionImages.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->depthSmoothing.isProvided()
+        : !newProps->depthSmoothing.hasSameValue(oldProps->depthSmoothing)) {
+    hybridView->setDepthSmoothing(newProps->depthSmoothing.get());
   }
-  if (props->sceneReconstruction.isDirty) {
-    hybridView->setSceneReconstruction(props->sceneReconstruction.value);
-    props->sceneReconstruction.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->detectionImages.isProvided()
+        : !newProps->detectionImages.hasSameValue(oldProps->detectionImages)) {
+    hybridView->setDetectionImages(newProps->detectionImages.get());
   }
-  if (props->onReady.isDirty) {
-    hybridView->setOnReady(props->onReady.value);
-    props->onReady.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->sceneReconstruction.isProvided()
+        : !newProps->sceneReconstruction.hasSameValue(oldProps->sceneReconstruction)) {
+    hybridView->setSceneReconstruction(newProps->sceneReconstruction.get());
   }
-  if (props->onFrame.isDirty) {
-    hybridView->setOnFrame(props->onFrame.value);
-    props->onFrame.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onReady.isProvided()
+        : !newProps->onReady.hasSameValue(oldProps->onReady)) {
+    hybridView->setOnReady(newProps->onReady.get());
   }
-  if (props->onTrackingStateChange.isDirty) {
-    hybridView->setOnTrackingStateChange(props->onTrackingStateChange.value);
-    props->onTrackingStateChange.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onFrame.isProvided()
+        : !newProps->onFrame.hasSameValue(oldProps->onFrame)) {
+    hybridView->setOnFrame(newProps->onFrame.get());
   }
-  if (props->onPlaneDetected.isDirty) {
-    hybridView->setOnPlaneDetected(props->onPlaneDetected.value);
-    props->onPlaneDetected.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onTrackingStateChange.isProvided()
+        : !newProps->onTrackingStateChange.hasSameValue(oldProps->onTrackingStateChange)) {
+    hybridView->setOnTrackingStateChange(newProps->onTrackingStateChange.get());
   }
-  if (props->onPlaneUpdated.isDirty) {
-    hybridView->setOnPlaneUpdated(props->onPlaneUpdated.value);
-    props->onPlaneUpdated.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onPlaneDetected.isProvided()
+        : !newProps->onPlaneDetected.hasSameValue(oldProps->onPlaneDetected)) {
+    hybridView->setOnPlaneDetected(newProps->onPlaneDetected.get());
   }
-  if (props->onPlaneRemoved.isDirty) {
-    hybridView->setOnPlaneRemoved(props->onPlaneRemoved.value);
-    props->onPlaneRemoved.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onPlaneUpdated.isProvided()
+        : !newProps->onPlaneUpdated.hasSameValue(oldProps->onPlaneUpdated)) {
+    hybridView->setOnPlaneUpdated(newProps->onPlaneUpdated.get());
   }
-  if (props->onImageAnchorAdded.isDirty) {
-    hybridView->setOnImageAnchorAdded(props->onImageAnchorAdded.value);
-    props->onImageAnchorAdded.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onPlaneRemoved.isProvided()
+        : !newProps->onPlaneRemoved.hasSameValue(oldProps->onPlaneRemoved)) {
+    hybridView->setOnPlaneRemoved(newProps->onPlaneRemoved.get());
   }
-  if (props->onImageAnchorUpdated.isDirty) {
-    hybridView->setOnImageAnchorUpdated(props->onImageAnchorUpdated.value);
-    props->onImageAnchorUpdated.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onImageAnchorAdded.isProvided()
+        : !newProps->onImageAnchorAdded.hasSameValue(oldProps->onImageAnchorAdded)) {
+    hybridView->setOnImageAnchorAdded(newProps->onImageAnchorAdded.get());
   }
-  if (props->onImageAnchorRemoved.isDirty) {
-    hybridView->setOnImageAnchorRemoved(props->onImageAnchorRemoved.value);
-    props->onImageAnchorRemoved.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onImageAnchorUpdated.isProvided()
+        : !newProps->onImageAnchorUpdated.hasSameValue(oldProps->onImageAnchorUpdated)) {
+    hybridView->setOnImageAnchorUpdated(newProps->onImageAnchorUpdated.get());
   }
-  if (props->onMeshAnchorAdded.isDirty) {
-    hybridView->setOnMeshAnchorAdded(props->onMeshAnchorAdded.value);
-    props->onMeshAnchorAdded.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onImageAnchorRemoved.isProvided()
+        : !newProps->onImageAnchorRemoved.hasSameValue(oldProps->onImageAnchorRemoved)) {
+    hybridView->setOnImageAnchorRemoved(newProps->onImageAnchorRemoved.get());
   }
-  if (props->onMeshAnchorUpdated.isDirty) {
-    hybridView->setOnMeshAnchorUpdated(props->onMeshAnchorUpdated.value);
-    props->onMeshAnchorUpdated.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onMeshAnchorAdded.isProvided()
+        : !newProps->onMeshAnchorAdded.hasSameValue(oldProps->onMeshAnchorAdded)) {
+    hybridView->setOnMeshAnchorAdded(newProps->onMeshAnchorAdded.get());
   }
-  if (props->onMeshAnchorRemoved.isDirty) {
-    hybridView->setOnMeshAnchorRemoved(props->onMeshAnchorRemoved.value);
-    props->onMeshAnchorRemoved.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onMeshAnchorUpdated.isProvided()
+        : !newProps->onMeshAnchorUpdated.hasSameValue(oldProps->onMeshAnchorUpdated)) {
+    hybridView->setOnMeshAnchorUpdated(newProps->onMeshAnchorUpdated.get());
   }
-  if (props->onFaceAdded.isDirty) {
-    hybridView->setOnFaceAdded(props->onFaceAdded.value);
-    props->onFaceAdded.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onMeshAnchorRemoved.isProvided()
+        : !newProps->onMeshAnchorRemoved.hasSameValue(oldProps->onMeshAnchorRemoved)) {
+    hybridView->setOnMeshAnchorRemoved(newProps->onMeshAnchorRemoved.get());
   }
-  if (props->onFaceUpdated.isDirty) {
-    hybridView->setOnFaceUpdated(props->onFaceUpdated.value);
-    props->onFaceUpdated.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onFaceAdded.isProvided()
+        : !newProps->onFaceAdded.hasSameValue(oldProps->onFaceAdded)) {
+    hybridView->setOnFaceAdded(newProps->onFaceAdded.get());
   }
-  if (props->onFaceRemoved.isDirty) {
-    hybridView->setOnFaceRemoved(props->onFaceRemoved.value);
-    props->onFaceRemoved.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onFaceUpdated.isProvided()
+        : !newProps->onFaceUpdated.hasSameValue(oldProps->onFaceUpdated)) {
+    hybridView->setOnFaceUpdated(newProps->onFaceUpdated.get());
   }
-  if (props->onError.isDirty) {
-    hybridView->setOnError(props->onError.value);
-    props->onError.isDirty = false;
+  if (oldProps == nullptr
+        ? newProps->onFaceRemoved.isProvided()
+        : !newProps->onFaceRemoved.hasSameValue(oldProps->onFaceRemoved)) {
+    hybridView->setOnFaceRemoved(newProps->onFaceRemoved.get());
+  }
+  if (oldProps == nullptr
+        ? newProps->onError.isProvided()
+        : !newProps->onError.hasSameValue(oldProps->onError)) {
+    hybridView->setOnError(newProps->onError.get());
   }
 
   // Update hybridRef if it changed
-  if (props->hybridRef.isDirty) {
+  if (oldProps == nullptr
+        ? newProps->hybridRef.isProvided()
+        : !newProps->hybridRef.hasSameValue(oldProps->hybridRef)) {
     // hybridRef changed - call it with new this
-    const auto& maybeFunc = props->hybridRef.value;
+    const auto& maybeFunc = newProps->hybridRef.get();
     if (maybeFunc.has_value()) {
       maybeFunc.value()(hybridView);
     }
-    props->hybridRef.isDirty = false;
   }
 }
 

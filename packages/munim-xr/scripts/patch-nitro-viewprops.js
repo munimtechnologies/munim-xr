@@ -9,8 +9,8 @@
  * - React Native 0.84–0.86 skip it when the
  *   `enableExclusivePropsUpdateAndroid` feature flag is on.
  *
- * Mirrors the upstream fix (margelo/nitro PR #1661, unreleased; we stay on
- * Nitro 0.36.5): call `initializeDynamicProps` from the generated
+ * Mirrors the upstream fix (margelo/nitro PR #1661, still unreleased as of
+ * Nitro 0.37.1): call `initializeDynamicProps` from the generated
  * `Hybrid*Props` constructor in exactly those two cases, so it never runs twice.
  *
  * Run after `nitrogen` (see the `codegen` script). Fails if an anchor in the
@@ -27,7 +27,9 @@ const viewsDir = path.join(
   'nitrogen/generated/shared/c++/views'
 )
 
-const includeAnchor = '#include <react/renderer/components/view/ViewProps.h>\n'
+// Nitro 0.37 includes ViewProps.h from the header, so anchor on the .cpp's
+// own ReactProp include.
+const includeAnchor = '#include <NitroModules/ReactProp.hpp>\n'
 const includeBlock = `${includeAnchor}
 // ${MARKER} (see scripts/patch-nitro-viewprops.js)
 #ifdef ANDROID
@@ -41,9 +43,9 @@ const includeBlock = `${includeAnchor}
 `
 
 // The props constructor's initializer list ends right before the generated
-// `filterObjectKeys` definition: `...}()) { }\n\n  bool XProps::filterObjectKeys`.
-const ctorEndAnchor = /\}\(\)\) \{ \}\n\n( {2}bool (\w+)::filterObjectKeys\()/g
-const ctorBody = `}()) {
+// `filterObjectKeys` definition: `...sourceProps.last)) { }\n\n  bool XProps::filterObjectKeys`.
+const ctorEndAnchor = /\)\) \{ \}\n\n( {2}bool (\w+)::filterObjectKeys\()/g
+const ctorBody = `)) {
     // ${MARKER}: React Native no longer fills Props::rawProps for us.
 #if defined(ANDROID) && defined(RN_SERIALIZABLE_STATE) && defined(REACT_NATIVE_VERSION_MINOR)
 #if REACT_NATIVE_VERSION_MAJOR > 0 || REACT_NATIVE_VERSION_MINOR >= 87
@@ -87,7 +89,7 @@ for (const file of files) {
   const ctorMatches = [...source.matchAll(ctorEndAnchor)]
   if (ctorMatches.length !== 1) {
     fail(
-      `${file}: expected exactly one props constructor ending in "}()) { }" ` +
+      `${file}: expected exactly one props constructor ending in ")) { }" ` +
         `before ::filterObjectKeys, found ${ctorMatches.length}. ` +
         `Nitrogen's output changed — re-check margelo/nitro#1656 / PR #1661.`
     )

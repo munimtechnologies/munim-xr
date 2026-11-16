@@ -11,11 +11,12 @@
     "lint": "npm --workspace munim-xr run lint-ci",
     "typecheck": "npm --workspace munim-xr run typecheck",
     "typecheck:example": "tsc --noEmit -p example/tsconfig.json",
-    "check": "npm run codegen && npm run lint && npm run typecheck && npm run typecheck:example && npm run build && npm run pack:dry-run",
+    "check": "npm run codegen && npm run lint && npm run typecheck && npm run test && npm run build && npm run typecheck:example && npm run pack:dry-run",
     "pack:dry-run": "npm --workspace munim-xr pack --dry-run",
     "example:start": "npm --workspace example run start",
     "example:ios": "npm --workspace example run ios",
-    "example:android": "npm --workspace example run android"
+    "example:android": "npm --workspace example run android",
+    "test": "npm --workspace munim-xr run test"
   },
   "overrides": {
     "uuid": "^11.1.1"

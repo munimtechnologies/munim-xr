@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `XRView.getCamera(zNear, zFar)` (iOS and Android): the camera pose, view and projection matrices, intrinsics, the tracking state reason and the world mapping status.
+- `XRView.getCameraImage()` (iOS and Android): the current camera image as YUV 4:2:0 (NV12) `ArrayBuffer`s with its intrinsics.
+- `continuousHitTest` and `onHitTestResult` (iOS and Android): a native hit test for reticles, rate-limited and reported only when the result changes.
+- Android: `addModel`, `setModelTransform` and `removeModel`, drawing OBJ models with OpenGL ES, and the `instantPlacement` prop (ARCore Instant Placement as the hit-test fallback).
+- iOS: `mode="body"` with `onBodyAdded`, `onBodyUpdated` and `onBodyRemoved` (91 joints); `saveWorldMap` and `loadWorldMap`, which restore anchors with their ids; `peopleOcclusion`.
+- `checkAvailability` reports `body-tracking`, `people-occlusion` and `world-map`.
+
+### Changed
+
+- React Native 0.88.1, React 19.3.1, Nitro Modules / nitrogen 0.37.2, Expo SDK 58.0.25 in the example, ARCore 1.57.0 and `targetSdk` 37. `react-native-nitro-modules` >= 0.37.2 is now required (the generated views call `RawPropsCompat::initializeDynamicProps`).
+- Nitro 0.37.2 contains the margelo/nitro#1656 fix, so `scripts/patch-nitro-viewprops.js` and the example's exclusive-props flag plugin are gone.
+
+### Performance
+
+- Android: the camera texture is bound once per session, UVs are recomputed only when the display geometry changes, shader locations are cached, camera and anchor poses are converted only when read, the light mode is cached instead of calling `Session.getConfig()` every frame, and camera planes are copied in bulk (1.8-4.7x faster in a JVM micro-benchmark).
+- iOS: the mesh classification histogram uses a fixed array, unpadded image planes are copied with one `memcpy`, and the body skeleton is converted only when an update is due.
+
+### Fixed
+
+- Setting an optional `XRView` prop to `null`, which React does when a prop is removed between renders (for example `continuousHitTest={enabled ? config : undefined}` turning off), crashed the app on both platforms: Nitro 0.37's converter only accepts `undefined`. Every optional prop, callbacks included, now treats `null` as unset (`scripts/patch-nitro-nullable-props.js`).
+- Android: detection images and models given as bare resource names (what `require()` assets become in Release builds) are found.
+- Expo config plugin: repeated prebuilds declare `android.permission.CAMERA` once instead of adding it again each time.
+
 ## [0.5.0] - 2026-10-16
 
 ### Changed

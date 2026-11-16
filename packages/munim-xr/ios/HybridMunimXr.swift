@@ -42,6 +42,12 @@ final class HybridMunimXr: HybridMunimXrSpec {
       return ARFaceTrackingConfiguration.isSupported
     case .models:
       return world.isSupported || ARFaceTrackingConfiguration.isSupported
+    case .bodyTracking:
+      return ARBodyTrackingConfiguration.isSupported
+    case .peopleOcclusion:
+      return world.isSupported && world.supportsFrameSemantics(.personSegmentationWithDepth)
+    case .worldMap:
+      return world.isSupported
     @unknown default:
       return false
     }

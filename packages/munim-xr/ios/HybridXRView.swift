@@ -30,6 +30,9 @@ final class HybridXRView: HybridXRViewSpec {
   private var loadedImageSpecs: [ImageSpec] = []
   private var imageLoadGeneration = 0
   private var latestFaceDepth: (data: AVDepthData, timestamp: TimeInterval)?
+  private var pendingWorldMap: ARWorldMap?
+  private var lastHitTestTime: TimeInterval = 0
+  private var lastHitSnapshot = HitSnapshot.notFound
 
   private var running: Bool {
     get { stateLock.synchronized { _running } }
@@ -74,6 +77,26 @@ final class HybridXRView: HybridXRViewSpec {
     didSet { if oldValue != sceneReconstruction { needsReconfigure = true } }
   }
 
+  var peopleOcclusion: Bool? {
+    didSet { if oldValue != peopleOcclusion { needsReconfigure = true } }
+  }
+
+  var continuousHitTest: XRContinuousHitTest? {
+    didSet {
+      // A new target point or rate runs at once. Re-renders that pass an equal
+      // object change nothing. When the hit test is (re-)enabled, JS starts
+      // from "nothing hit", so the first found surface is always reported.
+      guard oldValue?.x != continuousHitTest?.x || oldValue?.y != continuousHitTest?.y
+        || oldValue?.maxHz != continuousHitTest?.maxHz
+      else { return }
+      lastHitTestTime = 0
+      if oldValue == nil { lastHitSnapshot = .notFound }
+    }
+  }
+
+  /// iOS hit tests already fall back to estimated planes; Android-only prop.
+  var instantPlacement: Bool?
+
   var onReady: (() -> Void)?
   var onFrame: ((_ frame: XRFrame) -> Void)?
   var onTrackingStateChange: ((_ state: XRTrackingState) -> Void)?
@@ -89,6 +112,10 @@ final class HybridXRView: HybridXRViewSpec {
   var onFaceAdded: ((_ face: XRFace) -> Void)?
   var onFaceUpdated: ((_ face: XRFace) -> Void)?
   var onFaceRemoved: ((_ faceId: String) -> Void)?
+  var onBodyAdded: ((_ body: XRBody) -> Void)?
+  var onBodyUpdated: ((_ body: XRBody) -> Void)?
+  var onBodyRemoved: ((_ bodyId: String) -> Void)?
+  var onHitTestResult: ((_ hits: [XRHitResult]) -> Void)?
   var onError: ((_ message: String) -> Void)?
 
   override init() {
@@ -117,6 +144,7 @@ final class HybridXRView: HybridXRViewSpec {
       self.models.removeAll()
       self.updateThrottle.removeAll()
       self.latestFaceDepth = nil
+      self.pendingWorldMap = nil
     }
     stateLock.synchronized { userAnchors.removeAll() }
   }
@@ -165,36 +193,66 @@ final class HybridXRView: HybridXRViewSpec {
 
     return Promise.async {
       await MainActor.run {
-        let point = CGPoint(
-          x: self.sceneView.bounds.width * normalizedX,
-          y: self.sceneView.bounds.height * normalizedY
+        self.performHitTest(
+          normalizedX: normalizedX,
+          normalizedY: normalizedY,
+          frame: self.sceneView.session.currentFrame
         )
-        let existingPlaneResults = self.sceneView.raycastQuery(
-          from: point,
-          allowing: .existingPlaneGeometry,
-          alignment: .any
-        ).map(self.sceneView.session.raycast) ?? []
-        let results: [ARRaycastResult]
-        if existingPlaneResults.isEmpty {
-          results = self.sceneView.raycastQuery(
-            from: point,
-            allowing: .estimatedPlane,
-            alignment: .any
-          ).map(self.sceneView.session.raycast) ?? []
-        } else {
-          results = existingPlaneResults
-        }
-        let cameraPosition = self.sceneView.session.currentFrame?.camera.transform.columns.3
-        return results.map { result in
-          XRHitResult(
-            type: result.target == .estimatedPlane ? .estimated : .plane,
-            distance: Self.distance(from: cameraPosition, to: result.worldTransform.columns.3),
-            pose: Self.xrPose(result.worldTransform),
-            planeId: result.anchor?.identifier.uuidString
-          )
-        }
       }
     }
+  }
+
+  /// Main thread. Existing plane geometry first, then estimated planes.
+  private func performHitTest(
+    normalizedX: Double,
+    normalizedY: Double,
+    frame: ARFrame?
+  ) -> [XRHitResult] {
+    let point = CGPoint(
+      x: sceneView.bounds.width * normalizedX,
+      y: sceneView.bounds.height * normalizedY
+    )
+    let existingPlaneResults = sceneView.raycastQuery(
+      from: point,
+      allowing: .existingPlaneGeometry,
+      alignment: .any
+    ).map(sceneView.session.raycast) ?? []
+    let results: [ARRaycastResult]
+    if existingPlaneResults.isEmpty {
+      results = sceneView.raycastQuery(
+        from: point,
+        allowing: .estimatedPlane,
+        alignment: .any
+      ).map(sceneView.session.raycast) ?? []
+    } else {
+      results = existingPlaneResults
+    }
+    let cameraPosition = frame?.camera.transform.columns.3
+    return results.map { result in
+      XRHitResult(
+        type: result.target == .estimatedPlane ? .estimated : .plane,
+        distance: Self.distance(from: cameraPosition, to: result.worldTransform.columns.3),
+        pose: Self.xrPose(result.worldTransform),
+        planeId: result.anchor?.identifier.uuidString
+      )
+    }
+  }
+
+  /// Main thread, once per ARKit frame: repeats `continuousHitTest` at most
+  /// `maxHz` times per second and reports only meaningful changes.
+  private func deliverContinuousHitTest(_ frame: ARFrame) {
+    guard let request = continuousHitTest, let callback = onHitTestResult,
+          request.maxHz.isFinite, request.maxHz > 0,
+          request.x.isFinite, request.y.isFinite,
+          (0...1).contains(request.x), (0...1).contains(request.y)
+    else { return }
+    guard frame.timestamp - lastHitTestTime >= 1 / request.maxHz else { return }
+    lastHitTestTime = frame.timestamp
+    let hits = performHitTest(normalizedX: request.x, normalizedY: request.y, frame: frame)
+    let snapshot = HitSnapshot(hits.first)
+    guard snapshot.differs(from: lastHitSnapshot) else { return }
+    lastHitSnapshot = snapshot
+    callback(hits)
   }
 
   func createAnchor(pose: XRPose) throws -> Promise<XRAnchor> {
@@ -236,6 +294,57 @@ final class HybridXRView: HybridXRViewSpec {
   func getCameraPose() throws -> XRPose? {
     guard let frame = sceneView.session.currentFrame else { return nil }
     return Self.xrPose(frame.camera.transform)
+  }
+
+  func getCamera(zNear: Double, zFar: Double) throws -> Promise<XRCamera> {
+    guard zNear.isFinite, zFar.isFinite, zNear > 0, zFar > zNear else {
+      throw MunimXrError.invalidClipPlanes
+    }
+    return Promise.async {
+      try await MainActor.run { () throws -> XRCamera in
+        guard let frame = self.sceneView.session.currentFrame else {
+          throw MunimXrError.frameNotYetAvailable
+        }
+        let camera = frame.camera
+        let orientation = self.sceneView.window?.windowScene?.interfaceOrientation ?? .portrait
+        let bounds = self.sceneView.bounds.size
+        let projection = camera.projectionMatrix(
+          for: orientation,
+          viewportSize: bounds.width > 0 && bounds.height > 0 ? bounds : camera.imageResolution,
+          zNear: CGFloat(zNear),
+          zFar: CGFloat(zFar)
+        )
+        return XRCamera(
+          timestamp: frame.timestamp,
+          trackingState: Self.trackingState(camera.trackingState),
+          trackingStateReason: Self.trackingStateReason(camera.trackingState),
+          pose: Self.xrPose(camera.transform),
+          viewMatrix: Self.matrixValues(camera.viewMatrix(for: orientation)),
+          projectionMatrix: Self.matrixValues(projection),
+          intrinsics: Self.xrIntrinsics(camera),
+          worldMappingStatus: self.activeMode == .world
+            ? Self.worldMappingStatus(frame.worldMappingStatus)
+            : .notAvailable
+        )
+      }
+    }
+  }
+
+  func getCameraImage() throws -> Promise<XRCameraImage> {
+    Promise.async {
+      let capture = try await MainActor.run { () throws -> CameraCapture in
+        guard let frame = self.sceneView.session.currentFrame else {
+          throw MunimXrError.frameNotYetAvailable
+        }
+        return CameraCapture(
+          image: frame.capturedImage,
+          timestamp: frame.timestamp,
+          intrinsics: Self.xrIntrinsics(frame.camera)
+        )
+      }
+      // Copy off the main thread; ARKit's buffer is only retained meanwhile.
+      return try Self.xrCameraImage(capture)
+    }
   }
 
   // MARK: - Snapshot, depth, and mesh export
@@ -299,6 +408,81 @@ final class HybridXRView: HybridXRViewSpec {
       let url = try XROutputFiles.nextURL(kind: "meshes", fileExtension: "obj", keep: 3)
       try Self.exportOBJ(meshAnchors, to: url)
       return url.path
+    }
+  }
+
+  // MARK: - World maps
+
+  func saveWorldMap() throws -> Promise<String> {
+    Promise.async {
+      let map: ARWorldMap = try await withCheckedThrowingContinuation { continuation in
+        DispatchQueue.main.async {
+          guard self.running, self.activeMode == .world else {
+            continuation.resume(throwing: MunimXrError.worldMapRequiresWorldMode)
+            return
+          }
+          self.sceneView.session.getCurrentWorldMap { map, error in
+            if let map {
+              continuation.resume(returning: map)
+            } else {
+              continuation.resume(throwing: MunimXrError.worldMapUnavailable(
+                error?.localizedDescription ?? "ARKit returned no world map."
+              ))
+            }
+          }
+        }
+      }
+      let data = try NSKeyedArchiver.archivedData(withRootObject: map, requiringSecureCoding: true)
+      // Saved maps are the app's to delete; they are never pruned.
+      let url = try XROutputFiles.nextURL(
+        kind: "world-maps",
+        fileExtension: "arworldmap",
+        keep: .max,
+        persistent: true
+      )
+      try data.write(to: url, options: .atomic)
+      return url.path
+    }
+  }
+
+  func loadWorldMap(path: String) throws -> Promise<Void> {
+    Promise.async {
+      var url: URL
+      if path.hasPrefix("file://"), let fileURL = URL(string: path) {
+        url = fileURL
+      } else {
+        url = URL(fileURLWithPath: path)
+      }
+      // The app container's path can change (app updates, restores), so a
+      // stored path to a saved map is also looked up by file name.
+      if !FileManager.default.fileExists(atPath: url.path),
+         let saved = try? XROutputFiles.directory("world-maps", persistent: true)
+           .appendingPathComponent(url.lastPathComponent),
+         FileManager.default.fileExists(atPath: saved.path) {
+        url = saved
+      }
+      let map: ARWorldMap
+      do {
+        let data = try Data(contentsOf: url)
+        guard let decoded = try NSKeyedUnarchiver.unarchivedObject(
+          ofClass: ARWorldMap.self,
+          from: data
+        ) else {
+          throw MunimXrError.worldMapInvalid(path)
+        }
+        map = decoded
+      } catch let error as MunimXrError {
+        throw error
+      } catch {
+        throw MunimXrError.worldMapInvalid("\(path): \(error.localizedDescription)")
+      }
+      try await MainActor.run {
+        guard (self.mode ?? .world) == .world else {
+          throw MunimXrError.worldMapRequiresWorldMode
+        }
+        self.pendingWorldMap = map
+        if self.running { try self.startSession(resetTracking: true) }
+      }
     }
   }
 
@@ -377,6 +561,8 @@ final class HybridXRView: HybridXRViewSpec {
       onReady?()
     }
 
+    deliverContinuousHitTest(frame)
+
     let callbackInterval = frameCallbackFps > 0 ? 1 / frameCallbackFps : .infinity
     guard frame.timestamp - lastFrameCallbackTimestamp >= callbackInterval else { return }
     lastFrameCallbackTimestamp = frame.timestamp
@@ -414,6 +600,9 @@ final class HybridXRView: HybridXRViewSpec {
         let xrFace = Self.xrFace(face)
         updateThrottle[id] = ThrottleEntry(time: now, signature: Self.signature(xrFace))
         onFaceAdded?(xrFace)
+      case let body as ARBodyAnchor:
+        updateThrottle[id] = ThrottleEntry(time: now, signature: Self.bodySignature(body))
+        onBodyAdded?(Self.xrBody(body))
       default:
         break
       }
@@ -455,6 +644,12 @@ final class HybridXRView: HybridXRViewSpec {
         if shouldEmitUpdate(id: id, signature: Self.signature(xrFace), now: now, forceIndex: 0) {
           onFaceUpdated?(xrFace)
         }
+      case let body as ARBodyAnchor:
+        guard onBodyUpdated != nil else { continue }
+        // The skeleton (91 joints) is only converted when an update is due.
+        if shouldEmitUpdate(id: id, signature: Self.bodySignature(body), now: now, forceIndex: 0) {
+          onBodyUpdated?(Self.xrBody(body))
+        }
       default:
         break
       }
@@ -478,6 +673,8 @@ final class HybridXRView: HybridXRViewSpec {
         onMeshAnchorRemoved?(id)
       case is ARFaceAnchor:
         onFaceRemoved?(id)
+      case is ARBodyAnchor:
+        onBodyRemoved?(id)
       default:
         break
       }
@@ -496,12 +693,26 @@ final class HybridXRView: HybridXRViewSpec {
     let modeChanged = activeMode != nil && activeMode != requestedMode
 
     var options: ARSession.RunOptions = []
-    if resetTracking || modeChanged {
+    let worldMap = requestedMode == .world ? pendingWorldMap : nil
+    if resetTracking || modeChanged || worldMap != nil {
       options = [.resetTracking, .removeExistingAnchors]
-      stateLock.synchronized { userAnchors.removeAll() }
+      // Anchors saved with a world map come back with their original ids.
+      let restored = worldMap?.anchors.filter { type(of: $0) == ARAnchor.self } ?? []
+      stateLock.synchronized {
+        userAnchors.removeAll()
+        for anchor in restored { userAnchors[anchor.identifier.uuidString] = anchor }
+      }
       updateThrottle.removeAll()
       latestFaceDepth = nil
       deliveredReady = false
+      lastHitTestTime = 0
+      // Earlier hits belong to the old coordinate system: tell JS they are gone.
+      if lastHitSnapshot.found { onHitTestResult?([]) }
+      lastHitSnapshot = .notFound
+    }
+    if let worldMap, let worldConfiguration = configuration as? ARWorldTrackingConfiguration {
+      worldConfiguration.initialWorldMap = worldMap
+      pendingWorldMap = nil
     }
     sceneView.session.run(configuration, options: options)
     activeMode = requestedMode
@@ -519,27 +730,30 @@ final class HybridXRView: HybridXRViewSpec {
       applyFaceEnvironmentTexturing(configuration)
       return configuration
 
+    case .body:
+      guard ARBodyTrackingConfiguration.isSupported else {
+        throw MunimXrError.bodyTrackingUnsupported
+      }
+      let configuration = ARBodyTrackingConfiguration()
+      configuration.planeDetection = planeDetectionOptions
+      configuration.isLightEstimationEnabled = lightEstimationEnabled
+      configuration.environmentTexturing = worldEnvironmentTexturing
+      configuration.automaticSkeletonScaleEstimationEnabled = true
+      if !referenceImages.isEmpty {
+        configuration.detectionImages = referenceImages
+        configuration.maximumNumberOfTrackedImages = min(referenceImages.count, 4)
+      }
+      applyPeopleOcclusion(configuration)
+      return configuration
+
     case .world:
       guard ARWorldTrackingConfiguration.isSupported else {
         throw MunimXrError.unsupportedDevice
       }
       let configuration = ARWorldTrackingConfiguration()
-      switch planeDetection {
-      case .none:
-        configuration.planeDetection = []
-      case .horizontal:
-        configuration.planeDetection = [.horizontal]
-      case .vertical:
-        configuration.planeDetection = [.vertical]
-      case .both:
-        configuration.planeDetection = [.horizontal, .vertical]
-      }
+      configuration.planeDetection = planeDetectionOptions
       configuration.isLightEstimationEnabled = lightEstimationEnabled
-      switch environmentTexturing ?? .none {
-      case .none: configuration.environmentTexturing = .none
-      case .manual: configuration.environmentTexturing = .manual
-      case .automatic: configuration.environmentTexturing = .automatic
-      }
+      configuration.environmentTexturing = worldEnvironmentTexturing
       if depthEnabled, ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) {
         configuration.frameSemantics.insert(.sceneDepth)
         if depthSmoothing == true,
@@ -569,7 +783,36 @@ final class HybridXRView: HybridXRViewSpec {
         configuration.detectionImages = referenceImages
         configuration.maximumNumberOfTrackedImages = min(referenceImages.count, 4)
       }
+      applyPeopleOcclusion(configuration)
       return configuration
+    }
+  }
+
+  private var planeDetectionOptions: ARWorldTrackingConfiguration.PlaneDetection {
+    switch planeDetection {
+    case .none: return []
+    case .horizontal: return [.horizontal]
+    case .vertical: return [.vertical]
+    case .both: return [.horizontal, .vertical]
+    }
+  }
+
+  private var worldEnvironmentTexturing: ARWorldTrackingConfiguration.EnvironmentTexturing {
+    switch environmentTexturing ?? .none {
+    case .none: return .none
+    case .manual: return .manual
+    case .automatic: return .automatic
+    }
+  }
+
+  /// Person segmentation with depth makes ARSCNView hide virtual content
+  /// behind people automatically.
+  private func applyPeopleOcclusion(_ configuration: ARConfiguration) {
+    guard peopleOcclusion == true else { return }
+    if type(of: configuration).supportsFrameSemantics(.personSegmentationWithDepth) {
+      configuration.frameSemantics.insert(.personSegmentationWithDepth)
+    } else {
+      onError?(MunimXrError.peopleOcclusionUnsupported.localizedDescription)
     }
   }
 
@@ -755,6 +998,48 @@ final class HybridXRView: HybridXRViewSpec {
     }
   }
 
+  private static func trackingStateReason(
+    _ state: ARCamera.TrackingState
+  ) -> XRTrackingStateReason {
+    switch state {
+    case .normal, .notAvailable:
+      return XRTrackingStateReason.none
+    case .limited(let reason):
+      switch reason {
+      case .initializing: return .initializing
+      case .relocalizing: return .relocalizing
+      case .excessiveMotion: return .excessiveMotion
+      case .insufficientFeatures: return .insufficientFeatures
+      @unknown default: return XRTrackingStateReason.none
+      }
+    }
+  }
+
+  private static func worldMappingStatus(
+    _ status: ARFrame.WorldMappingStatus
+  ) -> XRWorldMappingStatus {
+    switch status {
+    case .notAvailable: return .notAvailable
+    case .limited: return .limited
+    case .extending: return .extending
+    case .mapped: return .mapped
+    @unknown default: return .notAvailable
+    }
+  }
+
+  /// ARKit's intrinsics are column-major: fx = [0][0], fy = [1][1], (cx, cy) = column 2.
+  private static func xrIntrinsics(_ camera: ARCamera) -> XRCameraIntrinsics {
+    let k = camera.intrinsics
+    return XRCameraIntrinsics(
+      fx: Double(k.columns.0.x),
+      fy: Double(k.columns.1.y),
+      cx: Double(k.columns.2.x),
+      cy: Double(k.columns.2.y),
+      imageWidth: Double(camera.imageResolution.width),
+      imageHeight: Double(camera.imageResolution.height)
+    )
+  }
+
   private static func distance(from start: SIMD4<Float>?, to end: SIMD4<Float>) -> Double {
     guard let start else { return 0 }
     return Double(simd_distance(
@@ -880,16 +1165,22 @@ final class HybridXRView: HybridXRViewSpec {
     let geometry = anchor.geometry
     var classifications: [XRMeshClassificationCount] = []
     if let source = geometry.classification, source.format == .uchar {
-      var counts = [UInt8: Int]()
+      // ARMeshClassification has 8 cases (0...7); count into a fixed array
+      // instead of hashing every face (meshes have tens of thousands).
+      var counts = [Int](repeating: 0, count: 8)
       let base = source.buffer.contents().advanced(by: source.offset)
-      for index in 0..<source.count {
-        let value = base.advanced(by: index * source.stride).load(as: UInt8.self)
-        counts[value, default: 0] += 1
+      let stride = source.stride
+      counts.withUnsafeMutableBufferPointer { counts in
+        for index in 0..<source.count {
+          let value = Int(base.load(fromByteOffset: index * stride, as: UInt8.self))
+          counts[value < 8 ? value : 0] += 1
+        }
       }
-      classifications = counts.sorted { $0.key < $1.key }.map { key, count in
-        XRMeshClassificationCount(
-          classification: meshClassification(key),
-          faceCount: Double(count)
+      classifications = counts.indices.compactMap { (key: Int) -> XRMeshClassificationCount? in
+        guard counts[key] > 0 else { return nil }
+        return XRMeshClassificationCount(
+          classification: meshClassification(UInt8(key)),
+          faceCount: Double(counts[key])
         )
       }
     }
@@ -932,6 +1223,48 @@ final class HybridXRView: HybridXRViewSpec {
         XRBlendShape(name: location.rawValue, value: shapes[location]?.doubleValue ?? 0)
       }
     )
+  }
+
+  private static func xrBody(_ anchor: ARBodyAnchor) -> XRBody {
+    let skeleton = anchor.skeleton
+    let names = skeleton.definition.jointNames
+    let transforms = skeleton.jointModelTransforms
+    var joints: [XRBodyJoint] = []
+    joints.reserveCapacity(names.count)
+    for (index, name) in names.enumerated() where index < transforms.count {
+      let world = anchor.transform * transforms[index].columns.3
+      joints.append(XRBodyJoint(
+        name: name,
+        tracked: skeleton.isJointTracked(index),
+        position: XRVector3(x: Double(world.x), y: Double(world.y), z: Double(world.z))
+      ))
+    }
+    return XRBody(
+      id: anchor.identifier.uuidString,
+      tracking: anchor.isTracked,
+      pose: xrPose(anchor.transform),
+      estimatedScaleFactor: Double(anchor.estimatedScaleFactor),
+      joints: joints
+    )
+  }
+
+  /// Cheap change signature (no strings): tracking, root pose, joint offsets.
+  private static func bodySignature(_ anchor: ARBodyAnchor) -> [Float] {
+    let transform = anchor.transform
+    let rotation = simd_quatf(transform).vector
+    var signature: [Float] = [
+      anchor.isTracked ? 1 : 0,
+      transform.columns.3.x, transform.columns.3.y, transform.columns.3.z,
+      rotation.x, rotation.y, rotation.z, rotation.w,
+    ]
+    let transforms = anchor.skeleton.jointModelTransforms
+    signature.reserveCapacity(signature.count + transforms.count * 3)
+    for joint in transforms {
+      signature.append(joint.columns.3.x)
+      signature.append(joint.columns.3.y)
+      signature.append(joint.columns.3.z)
+    }
+    return signature
   }
 
   private static func poseSignature(_ pose: XRPose) -> [Float] {
@@ -985,17 +1318,22 @@ final class HybridXRView: HybridXRViewSpec {
         z: Double(quaternion.vector.z),
         w: Double(quaternion.vector.w)
       ),
-      matrix: [
-        Double(transform.columns.0.x), Double(transform.columns.0.y),
-        Double(transform.columns.0.z), Double(transform.columns.0.w),
-        Double(transform.columns.1.x), Double(transform.columns.1.y),
-        Double(transform.columns.1.z), Double(transform.columns.1.w),
-        Double(transform.columns.2.x), Double(transform.columns.2.y),
-        Double(transform.columns.2.z), Double(transform.columns.2.w),
-        Double(transform.columns.3.x), Double(transform.columns.3.y),
-        Double(transform.columns.3.z), Double(transform.columns.3.w),
-      ]
+      matrix: matrixValues(transform)
     )
+  }
+
+  /// Column-major, as `XRPose.matrix` and OpenGL expect.
+  static func matrixValues(_ transform: simd_float4x4) -> [Double] {
+    [
+      Double(transform.columns.0.x), Double(transform.columns.0.y),
+      Double(transform.columns.0.z), Double(transform.columns.0.w),
+      Double(transform.columns.1.x), Double(transform.columns.1.y),
+      Double(transform.columns.1.z), Double(transform.columns.1.w),
+      Double(transform.columns.2.x), Double(transform.columns.2.y),
+      Double(transform.columns.2.z), Double(transform.columns.2.w),
+      Double(transform.columns.3.x), Double(transform.columns.3.y),
+      Double(transform.columns.3.z), Double(transform.columns.3.w),
+    ]
   }
 
   private static func transform(_ pose: XRPose) throws -> simd_float4x4 {
@@ -1050,16 +1388,66 @@ final class HybridXRView: HybridXRViewSpec {
   private static func copyPlane(_ pixelBuffer: CVPixelBuffer, bytesPerPixel: Int) -> ArrayBuffer {
     CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
     defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly) }
-    let width = CVPixelBufferGetWidth(pixelBuffer)
-    let height = CVPixelBufferGetHeight(pixelBuffer)
-    let rowBytes = width * bytesPerPixel
-    let sourceStride = CVPixelBufferGetBytesPerRow(pixelBuffer)
+    return copyRows(
+      from: CVPixelBufferGetBaseAddress(pixelBuffer),
+      sourceStride: CVPixelBufferGetBytesPerRow(pixelBuffer),
+      rowBytes: CVPixelBufferGetWidth(pixelBuffer) * bytesPerPixel,
+      height: CVPixelBufferGetHeight(pixelBuffer)
+    )
+  }
+
+  /// Copies one plane of a locked planar pixel buffer, dropping row padding.
+  private static func copyPlane(
+    _ pixelBuffer: CVPixelBuffer,
+    plane: Int,
+    bytesPerPixel: Int
+  ) -> ArrayBuffer {
+    copyRows(
+      from: CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, plane),
+      sourceStride: CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, plane),
+      rowBytes: CVPixelBufferGetWidthOfPlane(pixelBuffer, plane) * bytesPerPixel,
+      height: CVPixelBufferGetHeightOfPlane(pixelBuffer, plane)
+    )
+  }
+
+  private static func copyRows(
+    from source: UnsafeMutableRawPointer?,
+    sourceStride: Int,
+    rowBytes: Int,
+    height: Int
+  ) -> ArrayBuffer {
     let buffer = ArrayBuffer.allocate(size: rowBytes * height)
-    guard let source = CVPixelBufferGetBaseAddress(pixelBuffer) else { return buffer }
-    for row in 0..<height {
-      memcpy(buffer.data + row * rowBytes, source + row * sourceStride, rowBytes)
+    guard let source else { return buffer }
+    if sourceStride == rowBytes {
+      // No row padding: one copy instead of one per row.
+      memcpy(buffer.data, source, rowBytes * height)
+    } else {
+      for row in 0..<height {
+        memcpy(buffer.data + row * rowBytes, source + row * sourceStride, rowBytes)
+      }
     }
     return buffer
+  }
+
+  private static func xrCameraImage(_ capture: CameraCapture) throws -> XRCameraImage {
+    let image = capture.image
+    let format = CVPixelBufferGetPixelFormatType(image)
+    guard CVPixelBufferGetPlaneCount(image) == 2,
+          format == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+            || format == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+    else {
+      throw MunimXrError.cameraImageUnsupportedFormat
+    }
+    CVPixelBufferLockBaseAddress(image, .readOnly)
+    defer { CVPixelBufferUnlockBaseAddress(image, .readOnly) }
+    return XRCameraImage(
+      timestamp: capture.timestamp,
+      width: Double(CVPixelBufferGetWidthOfPlane(image, 0)),
+      height: Double(CVPixelBufferGetHeightOfPlane(image, 0)),
+      y: copyPlane(image, plane: 0, bytesPerPixel: 1),
+      cbcr: copyPlane(image, plane: 1, bytesPerPixel: 2),
+      intrinsics: capture.intrinsics
+    )
   }
 
   // MARK: - Mesh export
@@ -1154,6 +1542,54 @@ private struct ImageSpec: Equatable {
   let physicalWidthMeters: Double
 }
 
+private struct CameraCapture {
+  let image: CVPixelBuffer
+  let timestamp: TimeInterval
+  let intrinsics: XRCameraIntrinsics
+}
+
+/// The part of a continuous hit test result that decides whether JS hears about it.
+private struct HitSnapshot {
+  let found: Bool
+  let type: XRHitType?
+  let planeId: String?
+  let position: SIMD3<Float>
+
+  static var notFound: HitSnapshot {
+    HitSnapshot(found: false, type: nil, planeId: nil, position: .zero)
+  }
+
+  init(found: Bool, type: XRHitType?, planeId: String?, position: SIMD3<Float>) {
+    self.found = found
+    self.type = type
+    self.planeId = planeId
+    self.position = position
+  }
+
+  init(_ hit: XRHitResult?) {
+    guard let hit else {
+      self = .notFound
+      return
+    }
+    self.init(
+      found: true,
+      type: hit.type,
+      planeId: hit.planeId,
+      position: SIMD3(
+        Float(hit.pose.position.x),
+        Float(hit.pose.position.y),
+        Float(hit.pose.position.z)
+      )
+    )
+  }
+
+  /// Found/lost, a different surface, or moved more than 1 cm.
+  func differs(from other: HitSnapshot) -> Bool {
+    found != other.found || type != other.type || planeId != other.planeId
+      || simd_distance(position, other.position) > 0.01
+  }
+}
+
 private struct DepthCapture {
   let depth: CVPixelBuffer
   let confidence: CVPixelBuffer?
@@ -1177,18 +1613,36 @@ private final class ModelEntry {
 
 /// Files produced by the view (snapshots, mesh exports) live under
 /// `tmp/munim-xr/<kind>/`; only the newest `keep` files of a kind are retained.
+/// World maps are meant to outlive the app session, so they go to
+/// `Library/Application Support/munim-xr/world-maps/` instead (`persistent`).
 enum XROutputFiles {
-  static func directory(_ kind: String) throws -> URL {
-    let url = FileManager.default.temporaryDirectory
+  static func directory(_ kind: String, persistent: Bool = false) throws -> URL {
+    let base: URL
+    if persistent {
+      base = try FileManager.default.url(
+        for: .applicationSupportDirectory,
+        in: .userDomainMask,
+        appropriateFor: nil,
+        create: true
+      )
+    } else {
+      base = FileManager.default.temporaryDirectory
+    }
+    let url = base
       .appendingPathComponent("munim-xr", isDirectory: true)
       .appendingPathComponent(kind, isDirectory: true)
     try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
     return url
   }
 
-  static func nextURL(kind: String, fileExtension: String, keep: Int) throws -> URL {
-    let folder = try directory(kind)
-    prune(folder, keep: max(keep - 1, 0))
+  static func nextURL(
+    kind: String,
+    fileExtension: String,
+    keep: Int,
+    persistent: Bool = false
+  ) throws -> URL {
+    let folder = try directory(kind, persistent: persistent)
+    if keep < .max { prune(folder, keep: max(keep - 1, 0)) }
     return folder.appendingPathComponent("\(UUID().uuidString).\(fileExtension)")
   }
 
@@ -1252,6 +1706,14 @@ enum MunimXrError: LocalizedError {
   case invalidDetectionImage(String)
   case invalidURI(String)
   case downloadFailed(String, Int)
+  case invalidClipPlanes
+  case frameNotYetAvailable
+  case cameraImageUnsupportedFormat
+  case bodyTrackingUnsupported
+  case peopleOcclusionUnsupported
+  case worldMapRequiresWorldMode
+  case worldMapUnavailable(String)
+  case worldMapInvalid(String)
 
   var errorDescription: String? {
     switch self {
@@ -1295,6 +1757,22 @@ enum MunimXrError: LocalizedError {
       return "Unsupported URI: \(uri). Use file://, an absolute path, or http(s)://."
     case .downloadFailed(let uri, let status):
       return "Downloading \(uri) failed with HTTP status \(status)."
+    case .invalidClipPlanes:
+      return "Clip planes must be finite, with 0 < zNear < zFar."
+    case .frameNotYetAvailable:
+      return "No XR frame is available yet. Start the view and wait for onReady."
+    case .cameraImageUnsupportedFormat:
+      return "The camera image is not in a YUV 4:2:0 bi-planar format."
+    case .bodyTrackingUnsupported:
+      return "This device does not support ARKit body tracking (requires an A12 chip or newer)."
+    case .peopleOcclusionUnsupported:
+      return "peopleOcclusion needs person segmentation with depth (A12 or newer); continuing without it."
+    case .worldMapRequiresWorldMode:
+      return "World maps need a running XRView in world mode."
+    case .worldMapUnavailable(let reason):
+      return "The world map could not be saved: \(reason) Move the device to map more of the room."
+    case .worldMapInvalid(let reason):
+      return "The world map could not be loaded: \(reason)"
     }
   }
 }

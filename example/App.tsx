@@ -22,11 +22,15 @@ import {
   requestCameraPermission,
   requestInstall,
   XRView,
+  type XRBody,
+  type XRCameraImage,
+  type XRContinuousHitTest,
   type XRDepthFrame,
   type XRDetectionImage,
   type XRFace,
   type XRFeature,
   type XRFrame,
+  type XRHitResult,
   type XRImageAnchor,
   type XRMeshAnchor,
   type XRPlane,
@@ -47,7 +51,13 @@ const FEATURES: XRFeature[] = [
   'image-tracking',
   'environmental-hdr',
   'models',
+  'body-tracking',
+  'people-occlusion',
+  'world-map',
 ]
+const MODES: XRSessionMode[] = ['world', 'face', 'body']
+// Native reticle hit test at the view centre, at most 10 results per second.
+const RETICLE: XRContinuousHitTest = { x: 0.5, y: 0.5, maxHz: 10 }
 // Print xr-target.png (or show it on another screen) at this width.
 const TARGET_WIDTH_METERS = 0.15
 const TARGET_URI = Image.resolveAssetSource(require('./assets/xr-target.png'))?.uri ?? ''
@@ -64,6 +74,23 @@ function describe(value: unknown): string {
   } catch {
     return String(value)
   }
+}
+
+/** Mean, min and max luma of a camera image (every 16th pixel). */
+function lumaSummary(image: XRCameraImage) {
+  const luma = new Uint8Array(image.y)
+  let sum = 0
+  let min = 255
+  let max = 0
+  let count = 0
+  for (let i = 0; i < luma.length; i += 16) {
+    const value = luma[i]!
+    sum += value
+    if (value < min) min = value
+    if (value > max) max = value
+    count++
+  }
+  return { mean: count ? Math.round(sum / count) : 0, min, max }
 }
 
 function brief(pose: XRPose) {
@@ -120,6 +147,7 @@ export default function App() {
   const lastAnchorId = useRef<string | null>(null)
   const lastImageAnchorId = useRef<string | null>(null)
   const modelIds = useRef<string[]>([])
+  const worldMapPath = useRef<string | null>(null)
   const [running, setRunning] = useState(false)
   const [starting, setStarting] = useState(false)
   const [mode, setMode] = useState<XRSessionMode>('world')
@@ -128,6 +156,12 @@ export default function App() {
   const [environmentTexturing, setEnvironmentTexturing] = useState(false)
   const [meshEnabled, setMeshEnabled] = useState(false)
   const [imagesEnabled, setImagesEnabled] = useState(false)
+  const [reticleEnabled, setReticleEnabled] = useState(false)
+  const [reticleHit, setReticleHit] = useState(false)
+  const [peopleOcclusion, setPeopleOcclusion] = useState(false)
+  // Self-test only: render without most optional props (React then sends null).
+  const [stripOptional, setStripOptional] = useState(false)
+  const optional = <T,>(value: T): T | undefined => (stripOptional ? undefined : value)
   const [planeCount, setPlaneCount] = useState(0)
   const [lastFrame, setLastFrame] = useState<XRFrame | null>(null)
   const [logLines, setLogLines] = useState<string[]>([])
@@ -138,6 +172,9 @@ export default function App() {
     trackingStates: [],
     planes: 0,
     faces: 0,
+    bodies: 0,
+    hitResults: 0,
+    lastHitCount: 0,
     errors: [],
   })
 
@@ -320,6 +357,53 @@ export default function App() {
     () => callback((faceId: string) => log('face.removed', faceId.slice(-6))),
     [log]
   )
+  const bodyEvent = useCallback(
+    (event: string, body: XRBody) => {
+      const head = body.joints.find((joint) => joint.name === 'head_joint')
+      log(event, {
+        id: body.id.slice(-6),
+        tracking: body.tracking,
+        joints: body.joints.length,
+        trackedJoints: body.joints.filter((joint) => joint.tracked).length,
+        scale: body.estimatedScaleFactor,
+        root: brief(body.pose),
+        head: head?.position,
+      })
+    },
+    [log]
+  )
+  const onBodyAdded = useMemo(
+    () =>
+      callback((body: XRBody) => {
+        selfTestEvents.current.bodies++
+        bodyEvent('body.added', body)
+      }),
+    [bodyEvent]
+  )
+  const onBodyUpdated = useMemo(
+    () => callback((body: XRBody) => bodyEvent('body.updated', body)),
+    [bodyEvent]
+  )
+  const onBodyRemoved = useMemo(
+    () => callback((bodyId: string) => log('body.removed', bodyId.slice(-6))),
+    [log]
+  )
+  const onHitTestResult = useMemo(
+    () =>
+      callback((hits: XRHitResult[]) => {
+        selfTestEvents.current.hitResults++
+        selfTestEvents.current.lastHitCount = hits.length
+        setReticleHit(hits.length > 0)
+        const first = hits[0]
+        log(
+          'reticle',
+          first
+            ? { type: first.type, distance: first.distance, position: brief(first.pose) }
+            : 'lost'
+        )
+      }),
+    [log]
+  )
   const onError = useMemo(
     () =>
       callback((message: string) => {
@@ -415,10 +499,65 @@ export default function App() {
 
   const depthFrame = async () => {
     try {
+      const started = Date.now()
       const frame = await xrRef.current?.getDepthFrame()
-      if (frame) log('depth.ok', depthSummary(frame))
+      if (frame) log('depth.ok', { ...depthSummary(frame), ms: Date.now() - started })
     } catch (error) {
       fail('depth', error)
+    }
+  }
+
+  const cameraInfo = async () => {
+    try {
+      const camera = await xrRef.current?.getCamera(0.01, 100)
+      if (!camera) return
+      log('camera.ok', {
+        tracking: `${camera.trackingState}/${camera.trackingStateReason}`,
+        mapping: camera.worldMappingStatus,
+        intrinsics: camera.intrinsics,
+        projection00: camera.projectionMatrix[0],
+        projection11: camera.projectionMatrix[5],
+      })
+    } catch (error) {
+      fail('camera', error)
+    }
+  }
+
+  const cameraImage = async () => {
+    try {
+      const started = Date.now()
+      const image = await xrRef.current?.getCameraImage()
+      if (!image) return
+      log('camera.image.ok', {
+        size: `${image.width}x${image.height}`,
+        yBytes: image.y.byteLength,
+        cbcrBytes: image.cbcr.byteLength,
+        luma: lumaSummary(image),
+        ms: Date.now() - started,
+      })
+    } catch (error) {
+      fail('camera.image', error)
+    }
+  }
+
+  const saveWorldMap = async () => {
+    try {
+      const path = await xrRef.current?.saveWorldMap()
+      worldMapPath.current = path ?? null
+      log('worldmap.saved', path)
+    } catch (error) {
+      fail('worldmap.save', error)
+    }
+  }
+
+  const loadWorldMap = async () => {
+    const path = worldMapPath.current
+    if (!path) return log('worldmap.load.error', 'Save a world map first.')
+    try {
+      await xrRef.current?.loadWorldMap(path)
+      log('worldmap.loaded', 'Point the camera at the mapped area to relocalize.')
+    } catch (error) {
+      fail('worldmap.load', error)
     }
   }
 
@@ -523,6 +662,9 @@ export default function App() {
       trackingStates: [],
       planes: 0,
       faces: 0,
+      bodies: 0,
+      hitResults: 0,
+      lastHitCount: 0,
       errors: [],
     }
     log('selftest.start')
@@ -530,9 +672,12 @@ export default function App() {
       const report = await runSelfTest({
         view: () => xrRef.current,
         events: selfTestEvents.current,
+        modelUri: CUBE_URI,
         setProps: async (props: Partial<SelfTestProps>) => {
           if (props.mode !== undefined) setMode(props.mode)
           if (props.depthEnabled !== undefined) setDepthEnabled(props.depthEnabled)
+          if (props.reticle !== undefined) setReticleEnabled(props.reticle)
+          if (props.stripOptional !== undefined) setStripOptional(props.stripOptional)
           if (props.environmentTexturing !== undefined) {
             setEnvironmentTexturing(props.environmentTexturing)
           }
@@ -578,14 +723,27 @@ export default function App() {
     {
       label: `Mode: ${mode}`,
       onPress: () => {
-        const next = mode === 'world' ? 'face' : 'world'
+        const next = MODES[(MODES.indexOf(mode) + 1) % MODES.length]!
         setMode(next)
         log('prop.mode', next)
       },
-      active: mode === 'face',
+      active: mode !== 'world',
     },
     { label: 'Features', onPress: () => void checkFeatures() },
+    {
+      label: `Reticle ${reticleEnabled ? 'on' : 'off'}`,
+      onPress: () => {
+        // Native reports from "nothing hit" again when re-enabled.
+        setReticleHit(false)
+        toggle('continuousHitTest', reticleEnabled, setReticleEnabled)
+      },
+      active: reticleEnabled,
+    },
+    { label: 'Camera', onPress: () => void cameraInfo() },
+    { label: 'Camera image', onPress: () => void cameraImage() },
     { label: 'Anchors', onPress: listAnchors },
+    { label: 'Save map', onPress: () => void saveWorldMap() },
+    { label: 'Load map', onPress: () => void loadWorldMap() },
     { label: 'Snapshot', onPress: () => void snapshot() },
     {
       label: `Depth ${depthEnabled ? 'on' : 'off'}`,
@@ -615,6 +773,11 @@ export default function App() {
       active: meshEnabled,
     },
     { label: 'Export mesh', onPress: () => void exportMesh() },
+    {
+      label: `People occl. ${peopleOcclusion ? 'on' : 'off'}`,
+      onPress: () => toggle('peopleOcclusion', peopleOcclusion, setPeopleOcclusion),
+      active: peopleOcclusion,
+    },
     { label: 'Add model', onPress: () => void addModel() },
     { label: 'Model x2', onPress: scaleModel },
     { label: 'Remove model', onPress: removeModel },
@@ -635,36 +798,43 @@ export default function App() {
       >
         <XRView
           depthEnabled={depthEnabled}
-          depthSmoothing={depthEnabled}
-          detectionImages={detectionImages}
-          environmentTexturing={environmentTexturing ? 'automatic' : 'none'}
+          depthSmoothing={optional(depthEnabled)}
+          detectionImages={optional(detectionImages)}
+          environmentTexturing={optional(environmentTexturing ? 'automatic' : 'none')}
           frameCallbackFps={6}
           hybridRef={hybridRef}
           lightEstimationEnabled
-          lightEstimationMode={hdr ? 'environmental-hdr' : 'ambient-intensity'}
-          mode={mode}
+          lightEstimationMode={optional(hdr ? 'environmental-hdr' : 'ambient-intensity')}
+          mode={optional(mode)}
+          continuousHitTest={reticleEnabled ? RETICLE : undefined}
+          instantPlacement={optional(true)}
+          onBodyAdded={optional(onBodyAdded)}
+          onBodyRemoved={optional(onBodyRemoved)}
+          onBodyUpdated={optional(onBodyUpdated)}
           onError={onError}
           onFaceAdded={onFaceAdded}
           onFaceRemoved={onFaceRemoved}
           onFaceUpdated={onFaceUpdated}
           onFrame={onFrame}
+          onHitTestResult={onHitTestResult}
           onImageAnchorAdded={onImageAnchorAdded}
           onImageAnchorRemoved={onImageAnchorRemoved}
           onImageAnchorUpdated={onImageAnchorUpdated}
-          onMeshAnchorAdded={onMeshAnchorAdded}
-          onMeshAnchorRemoved={onMeshAnchorRemoved}
-          onMeshAnchorUpdated={onMeshAnchorUpdated}
+          onMeshAnchorAdded={optional(onMeshAnchorAdded)}
+          onMeshAnchorRemoved={optional(onMeshAnchorRemoved)}
+          onMeshAnchorUpdated={optional(onMeshAnchorUpdated)}
           onPlaneDetected={onPlaneDetected}
           onPlaneRemoved={onPlaneRemoved}
           onPlaneUpdated={onPlaneUpdated}
           onReady={onReady}
           onTrackingStateChange={onTrackingStateChange}
+          peopleOcclusion={optional(peopleOcclusion)}
           planeDetection="both"
-          sceneReconstruction={meshEnabled ? 'mesh-with-classification' : 'none'}
+          sceneReconstruction={optional(meshEnabled ? 'mesh-with-classification' : 'none')}
           accessibilityLabel="Munim XR camera view"
           style={[StyleSheet.absoluteFill, selfTesting && styles.selfTestView]}
           testID="munim-xr-view"
-          trackableUpdateMaxHz={UPDATE_HZ}
+          trackableUpdateMaxHz={optional(UPDATE_HZ)}
         />
 
         <View pointerEvents="none" style={styles.header}>
@@ -677,8 +847,8 @@ export default function App() {
         </View>
 
         <View pointerEvents="none" style={styles.reticle}>
-          <View style={styles.reticleHorizontal} />
-          <View style={styles.reticleVertical} />
+          <View style={[styles.reticleHorizontal, reticleEnabled && reticleHit && styles.reticleHit]} />
+          <View style={[styles.reticleVertical, reticleEnabled && reticleHit && styles.reticleHit]} />
         </View>
 
         <View pointerEvents="none" style={styles.telemetry}>
@@ -752,6 +922,7 @@ const styles = StyleSheet.create({
   reticle: { alignItems: 'center', height: 36, justifyContent: 'center', left: '50%', marginLeft: -18, marginTop: -18, position: 'absolute', top: '50%', width: 36 },
   reticleHorizontal: { backgroundColor: '#70e8ff', height: 1, position: 'absolute', width: 36 },
   reticleVertical: { backgroundColor: '#70e8ff', height: 36, position: 'absolute', width: 1 },
+  reticleHit: { backgroundColor: '#5dff8f' },
   telemetry: { backgroundColor: 'rgba(7,17,31,0.76)', borderColor: 'rgba(112,232,255,0.3)', borderRadius: 12, borderWidth: 1, bottom: 12, left: 12, paddingHorizontal: 12, paddingVertical: 8, position: 'absolute' },
   telemetryText: { color: '#d8f6ff', fontFamily: Platform.select({ ios: 'Courier', default: 'monospace' }), fontSize: 11, lineHeight: 17 },
   controls: { backgroundColor: '#07111f', paddingBottom: 18, paddingHorizontal: 14, paddingTop: 10 },

@@ -2,10 +2,13 @@ package com.margelo.nitro.munimxr
 
 import android.Manifest
 import android.graphics.Bitmap
+import android.graphics.ImageFormat
+import android.media.Image
 import android.hardware.display.DisplayManager
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
+import android.opengl.Matrix
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -20,6 +23,8 @@ import com.google.ar.core.ArCoreApk
 import com.google.ar.core.AugmentedFace
 import com.google.ar.core.AugmentedImage
 import com.google.ar.core.AugmentedImageDatabase
+import com.google.ar.core.Camera
+import com.google.ar.core.CameraIntrinsics
 import com.google.ar.core.Config
 import com.google.ar.core.Coordinates2d
 import com.google.ar.core.DepthPoint
@@ -30,6 +35,7 @@ import com.google.ar.core.Plane
 import com.google.ar.core.Point
 import com.google.ar.core.Pose
 import com.google.ar.core.Session
+import com.google.ar.core.TrackingFailureReason
 import com.google.ar.core.TrackingState
 import com.google.ar.core.exceptions.DeadlineExceededException
 import com.google.ar.core.exceptions.ImageInsufficientQualityException
@@ -50,6 +56,7 @@ import java.util.concurrent.atomic.AtomicLong
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.abs
+import kotlin.math.sqrt
 
 @Keep
 @DoNotStrip
@@ -74,6 +81,17 @@ class HybridXRView(
   override var depthSmoothing: Boolean? = null
   override var detectionImages: Array<XRDetectionImage>? = null
   override var sceneReconstruction: XRSceneReconstruction? = null
+  override var peopleOcclusion: Boolean? = null
+  override var continuousHitTest: XRContinuousHitTest? = null
+    set(value) {
+      if (value != field) {
+        // Run at once; when (re-)enabled, JS starts from "nothing hit".
+        hitTestRestartRequested = true
+        if (field == null) hitTestSnapshotResetRequested = true
+      }
+      field = value
+    }
+  override var instantPlacement: Boolean? = null
   override var onReady: (() -> Unit)? = null
   override var onFrame: ((frame: XRFrame) -> Unit)? = null
   override var onTrackingStateChange: ((state: XRTrackingState) -> Unit)? = null
@@ -89,17 +107,38 @@ class HybridXRView(
   override var onFaceAdded: ((face: XRFace) -> Unit)? = null
   override var onFaceUpdated: ((face: XRFace) -> Unit)? = null
   override var onFaceRemoved: ((faceId: String) -> Unit)? = null
+  override var onBodyAdded: ((body: XRBody) -> Unit)? = null
+  override var onBodyUpdated: ((body: XRBody) -> Unit)? = null
+  override var onBodyRemoved: ((bodyId: String) -> Unit)? = null
+  override var onHitTestResult: ((hits: Array<XRHitResult>) -> Unit)? = null
   override var onError: ((message: String) -> Unit)? = null
 
   @Volatile private var session: Session? = null
   @Volatile private var latestFrame: Frame? = null
-  @Volatile private var latestCameraPose: XRPose? = null
+  // ARCore poses are immutable; converting them to XRPose is deferred to the
+  // (rare) getter calls instead of being paid on every frame.
+  @Volatile private var latestCameraPose: Pose? = null
   @Volatile private var running = false
   @Volatile private var displayGeometryDirty = true
-  @Volatile private var anchorSnapshot: Map<String, XRAnchor> = emptyMap()
+  @Volatile private var anchorSnapshot: Map<String, AnchorState> = emptyMap()
+  @Volatile private var hitTestRestartRequested = false
+  @Volatile private var hitTestSnapshotResetRequested = false
+  // UI thread: report an unsupported body mode once per switch, not per prop update.
+  private var bodyModeReported = false
   private var pausedByHost = false
-  private var cameraTextureId = 0
+  @Volatile private var cameraTextureId = 0
   private var shaderProgram = 0
+  private var positionAttribute = -1
+  private var texCoordAttribute = -1
+  private var textureUniform = -1
+  // GL thread: the session whose camera texture is bound, and whether the
+  // background quad's texture coordinates match the current display geometry.
+  private var textureBoundSession: Session? = null
+  private var textureCoordinatesValid = false
+  @Volatile private var instantPlacementActive = false
+  // `Session.getConfig()` builds a new Config over JNI on every call, so the
+  // configured light mode is remembered instead of read per delivered frame.
+  @Volatile private var hdrLightActive = false
   @Volatile private var surfaceWidth = 0
   @Volatile private var surfaceHeight = 0
   private var deliveredReady = false
@@ -122,6 +161,17 @@ class HybridXRView(
   private val removedFaces = Collections.newSetFromMap(IdentityHashMap<AugmentedFace, Boolean>())
   private val updateThrottle = HashMap<String, ThrottleEntry>()
   private val nextTrackableId = AtomicLong(1)
+  private var lastHitTestTime = 0.0
+  private var lastHitSnapshot = HitSnapshot.NOT_FOUND
+
+  // GL-thread only (and the UI thread while the GL thread is paused).
+  private val models = LinkedHashMap<String, XRModelEntry>()
+  private val modelRenderer = XRModelRenderer()
+  private val projectionMatrix = FloatArray(16)
+  private val viewMatrix = FloatArray(16)
+  private val viewProjectionMatrix = FloatArray(16)
+  private val anchorMatrix = FloatArray(16)
+  private val modelMatrix = FloatArray(16)
 
   private val anchors = Collections.synchronizedMap(mutableMapOf<String, Anchor>())
 
@@ -193,7 +243,11 @@ class HybridXRView(
     context.removeLifecycleEventListener(this)
     displayManager?.unregisterDisplayListener(displayListener)
     mainHandler.removeCallbacksAndMessages(null)
-    context.runOnUiQueueThread { closeSession() }
+    context.runOnUiQueueThread {
+      closeSession()
+      // The GL thread is paused now; the EGL context frees the GL buffers.
+      models.clear()
+    }
   }
 
   // endregion
@@ -258,31 +312,51 @@ class HybridXRView(
     val promise = Promise<Array<XRHitResult>>()
     view.queueEvent {
       try {
-        val frame = latestFrame ?: throw IllegalStateException("No XR frame is available yet.")
-        val x = (normalizedX * surfaceWidth).toFloat()
-        val y = (normalizedY * surfaceHeight).toFloat()
-        val results = frame.hitTest(x, y).map { hit ->
-          val trackable = hit.trackable
-          val type = when (trackable) {
-            is Plane -> XRHitType.PLANE
-            is DepthPoint -> XRHitType.DEPTH
-            is Point -> XRHitType.FEATURE_POINT
-            is InstantPlacementPoint -> XRHitType.ESTIMATED
-            else -> XRHitType.ESTIMATED
-          }
-          XRHitResult(
-            type = type,
-            distance = hit.distance.toDouble(),
-            pose = xrPose(hit.hitPose),
-            planeId = (trackable as? Plane)?.let(::planeId),
-          )
-        }.toTypedArray()
-        promise.resolve(results)
+        val frame = latestFrame ?: throw IllegalStateException(FRAME_NOT_READY)
+        promise.resolve(hitResults(frame, normalizedX, normalizedY))
       } catch (error: Throwable) {
         promise.reject(error)
       }
     }
     return promise
+  }
+
+  /**
+   * GL thread. Planes, depth and feature points; with `instantPlacement`, when
+   * nothing is hit, ARCore Instant Placement estimates a point about 1 m away
+   * (`estimated`, like ARKit's estimated planes) that ARCore refines later.
+   */
+  private fun hitResults(
+    frame: Frame,
+    normalizedX: Double,
+    normalizedY: Double,
+    allowInstantPlacement: Boolean = true,
+  ): Array<XRHitResult> {
+    val x = (normalizedX * surfaceWidth).toFloat()
+    val y = (normalizedY * surfaceHeight).toFloat()
+    var hits = frame.hitTest(x, y)
+    if (
+      hits.isEmpty() && allowInstantPlacement && instantPlacementActive &&
+      frame.camera.trackingState == TrackingState.TRACKING
+    ) {
+      hits = frame.hitTestInstantPlacement(x, y, INSTANT_PLACEMENT_DISTANCE_METERS)
+    }
+    return hits.map { hit ->
+      val trackable = hit.trackable
+      val type = when (trackable) {
+        is Plane -> XRHitType.PLANE
+        is DepthPoint -> XRHitType.DEPTH
+        is Point -> XRHitType.FEATURE_POINT
+        is InstantPlacementPoint -> XRHitType.ESTIMATED
+        else -> XRHitType.ESTIMATED
+      }
+      XRHitResult(
+        type = type,
+        distance = hit.distance.toDouble(),
+        pose = xrPose(hit.hitPose),
+        planeId = (trackable as? Plane)?.let(::planeId),
+      )
+    }.toTypedArray()
   }
 
   override fun createAnchor(pose: XRPose): Promise<XRAnchor> {
@@ -294,9 +368,8 @@ class HybridXRView(
         val nativeAnchor = activeSession.createAnchor(nativePose(pose))
         val id = "anchor-${UUID.randomUUID()}"
         anchors[id] = nativeAnchor
-        val anchor = xrAnchor(id, nativeAnchor)
-        anchorSnapshot = anchorSnapshot + (id to anchor)
-        promise.resolve(anchor)
+        anchorSnapshot = anchorSnapshot + (id to AnchorState.of(nativeAnchor))
+        promise.resolve(xrAnchor(id, nativeAnchor))
       } catch (error: Throwable) {
         promise.reject(error)
       }
@@ -314,10 +387,61 @@ class HybridXRView(
   override fun getAnchors(): Array<XRAnchor> {
     val snapshot = anchorSnapshot
     val liveIds = synchronized(anchors) { anchors.keys.toSet() }
-    return snapshot.filterKeys { it in liveIds }.values.toTypedArray()
+    return snapshot.filterKeys { it in liveIds }
+      .map { (id, state) -> XRAnchor(id, state.tracking, xrPose(state.pose)) }
+      .toTypedArray()
   }
 
-  override fun getCameraPose(): XRPose? = latestCameraPose
+  override fun getCameraPose(): XRPose? = latestCameraPose?.let(::xrPose)
+
+  override fun getCamera(zNear: Double, zFar: Double): Promise<XRCamera> {
+    require(zNear.isFinite() && zFar.isFinite() && zNear > 0 && zFar > zNear) {
+      "Clip planes must be finite, with 0 < zNear < zFar."
+    }
+    val promise = Promise<XRCamera>()
+    view.queueEvent {
+      try {
+        val frame = latestFrame ?: throw IllegalStateException(FRAME_NOT_READY)
+        val camera = frame.camera
+        val projection = FloatArray(16)
+        val viewTransform = FloatArray(16)
+        camera.getProjectionMatrix(projection, 0, zNear.toFloat(), zFar.toFloat())
+        camera.getViewMatrix(viewTransform, 0)
+        promise.resolve(
+          XRCamera(
+            timestamp = frame.timestamp / 1_000_000_000.0,
+            trackingState = xrTrackingState(camera.trackingState),
+            trackingStateReason = xrTrackingStateReason(camera),
+            pose = xrPose(camera.pose),
+            viewMatrix = viewTransform.toDoubleArray(),
+            projectionMatrix = projection.toDoubleArray(),
+            intrinsics = xrIntrinsics(camera.imageIntrinsics),
+            // ARCore has no world map API.
+            worldMappingStatus = XRWorldMappingStatus.NOT_AVAILABLE,
+          ),
+        )
+      } catch (error: Throwable) {
+        promise.reject(error)
+      }
+    }
+    return promise
+  }
+
+  override fun getCameraImage(): Promise<XRCameraImage> {
+    val promise = Promise<XRCameraImage>()
+    view.queueEvent {
+      try {
+        val frame = latestFrame ?: throw IllegalStateException(FRAME_NOT_READY)
+        val intrinsics = xrIntrinsics(frame.camera.imageIntrinsics)
+        frame.acquireCameraImage().use { image -> promise.resolve(xrCameraImage(image, intrinsics)) }
+      } catch (_: NotYetAvailableException) {
+        promise.reject(IllegalStateException("No camera image is available yet."))
+      } catch (error: Throwable) {
+        promise.reject(error)
+      }
+    }
+    return promise
+  }
 
   override fun captureSnapshot(): Promise<String> {
     val promise = Promise<String>()
@@ -386,24 +510,80 @@ class HybridXRView(
     )
   }
 
+  override fun saveWorldMap(): Promise<String> {
+    return Promise.rejected(UnsupportedOperationException(WORLD_MAP_UNSUPPORTED))
+  }
+
+  override fun loadWorldMap(path: String): Promise<Unit> {
+    return Promise.rejected(UnsupportedOperationException(WORLD_MAP_UNSUPPORTED))
+  }
+
   override fun addModel(options: XRModelOptions): Promise<String> {
-    return Promise.rejected(UnsupportedOperationException(MODELS_UNSUPPORTED))
+    options.pose?.let(::validatePose)
+    val localTransform = options.pose?.let(::poseMatrix) ?: identityMatrix()
+    val scale = options.scale ?: 1.0
+    require(scale.isFinite() && scale > 0) { "A model scale must be a finite value greater than 0." }
+    val uri = options.uri
+    val extension = uri.substringBefore('?').substringBefore('#').substringAfterLast('.', "").lowercase()
+    require(extension !in IOS_ONLY_MODEL_EXTENSIONS) {
+      "Android loads OBJ models; .$extension is iOS-only (SceneKit)."
+    }
+    val anchorId = options.anchorId
+    val promise = Promise<String>()
+    Thread {
+      try {
+        val mesh = XRFiles.open(context, uri).use { ObjParser.parse(it) }
+        view.queueEvent {
+          try {
+            if (anchorId != null && !anchorExists(anchorId)) {
+              throw IllegalArgumentException("No anchor with id $anchorId exists.")
+            }
+            val id = "model-${UUID.randomUUID()}"
+            models[id] = XRModelEntry(mesh, anchorId, localTransform, scale.toFloat())
+            promise.resolve(id)
+          } catch (error: Throwable) {
+            promise.reject(error)
+          }
+        }
+      } catch (error: Throwable) {
+        promise.reject(IllegalArgumentException("The model could not be loaded: ${error.message ?: error.javaClass.simpleName}", error))
+      }
+    }.start()
+    return promise
   }
 
   override fun removeModel(modelId: String) {
-    throw UnsupportedOperationException(MODELS_UNSUPPORTED)
+    view.queueEvent { models.remove(modelId)?.let(modelRenderer::release) }
   }
 
   override fun setModelTransform(modelId: String, pose: XRPose, scale: Double?) {
-    throw UnsupportedOperationException(MODELS_UNSUPPORTED)
+    validatePose(pose)
+    if (scale != null) {
+      require(scale.isFinite() && scale > 0) { "A model scale must be a finite value greater than 0." }
+    }
+    val transform = poseMatrix(pose)
+    view.queueEvent {
+      val entry = models[modelId]
+      if (entry == null) {
+        onError?.invoke("No model with id $modelId exists.")
+      } else {
+        entry.localTransform = transform
+        if (scale != null) entry.scale = scale.toFloat()
+      }
+    }
   }
 
   // region GLSurfaceView.Renderer
 
   override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
     cameraTextureId = createExternalTexture()
-    shaderProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER)
-    session?.setCameraTextureNames(intArrayOf(cameraTextureId))
+    shaderProgram = XRGL.createProgram(VERTEX_SHADER, FRAGMENT_SHADER)
+    positionAttribute = GLES20.glGetAttribLocation(shaderProgram, "a_Position")
+    texCoordAttribute = GLES20.glGetAttribLocation(shaderProgram, "a_TexCoord")
+    textureUniform = GLES20.glGetUniformLocation(shaderProgram, "sTexture")
+    // A new EGL context: rebind the camera texture and re-upload model meshes.
+    textureBoundSession = null
+    modelRenderer.onSurfaceCreated(models.values)
     GLES20.glClearColor(0f, 0f, 0f, 1f)
   }
 
@@ -420,6 +600,12 @@ class HybridXRView(
     if (!running || cameraTextureId == 0) return
 
     try {
+      if (textureBoundSession !== activeSession) {
+        // Once per session (and EGL context) instead of on every frame.
+        activeSession.setCameraTextureNames(intArrayOf(cameraTextureId))
+        textureBoundSession = activeSession
+        textureCoordinatesValid = false
+      }
       if (displayGeometryDirty && surfaceWidth > 0 && surfaceHeight > 0) {
         displayGeometryDirty = false
         // The view may rotate or resize at any time: since targetSdk 36, large
@@ -427,19 +613,23 @@ class HybridXRView(
         // multi-window / foldables resize without recreating the Activity.
         activeSession.setDisplayGeometry(view.display?.rotation ?: 0, surfaceWidth, surfaceHeight)
       }
-      activeSession.setCameraTextureNames(intArrayOf(cameraTextureId))
       val frame = activeSession.update()
       latestFrame = frame
-      frame.transformCoordinates2d(
-        Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES,
-        quadCoordinates,
-        Coordinates2d.TEXTURE_NORMALIZED,
-        textureCoordinates,
-      )
+      if (!textureCoordinatesValid || frame.hasDisplayGeometryChanged()) {
+        frame.transformCoordinates2d(
+          Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES,
+          quadCoordinates,
+          Coordinates2d.TEXTURE_NORMALIZED,
+          textureCoordinates,
+        )
+        textureCoordinatesValid = true
+      }
       drawCameraBackground()
+      if (models.isNotEmpty()) drawModels(frame)
       snapshotAnchors()
       deliverFrame(frame)
       val now = System.nanoTime() / 1_000_000_000.0
+      deliverContinuousHitTest(frame, now)
       deliverPlaneChanges(frame, now)
       deliverImageChanges(frame, now)
       deliverFaceChanges(frame, now)
@@ -465,6 +655,7 @@ class HybridXRView(
     }
 
     val requestedMode = mode ?: XRSessionMode.WORLD
+    if (requestedMode == XRSessionMode.BODY) throw UnsupportedOperationException(BODY_UNSUPPORTED)
     if (session != null && sessionMode != requestedMode) closeSession()
     val activeSession = session ?: createSession(activity, requestedMode).also {
       session = it
@@ -481,12 +672,16 @@ class HybridXRView(
     if ((sceneReconstruction ?: XRSceneReconstruction.NONE) != XRSceneReconstruction.NONE) {
       onError?.invoke("sceneReconstruction is iOS-only (LiDAR) and is ignored on Android.")
     }
+    if (peopleOcclusion == true) {
+      onError?.invoke("peopleOcclusion is iOS-only (ARKit person segmentation) and is ignored on Android.")
+    }
   }
 
   private fun createSession(activity: android.app.Activity, sessionMode: XRSessionMode): Session {
     return when (sessionMode) {
       XRSessionMode.FACE -> Session(activity, EnumSet.of(Session.Feature.FRONT_CAMERA))
       XRSessionMode.WORLD -> Session(activity)
+      XRSessionMode.BODY -> throw UnsupportedOperationException(BODY_UNSUPPORTED)
     }
   }
 
@@ -517,6 +712,11 @@ class HybridXRView(
       Config.DepthMode.DISABLED
     }
     config.augmentedFaceMode = if (face) Config.AugmentedFaceMode.MESH3D else Config.AugmentedFaceMode.DISABLED
+    config.instantPlacementMode = if (!face && instantPlacement == true) {
+      Config.InstantPlacementMode.LOCAL_Y_UP
+    } else {
+      Config.InstantPlacementMode.DISABLED
+    }
     if (!face) {
       val images = synchronized(imageLock) { loadedImages }
       if (images.isNotEmpty()) config.augmentedImageDatabase = buildImageDatabase(activeSession, images)
@@ -536,6 +736,9 @@ class HybridXRView(
       { c: Config -> c.depthMode != Config.DepthMode.DISABLED } to { c: Config ->
         c.depthMode = Config.DepthMode.DISABLED
       },
+      { c: Config -> c.instantPlacementMode != Config.InstantPlacementMode.DISABLED } to { c: Config ->
+        c.instantPlacementMode = Config.InstantPlacementMode.DISABLED
+      },
     )
     var remaining = fallbacks
     while (true) {
@@ -550,6 +753,8 @@ class HybridXRView(
       }
     }
     configuredKey = key
+    instantPlacementActive = config.instantPlacementMode != Config.InstantPlacementMode.DISABLED
+    hdrLightActive = config.lightEstimationMode == Config.LightEstimationMode.ENVIRONMENTAL_HDR
   }
 
   private fun buildImageDatabase(activeSession: Session, images: List<LoadedImage>): AugmentedImageDatabase {
@@ -572,6 +777,7 @@ class HybridXRView(
     depthEnabled = depthEnabled,
     lightEstimationEnabled = lightEstimationEnabled,
     lightEstimationMode = lightEstimationMode ?: XRLightEstimationMode.AMBIENT_INTENSITY,
+    instantPlacement = instantPlacement == true,
     imagesVersion = synchronized(imageLock) { imagesVersion },
   )
 
@@ -595,6 +801,13 @@ class HybridXRView(
       val activeSession = session ?: return@runOnUiQueueThread
       if (!running) return@runOnUiQueueThread
       try {
+        if (mode == XRSessionMode.BODY) {
+          // Keep the running session in its current mode instead of stopping it.
+          if (!bodyModeReported) onError?.invoke(BODY_UNSUPPORTED)
+          bodyModeReported = true
+          return@runOnUiQueueThread
+        }
+        bodyModeReported = false
         if (sessionMode != (mode ?: XRSessionMode.WORLD)) {
           // Front/rear camera switches need a new Session with a different feature set.
           closeSession()
@@ -633,6 +846,12 @@ class HybridXRView(
     faceIds.clear()
     removedFaces.clear()
     updateThrottle.clear()
+    lastHitTestTime = 0.0
+    // Earlier hits belong to the closed session: tell JS they are gone.
+    if (lastHitSnapshot.found) onHitTestResult?.invoke(emptyArray())
+    lastHitSnapshot = HitSnapshot.NOT_FOUND
+    textureBoundSession = null
+    instantPlacementActive = false
     try { session?.close() } catch (_: Throwable) { }
     session = null
     sessionMode = null
@@ -707,18 +926,14 @@ class HybridXRView(
       return
     }
     anchorSnapshot = synchronized(anchors) {
-      anchors.mapValues { (id, anchor) -> xrAnchor(id, anchor) }
+      anchors.mapValues { (_, anchor) -> AnchorState.of(anchor) }
     }
   }
 
   private fun deliverFrame(frame: Frame) {
     val camera = frame.camera
-    val trackingState = when (camera.trackingState) {
-      TrackingState.TRACKING -> XRTrackingState.NORMAL
-      TrackingState.PAUSED -> XRTrackingState.LIMITED
-      TrackingState.STOPPED -> XRTrackingState.UNAVAILABLE
-    }
-    val cameraPose = xrPose(camera.pose)
+    val trackingState = xrTrackingState(camera.trackingState)
+    val cameraPose = camera.pose
     latestCameraPose = cameraPose
     if (trackingState != lastTrackingState) {
       lastTrackingState = trackingState
@@ -729,6 +944,7 @@ class HybridXRView(
       onReady?.invoke()
     }
 
+    val callback = onFrame ?: return
     val timestampSeconds = frame.timestamp / 1_000_000_000.0
     // A new session (e.g. switching to the front camera) can use a different
     // camera clock whose timestamps are smaller than the last delivered one.
@@ -740,13 +956,99 @@ class HybridXRView(
     val legacyIntensity = if (
       lightEstimationEnabled && lightEstimationMode != XRLightEstimationMode.ENVIRONMENTAL_HDR
     ) lightEstimate?.ambientIntensity else null
-    onFrame?.invoke(XRFrame(timestampSeconds, trackingState, cameraPose, legacyIntensity, lightEstimate))
+    callback(XRFrame(timestampSeconds, trackingState, xrPose(cameraPose), legacyIntensity, lightEstimate))
+  }
+
+  /**
+   * Repeats `continuousHitTest` at most `maxHz` times per second and reports
+   * only meaningful changes, so JS is not called per frame for a reticle.
+   */
+  private fun deliverContinuousHitTest(frame: Frame, now: Double) {
+    if (hitTestRestartRequested) {
+      hitTestRestartRequested = false
+      lastHitTestTime = 0.0
+    }
+    if (hitTestSnapshotResetRequested) {
+      hitTestSnapshotResetRequested = false
+      lastHitSnapshot = HitSnapshot.NOT_FOUND
+    }
+    val request = continuousHitTest ?: return
+    val callback = onHitTestResult ?: return
+    if (!request.maxHz.isFinite() || request.maxHz <= 0) return
+    if (!request.x.isFinite() || !request.y.isFinite() || request.x !in 0.0..1.0 || request.y !in 0.0..1.0) return
+    if (now - lastHitTestTime < 1.0 / request.maxHz) return
+    lastHitTestTime = now
+    // No Instant Placement here: each such hit creates a new ARCore trackable,
+    // which a 10 Hz reticle would pile up for the whole session.
+    val hits = hitResults(frame, request.x, request.y, allowInstantPlacement = false)
+    val snapshot = HitSnapshot.of(hits.firstOrNull())
+    if (!snapshot.differs(lastHitSnapshot)) return
+    lastHitSnapshot = snapshot
+    callback(hits)
+  }
+
+  private fun drawModels(frame: Frame) {
+    val camera = frame.camera
+    if (camera.trackingState != TrackingState.TRACKING) return
+    camera.getProjectionMatrix(projectionMatrix, 0, MODEL_NEAR_METERS, MODEL_FAR_METERS)
+    camera.getViewMatrix(viewMatrix, 0)
+    Matrix.multiplyMM(viewProjectionMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
+    for (entry in models.values) {
+      // Models on an anchor that is lost or not tracked are hidden, as on iOS.
+      if (!writeAnchorMatrix(entry.anchorId, anchorMatrix)) continue
+      Matrix.multiplyMM(modelMatrix, 0, anchorMatrix, 0, entry.localTransform, 0)
+      Matrix.scaleM(modelMatrix, 0, entry.scale, entry.scale, entry.scale)
+      modelRenderer.draw(entry, modelMatrix, viewProjectionMatrix)
+    }
+  }
+
+  /** World matrix of [anchorId] (identity for world-space models); false when not tracked. */
+  private fun writeAnchorMatrix(anchorId: String?, out: FloatArray): Boolean {
+    if (anchorId == null) {
+      Matrix.setIdentityM(out, 0)
+      return true
+    }
+    val pose = trackedAnchorPose(anchorId) ?: return false
+    pose.toMatrix(out, 0)
+    return true
+  }
+
+  /**
+   * User anchors, image anchors, planes and faces can all carry models. The id
+   * prefix picks the one map to search. GL thread.
+   */
+  private fun trackedAnchorPose(id: String): Pose? {
+    when {
+      id.startsWith("image-") -> imageIds.entries.firstOrNull { it.value == id }?.key?.let { image ->
+        val tracked = image.trackingState == TrackingState.TRACKING && image !in removedImages
+        return if (tracked) image.centerPose else null
+      }
+      id.startsWith("plane-") -> planeIds.entries.firstOrNull { it.value == id }?.key?.let { plane ->
+        val tracked = plane.trackingState == TrackingState.TRACKING &&
+          plane.subsumedBy == null && plane !in removedPlanes
+        return if (tracked) plane.centerPose else null
+      }
+      id.startsWith("face-") -> faceIds.entries.firstOrNull { it.value == id }?.key?.let { face ->
+        val tracked = face.trackingState == TrackingState.TRACKING && face !in removedFaces
+        return if (tracked) face.centerPose else null
+      }
+      else -> anchors[id]?.let { anchor ->
+        return if (anchor.trackingState == TrackingState.TRACKING) anchor.pose else null
+      }
+    }
+    return null
+  }
+
+  private fun anchorExists(id: String): Boolean = when {
+    id.startsWith("image-") -> imageIds.containsValue(id)
+    id.startsWith("plane-") -> planeIds.containsValue(id)
+    id.startsWith("face-") -> faceIds.containsValue(id)
+    else -> anchors.containsKey(id)
   }
 
   private fun xrLightEstimate(estimate: LightEstimate): XRLightEstimate? {
     if (estimate.state != LightEstimate.State.VALID) return null
-    val mode = session?.config?.lightEstimationMode
-    return if (mode == Config.LightEstimationMode.ENVIRONMENTAL_HDR) {
+    return if (hdrLightActive) {
       val direction = estimate.environmentalHdrMainLightDirection
       XRLightEstimate(
         ambientIntensity = null,
@@ -950,16 +1252,24 @@ class HybridXRView(
     bytesPerPixel: Int,
   ): ArrayBuffer {
     val arrayBuffer = ArrayBuffer.allocate(width * height * bytesPerPixel)
-    val target = arrayBuffer.getBuffer(false).order(ByteOrder.nativeOrder())
+    val target = arrayBuffer.getBuffer(false)
     target.clear()
-    val input = source.duplicate().order(ByteOrder.nativeOrder())
+    val input = source.duplicate()
     val rowBytes = width * bytesPerPixel
     if (pixelStride == bytesPerPixel) {
-      val row = ByteArray(rowBytes)
-      for (y in 0 until height) {
-        input.position(y * rowStride)
-        input.get(row, 0, rowBytes)
-        target.put(row)
+      // Buffer-to-buffer bulk copies (a memcpy for direct buffers), without
+      // staging each row in a heap ByteArray.
+      if (rowStride == rowBytes && input.capacity() >= rowBytes * height) {
+        input.position(0)
+        input.limit(rowBytes * height)
+        target.put(input)
+      } else {
+        for (y in 0 until height) {
+          val start = y * rowStride
+          input.limit(start + rowBytes)
+          input.position(start)
+          target.put(input)
+        }
       }
     } else {
       for (y in 0 until height) {
@@ -972,9 +1282,89 @@ class HybridXRView(
     return arrayBuffer
   }
 
+  private fun xrCameraImage(image: Image, intrinsics: XRCameraIntrinsics): XRCameraImage {
+    check(image.format == ImageFormat.YUV_420_888) { "Unexpected camera image format ${image.format}." }
+    val width = image.width
+    val height = image.height
+    val luma = image.planes[0]
+    return XRCameraImage(
+      timestamp = image.timestamp / 1_000_000_000.0,
+      width = width.toDouble(),
+      height = height.toDouble(),
+      y = copyPlane(luma.buffer, luma.rowStride, luma.pixelStride, width, height, bytesPerPixel = 1),
+      cbcr = interleaveChroma(image.planes[1], image.planes[2], width / 2, height / 2),
+      intrinsics = intrinsics,
+    )
+  }
+
+  /** YUV_420_888 U and V planes (any pixel stride) to interleaved Cb, Cr (NV12 order). */
+  private fun interleaveChroma(u: Image.Plane, v: Image.Plane, width: Int, height: Int): ArrayBuffer {
+    val arrayBuffer = ArrayBuffer.allocate(width * height * 2)
+    val target = arrayBuffer.getBuffer(false)
+    target.clear()
+    val uBuffer = u.buffer.duplicate()
+    val vBuffer = v.buffer.duplicate()
+    val uStride = u.pixelStride
+    val vStride = v.pixelStride
+    val uRow = ByteArray((width - 1) * uStride + 1)
+    val vRow = ByteArray((width - 1) * vStride + 1)
+    val row = ByteArray(width * 2)
+    for (y in 0 until height) {
+      uBuffer.position(y * u.rowStride)
+      uBuffer.get(uRow, 0, uRow.size)
+      vBuffer.position(y * v.rowStride)
+      vBuffer.get(vRow, 0, vRow.size)
+      for (x in 0 until width) {
+        row[2 * x] = uRow[x * uStride]
+        row[2 * x + 1] = vRow[x * vStride]
+      }
+      target.put(row)
+    }
+    return arrayBuffer
+  }
+
   // endregion
 
   // region Conversions
+
+  private fun xrTrackingState(state: TrackingState): XRTrackingState = when (state) {
+    TrackingState.TRACKING -> XRTrackingState.NORMAL
+    TrackingState.PAUSED -> XRTrackingState.LIMITED
+    TrackingState.STOPPED -> XRTrackingState.UNAVAILABLE
+  }
+
+  private fun xrTrackingStateReason(camera: Camera): XRTrackingStateReason {
+    if (camera.trackingState == TrackingState.TRACKING) return XRTrackingStateReason.NONE
+    return when (camera.trackingFailureReason) {
+      // Not tracking yet, and nothing is wrong: ARCore is still initializing.
+      TrackingFailureReason.NONE -> XRTrackingStateReason.INITIALIZING
+      TrackingFailureReason.BAD_STATE -> XRTrackingStateReason.BAD_STATE
+      TrackingFailureReason.INSUFFICIENT_LIGHT -> XRTrackingStateReason.INSUFFICIENT_LIGHT
+      TrackingFailureReason.EXCESSIVE_MOTION -> XRTrackingStateReason.EXCESSIVE_MOTION
+      TrackingFailureReason.INSUFFICIENT_FEATURES -> XRTrackingStateReason.INSUFFICIENT_FEATURES
+      TrackingFailureReason.CAMERA_UNAVAILABLE -> XRTrackingStateReason.CAMERA_UNAVAILABLE
+      else -> XRTrackingStateReason.NONE
+    }
+  }
+
+  private fun xrIntrinsics(intrinsics: CameraIntrinsics): XRCameraIntrinsics {
+    val focalLength = intrinsics.focalLength
+    val principalPoint = intrinsics.principalPoint
+    val dimensions = intrinsics.imageDimensions
+    return XRCameraIntrinsics(
+      fx = focalLength[0].toDouble(),
+      fy = focalLength[1].toDouble(),
+      cx = principalPoint[0].toDouble(),
+      cy = principalPoint[1].toDouble(),
+      imageWidth = dimensions[0].toDouble(),
+      imageHeight = dimensions[1].toDouble(),
+    )
+  }
+
+  /** `XRPose.matrix` is column-major, which is also what OpenGL expects. */
+  private fun poseMatrix(pose: XRPose): FloatArray = FloatArray(16) { pose.matrix[it].toFloat() }
+
+  private fun identityMatrix(): FloatArray = FloatArray(16).also { Matrix.setIdentityM(it, 0) }
 
   private fun planeId(plane: Plane): String {
     return planeIds.getOrPut(plane) { "plane-${nextTrackableId.getAndIncrement()}" }
@@ -1088,9 +1478,9 @@ class HybridXRView(
   private fun drawCameraBackground() {
     GLES20.glDisable(GLES20.GL_DEPTH_TEST)
     GLES20.glUseProgram(shaderProgram)
-    val position = GLES20.glGetAttribLocation(shaderProgram, "a_Position")
-    val texCoord = GLES20.glGetAttribLocation(shaderProgram, "a_TexCoord")
-    val texture = GLES20.glGetUniformLocation(shaderProgram, "sTexture")
+    val position = positionAttribute
+    val texCoord = texCoordAttribute
+    val texture = textureUniform
     quadCoordinates.position(0)
     textureCoordinates.position(0)
     GLES20.glEnableVertexAttribArray(position)
@@ -1117,31 +1507,6 @@ class HybridXRView(
     return textures[0]
   }
 
-  private fun createProgram(vertexSource: String, fragmentSource: String): Int {
-    val vertexShader = compileShader(GLES20.GL_VERTEX_SHADER, vertexSource)
-    val fragmentShader = compileShader(GLES20.GL_FRAGMENT_SHADER, fragmentSource)
-    val program = GLES20.glCreateProgram()
-    GLES20.glAttachShader(program, vertexShader)
-    GLES20.glAttachShader(program, fragmentShader)
-    GLES20.glLinkProgram(program)
-    val status = IntArray(1)
-    GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, status, 0)
-    check(status[0] == GLES20.GL_TRUE) { "XR shader link failed: ${GLES20.glGetProgramInfoLog(program)}" }
-    GLES20.glDeleteShader(vertexShader)
-    GLES20.glDeleteShader(fragmentShader)
-    return program
-  }
-
-  private fun compileShader(type: Int, source: String): Int {
-    val shader = GLES20.glCreateShader(type)
-    GLES20.glShaderSource(shader, source)
-    GLES20.glCompileShader(shader)
-    val status = IntArray(1)
-    GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, status, 0)
-    check(status[0] == GLES20.GL_TRUE) { "XR shader compile failed: ${GLES20.glGetShaderInfoLog(shader)}" }
-    return shader
-  }
-
   // endregion
 
   private data class ConfigKey(
@@ -1150,6 +1515,7 @@ class HybridXRView(
     val depthEnabled: Boolean,
     val lightEstimationEnabled: Boolean,
     val lightEstimationMode: XRLightEstimationMode,
+    val instantPlacement: Boolean,
     val imagesVersion: Int,
   )
 
@@ -1159,11 +1525,53 @@ class HybridXRView(
 
   private class ThrottleEntry(val time: Double, val signature: DoubleArray)
 
+  private class AnchorState(val pose: Pose, val tracking: Boolean) {
+    companion object {
+      fun of(anchor: Anchor) = AnchorState(anchor.pose, anchor.trackingState == TrackingState.TRACKING)
+    }
+  }
+
+  /** The part of a continuous hit test result that decides whether JS hears about it. */
+  private class HitSnapshot(
+    val found: Boolean,
+    val type: XRHitType?,
+    val planeId: String?,
+    val x: Double,
+    val y: Double,
+    val z: Double,
+  ) {
+    /** Found/lost, a different surface, or moved more than 1 cm. */
+    fun differs(other: HitSnapshot): Boolean {
+      if (found != other.found || type != other.type || planeId != other.planeId) return true
+      val dx = x - other.x
+      val dy = y - other.y
+      val dz = z - other.z
+      return sqrt(dx * dx + dy * dy + dz * dz) > 0.01
+    }
+
+    companion object {
+      val NOT_FOUND = HitSnapshot(false, null, null, 0.0, 0.0, 0.0)
+
+      fun of(hit: XRHitResult?): HitSnapshot {
+        if (hit == null) return NOT_FOUND
+        val position = hit.pose.position
+        return HitSnapshot(true, hit.type, hit.planeId, position.x, position.y, position.z)
+      }
+    }
+  }
+
   companion object {
     private const val DEFAULT_TRACKABLE_UPDATE_HZ = 10.0
     private const val RESUME_SETTLE_MS = 1000L
-    private const val MODELS_UNSUPPORTED =
-      "3D models (addModel/removeModel/setModelTransform) are not yet supported on Android."
+    private const val INSTANT_PLACEMENT_DISTANCE_METERS = 1.0f
+    private const val MODEL_NEAR_METERS = 0.01f
+    private const val MODEL_FAR_METERS = 100f
+    private const val FRAME_NOT_READY = "No XR frame is available yet. Start the view and wait for onReady."
+    private const val BODY_UNSUPPORTED =
+      "Body tracking (mode=\"body\") needs ARKit; ARCore has no body tracking."
+    private const val WORLD_MAP_UNSUPPORTED =
+      "World maps (saveWorldMap/loadWorldMap) need ARKit; ARCore has no local world map API."
+    private val IOS_ONLY_MODEL_EXTENSIONS = setOf("usdz", "usd", "usda", "usdc", "scn", "reality")
 
     private const val VERTEX_SHADER = """
       attribute vec4 a_Position;

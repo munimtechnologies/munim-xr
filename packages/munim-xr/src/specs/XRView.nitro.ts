@@ -18,14 +18,34 @@ export type XRPlaneClassification =
   | 'unknown'
 export type XRHitType = 'plane' | 'depth' | 'feature-point' | 'estimated'
 
-/** `world` uses the rear camera; `face` uses the front camera. */
-export type XRSessionMode = 'world' | 'face'
+/**
+ * `world` uses the rear camera; `face` uses the front camera. `body` (iOS
+ * only, A12 or newer) tracks a person's 3D skeleton with the rear camera.
+ */
+export type XRSessionMode = 'world' | 'face' | 'body'
 export type XRLightEstimationMode = 'ambient-intensity' | 'environmental-hdr'
 export type XREnvironmentTexturing = 'none' | 'manual' | 'automatic'
 export type XRSceneReconstruction = 'none' | 'mesh' | 'mesh-with-classification'
 export type XRMeshClassification =
   'none' | 'wall' | 'floor' | 'ceiling' | 'table' | 'seat' | 'window' | 'door'
 export type XRDepthFormat = 'float32-meters' | 'uint16-millimeters'
+/** Why tracking is `limited` (or `unavailable`); `none` while it is `normal`. */
+export type XRTrackingStateReason =
+  | 'none'
+  | 'initializing'
+  | 'relocalizing'
+  | 'excessive-motion'
+  | 'insufficient-features'
+  | 'insufficient-light'
+  | 'camera-unavailable'
+  | 'bad-state'
+/**
+ * iOS world sessions: how much of the surroundings ARKit has mapped. Save a
+ * world map once this is `extending` or `mapped`. Always `not-available` on
+ * Android and in face/body sessions.
+ */
+export type XRWorldMappingStatus =
+  'not-available' | 'limited' | 'extending' | 'mapped'
 
 export interface XRVector3 {
   x: number
@@ -179,8 +199,98 @@ export interface XRDepthFrame {
   depthMeters?: ArrayBuffer
 }
 
+/**
+ * Pinhole intrinsics of the camera image (`getCameraImage()`), in pixels of
+ * that image. Both platforms report them for the sensor's native (landscape)
+ * orientation, not for the view's orientation.
+ */
+export interface XRCameraIntrinsics {
+  fx: number
+  fy: number
+  cx: number
+  cy: number
+  imageWidth: number
+  imageHeight: number
+}
+
+export interface XRCamera {
+  timestamp: number
+  trackingState: XRTrackingState
+  trackingStateReason: XRTrackingStateReason
+  pose: XRPose
+  /** World-to-camera matrix for the view's current orientation, column-major. */
+  viewMatrix: number[]
+  /**
+   * Projection matrix for the view's current size and orientation and the
+   * requested clip planes, column-major (OpenGL clip space). Together with
+   * `viewMatrix` it lets you draw your own content (e.g. with expo-gl / three.js)
+   * aligned with the camera feed.
+   */
+  projectionMatrix: number[]
+  intrinsics: XRCameraIntrinsics
+  worldMappingStatus: XRWorldMappingStatus
+}
+
+/**
+ * One CPU camera frame as 8-bit YUV 4:2:0 (NV12 layout), in the sensor's
+ * native (landscape) orientation. iOS: ARKit's captured image (typically
+ * 1920x1440). Android: ARCore's CPU image (typically 640x480).
+ */
+export interface XRCameraImage {
+  timestamp: number
+  width: number
+  height: number
+  /** Luma, `width * height` bytes, row-major, tightly packed. */
+  y: ArrayBuffer
+  /**
+   * Chroma at half resolution in both axes, interleaved Cb, Cr:
+   * `(width / 2) * (height / 2) * 2` bytes, row-major, tightly packed.
+   */
+  cbcr: ArrayBuffer
+  intrinsics: XRCameraIntrinsics
+}
+
+/**
+ * A hit test the native side repeats on its own (for example under a
+ * placement reticle), so JavaScript is not called every frame. Results arrive
+ * through `onHitTestResult`, at most `maxHz` times per second and only when
+ * they change (moved more than 1 cm, changed surface, or found/lost).
+ */
+export interface XRContinuousHitTest {
+  /** Normalized view coordinate from 0 (left) to 1 (right). */
+  x: number
+  /** Normalized view coordinate from 0 (top) to 1 (bottom). */
+  y: number
+  /** Maximum result rate in Hz. `0` stops the hit test. */
+  maxHz: number
+}
+
+export interface XRBodyJoint {
+  /** ARKit joint name, e.g. `head_joint`, `left_hand_joint`, `root`. */
+  name: string
+  /** Whether ARKit tracks this joint directly (otherwise it is inferred). */
+  tracked: boolean
+  /** Joint position in world space, in meters. */
+  position: XRVector3
+}
+
+export interface XRBody {
+  id: string
+  tracking: boolean
+  /** Pose of the body's root (hip) joint in world space. */
+  pose: XRPose
+  /** Ratio between the person's estimated height and ARKit's default skeleton. */
+  estimatedScaleFactor: number
+  /** All skeleton joints of ARKit's 3D body definition (91 joints). */
+  joints: XRBodyJoint[]
+}
+
 export interface XRModelOptions {
-  /** `file://` path, absolute path, or `http(s)://` URL of a USDZ, SCN, or OBJ file. */
+  /**
+   * `file://` path, absolute path, or `http(s)://` URL. iOS: USDZ, SCN, or
+   * OBJ. Android: OBJ (also `content://` and bundled asset names), drawn with
+   * a neutral lit material.
+   */
   uri: string
   /** Attach the model to this anchor (from `createAnchor` or an image anchor). */
   anchorId?: string
@@ -215,6 +325,20 @@ export interface XRViewProps extends HybridViewProps {
   detectionImages?: XRDetectionImage[]
   /** iOS only (LiDAR). Defaults to `none`. */
   sceneReconstruction?: XRSceneReconstruction
+  /**
+   * iOS only (A12 or newer): hide virtual content behind people in front of
+   * it, using ARKit person segmentation with depth. Defaults to `false`.
+   */
+  peopleOcclusion?: boolean
+  /** Repeats a hit test natively and reports it through `onHitTestResult`. */
+  continuousHitTest?: XRContinuousHitTest
+  /**
+   * Android only (ARCore Instant Placement): when `hitTest()` hits no plane,
+   * depth or feature point, return an `estimated` hit about 1 m away that
+   * ARCore refines later. Defaults to `false`. iOS hit tests already fall
+   * back to estimated planes.
+   */
+  instantPlacement?: boolean
   onReady?: () => void
   onFrame?: (frame: XRFrame) => void
   onTrackingStateChange?: (state: XRTrackingState) => void
@@ -230,6 +354,15 @@ export interface XRViewProps extends HybridViewProps {
   onFaceAdded?: (face: XRFace) => void
   onFaceUpdated?: (face: XRFace) => void
   onFaceRemoved?: (faceId: string) => void
+  /** iOS `mode="body"` only. Rate-limited by `trackableUpdateMaxHz`. */
+  onBodyAdded?: (body: XRBody) => void
+  onBodyUpdated?: (body: XRBody) => void
+  onBodyRemoved?: (bodyId: string) => void
+  /**
+   * Results of `continuousHitTest`, nearest first. An empty array means the
+   * hit test no longer finds a surface.
+   */
+  onHitTestResult?: (hits: XRHitResult[]) => void
   onError?: (message: string) => void
 }
 
@@ -242,12 +375,33 @@ export interface XRViewMethods extends HybridViewMethods {
   removeAnchor(anchorId: string): void
   getAnchors(): XRAnchor[]
   getCameraPose(): XRPose | undefined
+  /**
+   * Camera of the latest frame: pose, view/projection matrices (for the given
+   * clip planes, in meters), intrinsics and tracking details. Rejects before
+   * the first frame.
+   */
+  getCamera(zNear: number, zFar: number): Promise<XRCamera>
+  /** Latest CPU camera image as YUV 4:2:0 `ArrayBuffer`s. */
+  getCameraImage(): Promise<XRCameraImage>
   captureSnapshot(): Promise<string>
   /** Latest depth frame. Rejects when depth is disabled or not yet available. */
   getDepthFrame(): Promise<XRDepthFrame>
   /** iOS only: writes the current LiDAR mesh to an OBJ file and returns its path. */
   exportMesh(): Promise<string>
-  /** iOS only: loads a 3D model into the scene and returns its id. */
+  /**
+   * iOS only (world mode): saves ARKit's current world map, including anchors
+   * from `createAnchor()`, and returns the file path. Wait until
+   * `getCamera().worldMappingStatus` is `extending` or `mapped`.
+   */
+  saveWorldMap(): Promise<string>
+  /**
+   * iOS only (world mode): restarts tracking from a saved world map. Once the
+   * device relocalizes (tracking returns to `normal`), the saved anchors are
+   * back in `getAnchors()` with their original ids. When the view is not
+   * running, the map is used by the next `start()`.
+   */
+  loadWorldMap(path: string): Promise<void>
+  /** Loads a 3D model into the scene and returns its id. */
   addModel(options: XRModelOptions): Promise<string>
   removeModel(modelId: string): void
   setModelTransform(modelId: string, pose: XRPose, scale?: number): void

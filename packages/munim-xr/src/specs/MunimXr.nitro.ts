@@ -15,6 +15,9 @@ export type XRAvailability =
  * - `image-tracking`: `detectionImages`
  * - `environmental-hdr`: main light direction and spherical harmonics
  * - `models`: `addModel()` 3D content rendering
+ * - `body-tracking`: `mode="body"` sessions (iOS only)
+ * - `people-occlusion`: `peopleOcclusion` (iOS only)
+ * - `world-map`: `saveWorldMap()` / `loadWorldMap()` (iOS only)
  */
 export type XRFeature =
   | 'world-tracking'
@@ -26,6 +29,9 @@ export type XRFeature =
   | 'image-tracking'
   | 'environmental-hdr'
   | 'models'
+  | 'body-tracking'
+  | 'people-occlusion'
+  | 'world-map'
 
 export interface MunimXr extends HybridObject<{
   ios: 'swift'

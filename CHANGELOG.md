@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-16
+
 ### Added
 
 - `XRView.getCamera(zNear, zFar)` (iOS and Android): the camera pose, view and projection matrices, intrinsics, the tracking state reason and the world mapping status.
@@ -136,7 +138,8 @@ Self-test, Release builds: iPad Air M3 (iPadOS 27.0.1) 14 pass / 0 fail / 3 skip
 - Runtime support checks and ARCore install/update flow.
 - Expo config plugin, typed example app, native build workflows, and npm provenance publishing.
 
-[Unreleased]: https://github.com/munimtechnologies/munim-xr/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/munimtechnologies/munim-xr/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/munimtechnologies/munim-xr/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/munimtechnologies/munim-xr/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/munimtechnologies/munim-xr/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/munimtechnologies/munim-xr/compare/v0.3.0...v0.3.1

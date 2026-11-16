@@ -15,13 +15,13 @@ concurrency:
 
 jobs:
   package:
-    name: Codegen, lint, typecheck, build, and pack
+    name: Codegen, lint, typecheck, test, build, and pack
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Generate Nitro bindings (nitrogen + post-codegen patches)
@@ -30,6 +30,8 @@ jobs:
         run: git diff --exit-code -- packages/munim-xr/nitrogen/generated
       - run: npm run lint
       - run: npm run typecheck
+      - name: Unit tests (Expo config plugin)
+        run: npm test
       # The example imports munim-xr through its built `lib/` types, so build first.
       - run: npm run build
       - run: npm run typecheck:example

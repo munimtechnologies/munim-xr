@@ -15,6 +15,9 @@
     "depthSmoothing": true,
     "detectionImages": true,
     "sceneReconstruction": true,
+    "peopleOcclusion": true,
+    "continuousHitTest": true,
+    "instantPlacement": true,
     "onReady": true,
     "onFrame": true,
     "onTrackingStateChange": true,
@@ -30,6 +33,10 @@
     "onFaceAdded": true,
     "onFaceUpdated": true,
     "onFaceRemoved": true,
+    "onBodyAdded": true,
+    "onBodyUpdated": true,
+    "onBodyRemoved": true,
+    "onHitTestResult": true,
     "onError": true,
     "hybridRef": true
   }

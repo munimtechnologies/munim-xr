@@ -14,7 +14,7 @@ import java.util.EnumSet
 @DoNotStrip
 class HybridMunimXr : HybridMunimXrSpec() {
   override val platform: String = "arcore"
-  override val sdkVersion: String = "ARCore 1.56.0"
+  override val sdkVersion: String = "ARCore 1.57.0"
 
   override fun isSupported(): Boolean {
     return when (ArCoreApk.getInstance().checkAvailability(applicationContext)) {
@@ -69,7 +69,14 @@ class HybridMunimXr : HybridMunimXrSpec() {
       XRFeature.FACE_TRACKING -> probe(frontCamera = true) { session ->
         configures(session, Config(session).setAugmentedFaceMode(Config.AugmentedFaceMode.MESH3D))
       }
-      XRFeature.SCENE_RECONSTRUCTION, XRFeature.MESH_CLASSIFICATION, XRFeature.MODELS -> false
+      // OBJ models drawn with OpenGL ES over the camera feed.
+      XRFeature.MODELS -> true
+      // iOS-only (LiDAR / ARKit-only APIs); ARCore has no equivalent.
+      XRFeature.SCENE_RECONSTRUCTION,
+      XRFeature.MESH_CLASSIFICATION,
+      XRFeature.BODY_TRACKING,
+      XRFeature.PEOPLE_OCCLUSION,
+      XRFeature.WORLD_MAP -> false
     }
   }
 

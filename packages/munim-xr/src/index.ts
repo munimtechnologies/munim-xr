@@ -13,6 +13,12 @@ import type {
 import type {
   XRAnchor,
   XRBlendShape,
+  XRBody,
+  XRBodyJoint,
+  XRCamera,
+  XRCameraImage,
+  XRCameraIntrinsics,
+  XRContinuousHitTest,
   XRDepthFormat,
   XRDepthFrame,
   XRDetectionImage,
@@ -37,9 +43,11 @@ import type {
   XRSceneReconstruction,
   XRSessionMode,
   XRTrackingState,
+  XRTrackingStateReason,
   XRVector3,
   XRViewMethods,
   XRViewProps,
+  XRWorldMappingStatus,
 } from './specs/XRView.nitro'
 
 const MunimXr = NitroModules.createHybridObject<MunimXrSpec>('MunimXr')
@@ -95,6 +103,12 @@ export type {
   XRAnchor,
   XRAvailability,
   XRBlendShape,
+  XRBody,
+  XRBodyJoint,
+  XRCamera,
+  XRCameraImage,
+  XRCameraIntrinsics,
+  XRContinuousHitTest,
   XRDepthFormat,
   XRDepthFrame,
   XRDetectionImage,
@@ -120,9 +134,11 @@ export type {
   XRSceneReconstruction,
   XRSessionMode,
   XRTrackingState,
+  XRTrackingStateReason,
   XRVector3,
   XRViewMethods,
   XRViewProps,
+  XRWorldMappingStatus,
 }
 
 export default MunimXr

@@ -20,7 +20,7 @@
 
 Native ARKit and ARCore sessions for Expo and React Native, powered by Nitro Modules.
 
-`munim-xr` provides a typed Nitro Hybrid View for world tracking, native camera rendering, plane detection, hit testing, anchors, camera poses, light estimation, image tracking, depth frames, face tracking, and snapshots on iOS and Android, plus LiDAR meshes and SceneKit model placement on iOS.
+`munim-xr` provides a typed Nitro Hybrid View for world tracking, native camera rendering, plane detection, hit testing (including a native continuous hit test for reticles), anchors, camera poses, view/projection matrices and intrinsics, CPU camera images as `ArrayBuffer`s, light estimation, image tracking, depth frames, face tracking, 3D models, and snapshots on iOS and Android, plus body tracking, world maps, people occlusion, and LiDAR meshes on iOS.
 
 ## Install
 
@@ -116,12 +116,12 @@ if (hits?.[0]) {
 ## Requirements
 
 - React Native 0.78+ with the New Architecture
-- `react-native-nitro-modules` 0.36.5+
+- `react-native-nitro-modules` 0.37.2+
 - iOS 15.1+ on an ARKit-capable device
 - Android API 24+ with Google Play Services for AR
 - Expo development build or bare React Native app
 
-Known issues: iOS renders through SceneKit (`ARSCNView`), deprecated by Apple since iOS 26 (a RealityKit migration is on the roadmap), and any Nitro module built with Xcode 27 crashes at launch on iOS 17 and earlier until margelo/nitro#1666 ships. Details and workarounds are in the [Known issues and roadmap](https://github.com/munimtechnologies/munim-xr#known-issues-and-roadmap) section.
+Known issues: iOS renders through SceneKit (`ARSCNView`), deprecated by Apple since iOS 26 (a RealityKit migration is on the roadmap). Details are in the [Known issues and roadmap](https://github.com/munimtechnologies/munim-xr#known-issues-and-roadmap) section.
 
 See the [complete documentation](https://github.com/munimtechnologies/munim-xr#readme) for the platform matrix, API reference, runtime notes, and development instructions.
 

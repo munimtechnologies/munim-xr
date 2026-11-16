@@ -26,7 +26,9 @@ function withMunimXr(config, options = {}) {
 
   config = withAndroidManifest(config, (configWithManifest) => {
     const manifest = configWithManifest.modResults.manifest
-    AndroidConfig.Permissions.addPermission(
+    // ensurePermission (not addPermission) so repeated prebuilds do not
+    // declare the camera permission again.
+    AndroidConfig.Permissions.ensurePermission(
       configWithManifest.modResults,
       'android.permission.CAMERA'
     )

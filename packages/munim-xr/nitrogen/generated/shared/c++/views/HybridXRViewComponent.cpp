@@ -11,6 +11,38 @@
 #include <NitroModules/RawPropsCompat.hpp>
 #include <NitroModules/ReactProp.hpp>
 
+// munim-xr: nullable optional props (scripts/patch-nitro-nullable-props.js)
+// React sends `null` for removed props; Nitro's std::optional converter only
+// accepts `undefined`. Treat `null` as unset instead of throwing.
+#include <NitroModules/JSICache.hpp>
+#include <optional>
+#include <utility>
+
+namespace margelo::nitro::munimxr::views::nullable {
+
+  template <typename T>
+  nitro::ReactProp<std::optional<T>> fromRawValueOrNull(const char* viewName,
+                                                        const char* propName,
+                                                        const facebook::react::RawProps& rawProps,
+                                                        const nitro::ReactProp<std::optional<T>>& previousProp) {
+    const facebook::react::RawValue* rawValue = nitro::RawPropsCompat::at(rawProps, propName);
+    if (rawValue != nullptr) {
+      auto [runtime, value] = static_cast<std::pair<facebook::jsi::Runtime*, facebook::jsi::Value>>(*rawValue);
+      if (value.isNull()) {
+        if (previousProp.isProvided() && !previousProp.get().has_value()) {
+          // Already unset: keep the same entry so the native setter is not called again.
+          return previousProp;
+        }
+        nitro::JSICacheReference cache = nitro::JSICache::getOrCreateCache(*runtime);
+        return nitro::ReactProp<std::optional<T>>(std::optional<T>(std::nullopt),
+                                                  cache.makeShared(facebook::jsi::Value::undefined()));
+      }
+    }
+    return nitro::ReactProp<std::optional<T>>::fromRawValue(viewName, propName, rawProps, previousProp);
+  }
+
+} // namespace margelo::nitro::munimxr::views::nullable
+
 namespace margelo::nitro::munimxr::views {
 
   using namespace facebook;
@@ -25,37 +57,37 @@ namespace margelo::nitro::munimxr::views {
     depthEnabled(nitro::ReactProp<bool>::fromRawValue("XRView", "depthEnabled", rawProps, sourceProps.depthEnabled)),
     lightEstimationEnabled(nitro::ReactProp<bool>::fromRawValue("XRView", "lightEstimationEnabled", rawProps, sourceProps.lightEstimationEnabled)),
     frameCallbackFps(nitro::ReactProp<double>::fromRawValue("XRView", "frameCallbackFps", rawProps, sourceProps.frameCallbackFps)),
-    mode(nitro::ReactProp<std::optional<XRSessionMode>>::fromRawValue("XRView", "mode", rawProps, sourceProps.mode)),
-    trackableUpdateMaxHz(nitro::ReactProp<std::optional<double>>::fromRawValue("XRView", "trackableUpdateMaxHz", rawProps, sourceProps.trackableUpdateMaxHz)),
-    lightEstimationMode(nitro::ReactProp<std::optional<XRLightEstimationMode>>::fromRawValue("XRView", "lightEstimationMode", rawProps, sourceProps.lightEstimationMode)),
-    environmentTexturing(nitro::ReactProp<std::optional<XREnvironmentTexturing>>::fromRawValue("XRView", "environmentTexturing", rawProps, sourceProps.environmentTexturing)),
-    depthSmoothing(nitro::ReactProp<std::optional<bool>>::fromRawValue("XRView", "depthSmoothing", rawProps, sourceProps.depthSmoothing)),
-    detectionImages(nitro::ReactProp<std::optional<std::vector<XRDetectionImage>>>::fromRawValue("XRView", "detectionImages", rawProps, sourceProps.detectionImages)),
-    sceneReconstruction(nitro::ReactProp<std::optional<XRSceneReconstruction>>::fromRawValue("XRView", "sceneReconstruction", rawProps, sourceProps.sceneReconstruction)),
-    peopleOcclusion(nitro::ReactProp<std::optional<bool>>::fromRawValue("XRView", "peopleOcclusion", rawProps, sourceProps.peopleOcclusion)),
-    continuousHitTest(nitro::ReactProp<std::optional<XRContinuousHitTest>>::fromRawValue("XRView", "continuousHitTest", rawProps, sourceProps.continuousHitTest)),
-    instantPlacement(nitro::ReactProp<std::optional<bool>>::fromRawValue("XRView", "instantPlacement", rawProps, sourceProps.instantPlacement)),
-    onReady(nitro::ReactProp<std::optional<std::function<void()>>>::fromRawValue("XRView", "onReady", rawProps, sourceProps.onReady)),
-    onFrame(nitro::ReactProp<std::optional<std::function<void(const XRFrame& /* frame */)>>>::fromRawValue("XRView", "onFrame", rawProps, sourceProps.onFrame)),
-    onTrackingStateChange(nitro::ReactProp<std::optional<std::function<void(XRTrackingState /* state */)>>>::fromRawValue("XRView", "onTrackingStateChange", rawProps, sourceProps.onTrackingStateChange)),
-    onPlaneDetected(nitro::ReactProp<std::optional<std::function<void(const XRPlane& /* plane */)>>>::fromRawValue("XRView", "onPlaneDetected", rawProps, sourceProps.onPlaneDetected)),
-    onPlaneUpdated(nitro::ReactProp<std::optional<std::function<void(const XRPlane& /* plane */)>>>::fromRawValue("XRView", "onPlaneUpdated", rawProps, sourceProps.onPlaneUpdated)),
-    onPlaneRemoved(nitro::ReactProp<std::optional<std::function<void(const std::string& /* planeId */)>>>::fromRawValue("XRView", "onPlaneRemoved", rawProps, sourceProps.onPlaneRemoved)),
-    onImageAnchorAdded(nitro::ReactProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>>::fromRawValue("XRView", "onImageAnchorAdded", rawProps, sourceProps.onImageAnchorAdded)),
-    onImageAnchorUpdated(nitro::ReactProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>>::fromRawValue("XRView", "onImageAnchorUpdated", rawProps, sourceProps.onImageAnchorUpdated)),
-    onImageAnchorRemoved(nitro::ReactProp<std::optional<std::function<void(const XRImageAnchor& /* anchor */)>>>::fromRawValue("XRView", "onImageAnchorRemoved", rawProps, sourceProps.onImageAnchorRemoved)),
-    onMeshAnchorAdded(nitro::ReactProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>>::fromRawValue("XRView", "onMeshAnchorAdded", rawProps, sourceProps.onMeshAnchorAdded)),
-    onMeshAnchorUpdated(nitro::ReactProp<std::optional<std::function<void(const XRMeshAnchor& /* mesh */)>>>::fromRawValue("XRView", "onMeshAnchorUpdated", rawProps, sourceProps.onMeshAnchorUpdated)),
-    onMeshAnchorRemoved(nitro::ReactProp<std::optional<std::function<void(const std::string& /* meshId */)>>>::fromRawValue("XRView", "onMeshAnchorRemoved", rawProps, sourceProps.onMeshAnchorRemoved)),
-    onFaceAdded(nitro::ReactProp<std::optional<std::function<void(const XRFace& /* face */)>>>::fromRawValue("XRView", "onFaceAdded", rawProps, sourceProps.onFaceAdded)),
-    onFaceUpdated(nitro::ReactProp<std::optional<std::function<void(const XRFace& /* face */)>>>::fromRawValue("XRView", "onFaceUpdated", rawProps, sourceProps.onFaceUpdated)),
-    onFaceRemoved(nitro::ReactProp<std::optional<std::function<void(const std::string& /* faceId */)>>>::fromRawValue("XRView", "onFaceRemoved", rawProps, sourceProps.onFaceRemoved)),
-    onBodyAdded(nitro::ReactProp<std::optional<std::function<void(const XRBody& /* body */)>>>::fromRawValue("XRView", "onBodyAdded", rawProps, sourceProps.onBodyAdded)),
-    onBodyUpdated(nitro::ReactProp<std::optional<std::function<void(const XRBody& /* body */)>>>::fromRawValue("XRView", "onBodyUpdated", rawProps, sourceProps.onBodyUpdated)),
-    onBodyRemoved(nitro::ReactProp<std::optional<std::function<void(const std::string& /* bodyId */)>>>::fromRawValue("XRView", "onBodyRemoved", rawProps, sourceProps.onBodyRemoved)),
-    onHitTestResult(nitro::ReactProp<std::optional<std::function<void(const std::vector<XRHitResult>& /* hits */)>>>::fromRawValue("XRView", "onHitTestResult", rawProps, sourceProps.onHitTestResult)),
-    onError(nitro::ReactProp<std::optional<std::function<void(const std::string& /* message */)>>>::fromRawValue("XRView", "onError", rawProps, sourceProps.onError)),
-    hybridRef(nitro::ReactProp<std::optional<std::function<void(const std::shared_ptr<HybridXRViewSpec>& /* ref */)>>>::fromRawValue("XRView", "hybridRef", rawProps, sourceProps.hybridRef)) {
+    mode(nullable::fromRawValueOrNull<XRSessionMode>("XRView", "mode", rawProps, sourceProps.mode)),
+    trackableUpdateMaxHz(nullable::fromRawValueOrNull<double>("XRView", "trackableUpdateMaxHz", rawProps, sourceProps.trackableUpdateMaxHz)),
+    lightEstimationMode(nullable::fromRawValueOrNull<XRLightEstimationMode>("XRView", "lightEstimationMode", rawProps, sourceProps.lightEstimationMode)),
+    environmentTexturing(nullable::fromRawValueOrNull<XREnvironmentTexturing>("XRView", "environmentTexturing", rawProps, sourceProps.environmentTexturing)),
+    depthSmoothing(nullable::fromRawValueOrNull<bool>("XRView", "depthSmoothing", rawProps, sourceProps.depthSmoothing)),
+    detectionImages(nullable::fromRawValueOrNull<std::vector<XRDetectionImage>>("XRView", "detectionImages", rawProps, sourceProps.detectionImages)),
+    sceneReconstruction(nullable::fromRawValueOrNull<XRSceneReconstruction>("XRView", "sceneReconstruction", rawProps, sourceProps.sceneReconstruction)),
+    peopleOcclusion(nullable::fromRawValueOrNull<bool>("XRView", "peopleOcclusion", rawProps, sourceProps.peopleOcclusion)),
+    continuousHitTest(nullable::fromRawValueOrNull<XRContinuousHitTest>("XRView", "continuousHitTest", rawProps, sourceProps.continuousHitTest)),
+    instantPlacement(nullable::fromRawValueOrNull<bool>("XRView", "instantPlacement", rawProps, sourceProps.instantPlacement)),
+    onReady(nullable::fromRawValueOrNull<std::function<void()>>("XRView", "onReady", rawProps, sourceProps.onReady)),
+    onFrame(nullable::fromRawValueOrNull<std::function<void(const XRFrame& /* frame */)>>("XRView", "onFrame", rawProps, sourceProps.onFrame)),
+    onTrackingStateChange(nullable::fromRawValueOrNull<std::function<void(XRTrackingState /* state */)>>("XRView", "onTrackingStateChange", rawProps, sourceProps.onTrackingStateChange)),
+    onPlaneDetected(nullable::fromRawValueOrNull<std::function<void(const XRPlane& /* plane */)>>("XRView", "onPlaneDetected", rawProps, sourceProps.onPlaneDetected)),
+    onPlaneUpdated(nullable::fromRawValueOrNull<std::function<void(const XRPlane& /* plane */)>>("XRView", "onPlaneUpdated", rawProps, sourceProps.onPlaneUpdated)),
+    onPlaneRemoved(nullable::fromRawValueOrNull<std::function<void(const std::string& /* planeId */)>>("XRView", "onPlaneRemoved", rawProps, sourceProps.onPlaneRemoved)),
+    onImageAnchorAdded(nullable::fromRawValueOrNull<std::function<void(const XRImageAnchor& /* anchor */)>>("XRView", "onImageAnchorAdded", rawProps, sourceProps.onImageAnchorAdded)),
+    onImageAnchorUpdated(nullable::fromRawValueOrNull<std::function<void(const XRImageAnchor& /* anchor */)>>("XRView", "onImageAnchorUpdated", rawProps, sourceProps.onImageAnchorUpdated)),
+    onImageAnchorRemoved(nullable::fromRawValueOrNull<std::function<void(const XRImageAnchor& /* anchor */)>>("XRView", "onImageAnchorRemoved", rawProps, sourceProps.onImageAnchorRemoved)),
+    onMeshAnchorAdded(nullable::fromRawValueOrNull<std::function<void(const XRMeshAnchor& /* mesh */)>>("XRView", "onMeshAnchorAdded", rawProps, sourceProps.onMeshAnchorAdded)),
+    onMeshAnchorUpdated(nullable::fromRawValueOrNull<std::function<void(const XRMeshAnchor& /* mesh */)>>("XRView", "onMeshAnchorUpdated", rawProps, sourceProps.onMeshAnchorUpdated)),
+    onMeshAnchorRemoved(nullable::fromRawValueOrNull<std::function<void(const std::string& /* meshId */)>>("XRView", "onMeshAnchorRemoved", rawProps, sourceProps.onMeshAnchorRemoved)),
+    onFaceAdded(nullable::fromRawValueOrNull<std::function<void(const XRFace& /* face */)>>("XRView", "onFaceAdded", rawProps, sourceProps.onFaceAdded)),
+    onFaceUpdated(nullable::fromRawValueOrNull<std::function<void(const XRFace& /* face */)>>("XRView", "onFaceUpdated", rawProps, sourceProps.onFaceUpdated)),
+    onFaceRemoved(nullable::fromRawValueOrNull<std::function<void(const std::string& /* faceId */)>>("XRView", "onFaceRemoved", rawProps, sourceProps.onFaceRemoved)),
+    onBodyAdded(nullable::fromRawValueOrNull<std::function<void(const XRBody& /* body */)>>("XRView", "onBodyAdded", rawProps, sourceProps.onBodyAdded)),
+    onBodyUpdated(nullable::fromRawValueOrNull<std::function<void(const XRBody& /* body */)>>("XRView", "onBodyUpdated", rawProps, sourceProps.onBodyUpdated)),
+    onBodyRemoved(nullable::fromRawValueOrNull<std::function<void(const std::string& /* bodyId */)>>("XRView", "onBodyRemoved", rawProps, sourceProps.onBodyRemoved)),
+    onHitTestResult(nullable::fromRawValueOrNull<std::function<void(const std::vector<XRHitResult>& /* hits */)>>("XRView", "onHitTestResult", rawProps, sourceProps.onHitTestResult)),
+    onError(nullable::fromRawValueOrNull<std::function<void(const std::string& /* message */)>>("XRView", "onError", rawProps, sourceProps.onError)),
+    hybridRef(nullable::fromRawValueOrNull<std::function<void(const std::shared_ptr<HybridXRViewSpec>& /* ref */)>>("XRView", "hybridRef", rawProps, sourceProps.hybridRef)) {
 #ifdef ANDROID
     nitro::RawPropsCompat::initializeDynamicProps(*this, sourceProps, rawProps, filterObjectKeys);
 #endif

@@ -379,6 +379,7 @@ iOS loads models with `SCNScene(url:)` into the existing `ARSCNView` (USDZ, SCN,
 
 - AR support varies by device. Check availability before exposing an AR-only flow.
 - ARCore installation can take the user out of the app. If `requestInstall()` returns `false`, ask them to finish installation and try again.
+- Every optional `XRView` prop, callbacks included, can be removed or passed as `null` or `undefined` (for example `continuousHitTest={enabled ? config : undefined}`); native code then treats it as unset.
 - Frame callbacks cross the native/JavaScript boundary. Keep `frameCallbackFps` as low as your UI permits, and use `continuousHitTest` rather than calling `hitTest()` per frame.
 - Snapshot and mesh-export paths point into temporary app storage (`munim-xr/` under the temporary or cache directory). Only the newest 10 snapshots and 3 mesh exports are kept, so move a file if it must persist.
 - On Android the session pauses when the app goes to the background (releasing the camera) and resumes when it returns, if it was running.
@@ -402,7 +403,7 @@ npm run codegen
 npm run check
 ```
 
-Generated Nitro bindings live under `packages/munim-xr/nitrogen/generated` and are committed. `npm run codegen` runs `nitrogen` and then two patch scripts that fail loudly if the generated code no longer matches what they expect: `patch-nitro-optionals.js` (margelo/nitro#1319, iOS Release builds) and `patch-nitro-double-vectors.js` (Xcode 26 cannot `.map` a `std::vector<double>`). Native implementation files live outside that generated directory. `npm test` runs the Jest unit tests for the Expo config plugin.
+Generated Nitro bindings live under `packages/munim-xr/nitrogen/generated` and are committed. `npm run codegen` runs `nitrogen` and then three patch scripts that fail loudly if the generated code no longer matches what they expect: `patch-nitro-optionals.js` (margelo/nitro#1319, iOS Release builds), `patch-nitro-double-vectors.js` (Xcode 26 cannot `.map` a `std::vector<double>`), and `patch-nitro-nullable-props.js` (React sends `null` for a removed prop, which Nitro's optional converter rejects with a fatal "Value is null" error; the patch treats `null` as unset). Native implementation files live outside that generated directory. `npm test` runs the Jest unit tests for the Expo config plugin.
 
 ### Device self-test
 

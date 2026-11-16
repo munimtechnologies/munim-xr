@@ -159,6 +159,9 @@ export default function App() {
   const [reticleEnabled, setReticleEnabled] = useState(false)
   const [reticleHit, setReticleHit] = useState(false)
   const [peopleOcclusion, setPeopleOcclusion] = useState(false)
+  // Self-test only: render without most optional props (React then sends null).
+  const [stripOptional, setStripOptional] = useState(false)
+  const optional = <T,>(value: T): T | undefined => (stripOptional ? undefined : value)
   const [planeCount, setPlaneCount] = useState(0)
   const [lastFrame, setLastFrame] = useState<XRFrame | null>(null)
   const [logLines, setLogLines] = useState<string[]>([])
@@ -674,6 +677,7 @@ export default function App() {
           if (props.mode !== undefined) setMode(props.mode)
           if (props.depthEnabled !== undefined) setDepthEnabled(props.depthEnabled)
           if (props.reticle !== undefined) setReticleEnabled(props.reticle)
+          if (props.stripOptional !== undefined) setStripOptional(props.stripOptional)
           if (props.environmentTexturing !== undefined) {
             setEnvironmentTexturing(props.environmentTexturing)
           }
@@ -794,19 +798,19 @@ export default function App() {
       >
         <XRView
           depthEnabled={depthEnabled}
-          depthSmoothing={depthEnabled}
-          detectionImages={detectionImages}
-          environmentTexturing={environmentTexturing ? 'automatic' : 'none'}
+          depthSmoothing={optional(depthEnabled)}
+          detectionImages={optional(detectionImages)}
+          environmentTexturing={optional(environmentTexturing ? 'automatic' : 'none')}
           frameCallbackFps={6}
           hybridRef={hybridRef}
           lightEstimationEnabled
-          lightEstimationMode={hdr ? 'environmental-hdr' : 'ambient-intensity'}
-          mode={mode}
+          lightEstimationMode={optional(hdr ? 'environmental-hdr' : 'ambient-intensity')}
+          mode={optional(mode)}
           continuousHitTest={reticleEnabled ? RETICLE : undefined}
-          instantPlacement
-          onBodyAdded={onBodyAdded}
-          onBodyRemoved={onBodyRemoved}
-          onBodyUpdated={onBodyUpdated}
+          instantPlacement={optional(true)}
+          onBodyAdded={optional(onBodyAdded)}
+          onBodyRemoved={optional(onBodyRemoved)}
+          onBodyUpdated={optional(onBodyUpdated)}
           onError={onError}
           onFaceAdded={onFaceAdded}
           onFaceRemoved={onFaceRemoved}
@@ -816,21 +820,21 @@ export default function App() {
           onImageAnchorAdded={onImageAnchorAdded}
           onImageAnchorRemoved={onImageAnchorRemoved}
           onImageAnchorUpdated={onImageAnchorUpdated}
-          onMeshAnchorAdded={onMeshAnchorAdded}
-          onMeshAnchorRemoved={onMeshAnchorRemoved}
-          onMeshAnchorUpdated={onMeshAnchorUpdated}
+          onMeshAnchorAdded={optional(onMeshAnchorAdded)}
+          onMeshAnchorRemoved={optional(onMeshAnchorRemoved)}
+          onMeshAnchorUpdated={optional(onMeshAnchorUpdated)}
           onPlaneDetected={onPlaneDetected}
           onPlaneRemoved={onPlaneRemoved}
           onPlaneUpdated={onPlaneUpdated}
           onReady={onReady}
           onTrackingStateChange={onTrackingStateChange}
-          peopleOcclusion={peopleOcclusion}
+          peopleOcclusion={optional(peopleOcclusion)}
           planeDetection="both"
-          sceneReconstruction={meshEnabled ? 'mesh-with-classification' : 'none'}
+          sceneReconstruction={optional(meshEnabled ? 'mesh-with-classification' : 'none')}
           accessibilityLabel="Munim XR camera view"
           style={[StyleSheet.absoluteFill, selfTesting && styles.selfTestView]}
           testID="munim-xr-view"
-          trackableUpdateMaxHz={UPDATE_HZ}
+          trackableUpdateMaxHz={optional(UPDATE_HZ)}
         />
 
         <View pointerEvents="none" style={styles.header}>

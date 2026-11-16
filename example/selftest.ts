@@ -59,6 +59,11 @@ export interface SelfTestProps {
   environmentTexturing: boolean
   /** Continuous hit test at the centre, 10 Hz. */
   reticle: boolean
+  /**
+   * Re-render the XRView without most optional props (values and callbacks),
+   * so React sends `null` for each removed prop.
+   */
+  stripOptional: boolean
 }
 
 export interface SelfTestHost {
@@ -193,6 +198,7 @@ export async function runSelfTest(host: SelfTestHost): Promise<SelfTestReport> {
     depthEnabled: false,
     environmentTexturing: false,
     reticle: false,
+    stripOptional: false,
   })
 
   record('module.isSupported', isSupported() ? 'pass' : 'fail', {
@@ -315,13 +321,54 @@ export async function runSelfTest(host: SelfTestHost): Promise<SelfTestReport> {
     await host.setProps({ reticle: false })
     if (!delivered) {
       record('hitTest.continuous', planesFound ? 'fail' : 'skip', 'no surface at the centre')
-      return
+    } else {
+      // At most 10 Hz, and only on change: never more than ~20 in 2 s.
+      record('hitTest.continuous', results <= 22 ? 'pass' : 'fail', {
+        resultsIn2s: results,
+        framesIn2s: frames,
+        lastHitCount: events.lastHitCount,
+      })
     }
-    // At most 10 Hz, and only on change: never more than ~20 in 2 s.
-    record('hitTest.continuous', results <= 22 ? 'pass' : 'fail', {
-      resultsIn2s: results,
-      framesIn2s: frames,
-      lastHitCount: events.lastHitCount,
+  })
+
+  // on -> off -> on: removing the prop makes React send `null` (this crashed
+  // munim-xr before patch-nitro-nullable-props.js).
+  await attempt('hitTest.continuous.toggle', async () => {
+    const errorsBefore = events.errors.length
+    await host.setProps({ reticle: true })
+    await sleep(800)
+    await host.setProps({ reticle: false })
+    await sleep(800)
+    const before = events.hitResults
+    const framesBefore = events.frames
+    await host.setProps({ reticle: true })
+    const resumed = await waitFor(() => events.hitResults > before, 4000)
+    await host.setProps({ reticle: false })
+    await sleep(500)
+    const framesAfter = events.frames - framesBefore
+    const errors = events.errors.slice(errorsBefore)
+    const alive = framesAfter > 0 && errors.length === 0
+    record(
+      'hitTest.continuous.toggle',
+      !alive ? 'fail' : resumed || !planesFound ? 'pass' : 'fail',
+      { resumedAfterReEnable: resumed, frames: framesAfter, errors }
+    )
+  })
+
+  // Every optional prop removed at once (values, arrays, callbacks), then restored.
+  await attempt('props.unset', async () => {
+    const errorsBefore = events.errors.length
+    await host.setProps({ stripOptional: true })
+    let framesBefore = events.frames
+    const framesWhileStripped = await waitFor(() => events.frames - framesBefore >= 3, 4000)
+    await host.setProps({ stripOptional: false })
+    framesBefore = events.frames
+    const framesRestored = await waitFor(() => events.frames - framesBefore >= 3, 4000)
+    const errors = events.errors.slice(errorsBefore)
+    record('props.unset', framesWhileStripped && framesRestored && errors.length === 0 ? 'pass' : 'fail', {
+      framesWhileStripped,
+      framesRestored,
+      errors,
     })
   })
 
